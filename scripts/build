@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+git_version
+
+function build () {
+	local TOOL=$1
+	pushd "$ROOT/$TOOL" > /dev/null
+	go install \
+		-ldflags " \
+			-X '$MODULE/version.GitVersion=$VERSION' \
+			-X '$MODULE/version.GitRevision=$REVISION' \
+			-X '$MODULE/version.Timestamp=$TIMESTAMP'"
+	popd > /dev/null
+	m "built $GOPATH/bin/$TOOL"
+}
+
+build turandot-operator
+build turandot

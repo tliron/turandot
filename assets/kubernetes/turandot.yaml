@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: ServiceAccount
+
+metadata:
+  name: turandot
+  namespace: !!string $NAMESPACE
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+
+metadata:
+  name: turandot
+  namespace: !!string $NAMESPACE
+
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+
+metadata:
+  name: turandot
+  namespace: !!string $NAMESPACE
+
+subjects:
+- kind: ServiceAccount
+  name: turandot
+  namespace: !!string $NAMESPACE # required
+
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: turandot # must be in our namespace
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: turandot-operator
+  namespace: !!string $NAMESPACE
+  labels:
+    app.kubernetes.io/name: turandot-operator
+    app.kubernetes.io/instance: turandot-operator-$NAMESPACE
+    app.kubernetes.io/version: !!string $VERSION
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/part-of: turandot
+    app.kubernetes.io/managed-by: turandot
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: turandot-operator
+      app.kubernetes.io/instance: turandot-operator-$NAMESPACE
+      app.kubernetes.io/version: !!string $VERSION
+      app.kubernetes.io/component: operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: turandot-operator
+        app.kubernetes.io/instance: turandot-operator-$NAMESPACE
+        app.kubernetes.io/version: !!string $VERSION
+        app.kubernetes.io/component: operator
+        app.kubernetes.io/part-of: turandot
+        app.kubernetes.io/managed-by: turandot
+    spec:
+      serviceAccountName: turandot # must be in our namespace
+      containers:
+      - name: operator
+        image: $REGISTRY_URL/tliron/turandot-operator:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: cache
+          mountPath: /cache
+        env:
+        # Vars with the "TURANDOT_OPERATOR_" prefix become CLI flags 
+        - name: TURANDOT_OPERATOR_site
+          value: default
+        - name: TURANDOT_OPERATOR_cache
+          value: /cache
+        - name: TURANDOT_OPERATOR_verbose
+          value: '1'
+        # To enable cluster mode we also need: cluster-mode-authorization.yaml
+        #- name: TURANDOT_OPERATOR_cluster
+        #  value: 'true'
+        livenessProbe:
+          httpGet:
+            port: 8086
+            path: /live
+        readinessProbe:
+          httpGet:
+            port: 8086
+            path: /ready
+      volumes:
+      - name: cache
+        emptyDir: {}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: turandot-inventory
+  namespace: !!string $NAMESPACE
+  labels:
+    app.kubernetes.io/name: turandot-inventory
+    app.kubernetes.io/instance: turandot-operator-$NAMESPACE
+    app.kubernetes.io/version: !!string $VERSION
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/part-of: turandot
+    app.kubernetes.io/managed-by: turandot
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: turandot-inventory
+      app.kubernetes.io/instance: turandot-inventory-$NAMESPACE
+      app.kubernetes.io/version: !!string $VERSION
+      app.kubernetes.io/component: inventory
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: turandot-inventory
+        app.kubernetes.io/instance: turandot-inventory-$NAMESPACE
+        app.kubernetes.io/version: !!string $VERSION
+        app.kubernetes.io/component: inventory
+        app.kubernetes.io/part-of: turandot
+        app.kubernetes.io/managed-by: turandot
+    spec:
+      containers:
+      - name: registry
+        image: $REGISTRY_URL/library/registry:latest
+        env:
+        # necessary!
+        - name: REGISTRY_STORAGE_DELETE_ENABLED
+          value: 'true'
+        livenessProbe:
+          httpGet:
+            port: 5000
+        readinessProbe:
+          httpGet:
+            port: 5000
+      - name: spooler
+        image: $REGISTRY_URL/tliron/kubernetes-registry-spooler:latest
+        volumeMounts:
+        - name: spool
+          mountPath: /spool
+        env:
+        # Vars with the "REGISTRY_SPOOLER_" prefix become CLI flags 
+        - name: REGISTRY_SPOOLER_directory
+          value: /spool
+        - name: REGISTRY_SPOOLER_registry
+          value: localhost:5000
+        - name: REGISTRY_SPOOLER_verbose
+          value: '2'
+        # A future version of Kubernetes may allow for this:
+        # lifecycle:
+        #   type: sidecar
+        # See: https://github.com/kubernetes/enhancements/blob/master/keps/sig-apps/sidecarcontainers.md
+        #      https://banzaicloud.com/blog/k8s-sidecars/
+        livenessProbe:
+          httpGet:
+            port: 8086
+            path: /live
+        readinessProbe:
+          httpGet:
+            port: 8086
+            path: /ready
+      volumes:
+      - name: spool
+        emptyDir: {}

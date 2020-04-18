@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+FROM=$1
+TO=$2
+
+if [ -z "$TO" ]; then
+	TO=$(basename "$FROM")
+elif [ -d "$TO" ]; then
+	TO=$TO/$(basename "$FROM")
+elif [ "${TO: -1}" == / ]; then
+	mkdir --parents "$TO"
+	TO=$TO$(basename "$FROM")
+fi
+
+POD=$(kubectl_first_pod puccini-kubernetes-operator)
+
+kubectl cp "$POD:$FROM" "$TO" --namespace="$WORKSPACE"

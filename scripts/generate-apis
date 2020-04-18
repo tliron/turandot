@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+go get -d k8s.io/code-generator@v0.18.0
+CODE_GENERATOR=$(go list -f '{{.Dir}}' -m k8s.io/code-generator@v0.18.0)
+
+chmod +x "$CODE_GENERATOR/generate-groups.sh"
+
+WORK=$(mktemp --directory)
+
+m "work directory: $WORK"
+
+copy_function goodbye old_goodbye
+function goodbye () {
+	m "deleting work directory: $WORK"
+	rm --recursive "$WORK"
+	old_goodbye $1
+}
+
+GOPATH=$GOPATH \
+"$CODE_GENERATOR/generate-groups.sh" \
+	all \
+	github.com/tliron/turandot/apis \
+	github.com/tliron/turandot/resources \
+	turandot.puccini.cloud:v1alpha1 \
+	--go-header-file "$HERE/header.go.txt" \
+	--output-base "$WORK"
+
+if [ "$1" == -c ]; then
+	rm --recursive --force "$ROOT/apis"
+fi
+
+cp --recursive \
+	"$WORK/github.com/tliron/turandot/"* \
+	"$ROOT/"

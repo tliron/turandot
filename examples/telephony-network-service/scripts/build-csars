@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+mkdir --parents "$ROOT/dist"
+
+function build () {
+	local ARCHIVE=$1
+	local WORK=$(mktemp --directory)
+
+	pushd "$HERE/.." > /dev/null
+	rsync --recursive --relative "${@:2}" "$WORK/"
+	popd > /dev/null
+
+	pushd "$ROOT/assets/tosca" > /dev/null
+	rsync --recursive --relative profiles "$WORK/"
+	popd > /dev/null
+
+	puccini-csar "$ROOT/dist/$ARCHIVE.csar" "$WORK"
+
+	rm --recursive --force "$WORK"
+
+	m "built $ROOT/dist/$ARCHIVE.csar"
+}
+
+build telephony-network-service \
+	telephony-network-service.yaml \
+	profiles
+
+build asterisk-cnf \
+	asterisk-cnf.yaml \
+	profiles \
+	artifacts/scripts \
+	artifacts/images/asterisk-cnf.tar.gz
+
+build asterisk-vnf \
+	asterisk-vnf.yaml \
+	profiles \
+	artifacts/scripts \
+	artifacts/keypairs \
+	artifacts/cloud-config \
+	artifacts/images/asterisk-vnf.tar.gz
+
+build simple-data-plane \
+	simple-data-plane.yaml \
+	profiles

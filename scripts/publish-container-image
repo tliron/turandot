@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+# kubectl -n kube-system get svc registry -o jsonpath='{.spec.clusterIP}'
+
+function push () {
+	local EXECUTABLE=$1
+	local IMAGE=$EXECUTABLE
+	local LOCAL=localhost/$IMAGE
+	local REMOTE=docker://docker.io/tliron/$IMAGE
+	#local REMOTE=docker://$(minikube ip):5000/tliron/$IMAGE
+
+	skopeo delete --tls-verify=false "$REMOTE" || true
+	buildah push --tls-verify=false "$LOCAL" "$REMOTE"
+}
+
+push turandot-operator
+
+#POD=$EXECUTABLE
+#kubectl delete pods "$POD" || true
+#kubectl run --generator=run-pod/v1 "$POD" --image="$INTERNAL"
+
+#skopeo inspect docker://$(minikube ip):5000/hi --tls-verify=false

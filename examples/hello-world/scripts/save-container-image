@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+# See: https://github.com/paulbouwer/hello-kubernetes
+
+IMAGE=docker.io/paulbouwer/hello-kubernetes:1.8
+IMAGES=$(readlink --canonicalize "$HERE/../artifacts/images")
+
+mkdir --parents "$IMAGES"
+
+podman pull "$IMAGE"
+"$ROOT/scripts/save-portable-container-image" "$IMAGE" "$IMAGES/hello-world.tar.gz"

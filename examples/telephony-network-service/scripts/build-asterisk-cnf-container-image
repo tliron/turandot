@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+BASE_IMAGE=fedora
+IMAGE=asterisk-cnf
+LOCAL=localhost/$IMAGE
+
+CONTAINER_ID=$(buildah from "$BASE_IMAGE")
+
+function r () {
+	buildah run "$CONTAINER_ID" -- "$@"
+}
+
+m 'installing asterisk packages...'
+r dnf --assumeyes install asterisk asterisk-pjsip asterisk-sounds-core-en asterisk-sounds-core-en-ulaw gettext
+r dnf --assumeyes clean all
+
+buildah config \
+	--entrypoint '/usr/sbin/asterisk -f -U asterisk -G asterisk -vvvg' \
+	--author Turandot \
+	--created-by buildah \
+	"$CONTAINER_ID"
+
+buildah commit "$CONTAINER_ID" "$LOCAL"

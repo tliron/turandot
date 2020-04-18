@@ -1,0 +1,53 @@
+
+builds:
+
+- id: turandot
+  main: ./turandot
+  binary: turandot
+  goarch:
+  - amd64
+  goos:
+  - linux
+  - darwin
+  - windows
+  ldflags:
+  - -X 'github.com/tliron/turandot/version.GitVersion={{.Env.VERSION}}'
+  - -X 'github.com/tliron/turandot/version.GitRevision={{.Env.REVISION}}'
+  - -X 'github.com/tliron/turandot/version.Timestamp={{.Env.TIMESTAMP}}'
+
+nfpms:
+
+- formats:
+  - rpm
+  - deb
+  homepage: https://github.com/tliron/turandot
+  maintainer: Tal Liron <tal.liron@gmail.com>
+  description: Compose and orchestrate Kubernetes workloads using TOSCA.
+  license: Apache 2.0
+
+archives:
+
+- files:
+  - README.md
+  - LICENSE
+  - NOTICE
+  - assets/kubernetes/**/*
+  - assets/tosca/**/*
+  - examples/**/*
+
+  format_overrides:
+  - goos: windows
+    format: zip
+
+checksum:
+
+  name_template: checksums.txt
+
+release:
+
+  #disable: true
+  #prerelease: true
+
+  github:
+    owner: tliron
+    name: puccini

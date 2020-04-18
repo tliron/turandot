@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+POD=$(kubectl_first_pod puccini-kubernetes-operator)
+kubectl logs "$POD" --namespace="$WORKSPACE" "$@"

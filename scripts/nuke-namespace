@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+# https://medium.com/@clouddev.guru/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
+
+NAMESPACE=$1
+
+kubectl get namespaces "$WORKSPACE" --output=json | \
+jq .spec.finalizers=[] | \
+kubectl replace --raw="/api/v1/namespaces/$WORKSPACE/finalize" -f -

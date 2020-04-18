@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+"$HERE/build"
+
+# -count=1 is the idiomatic way to disable test caching
+
+m 'testing...'
+
+#ROOT=$ROOT \
+#go test -count=1 github.com/tliron/puccini/puccini-tosca "$@"

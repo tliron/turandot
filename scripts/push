@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+FROM=$1
+TO=$2
+
+POD=$(kubectl_first_pod puccini-kubernetes-operator)
+
+kubectl cp "$FROM" "$POD:$TO" --namespace="$WORKSPACE"

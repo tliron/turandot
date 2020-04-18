@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+# Requirements:
+#   sudo dnf install podman jq pigz
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+if (( "$#" < 2 )); then
+	echo 'usage: save-portable-container-image [IMAGE NAME] [FILE PATH]'
+	exit 1
+fi
+
+IMAGE=$1
+FILE=$2
+
+EXTENSION=${FILE#*.}
+if [ "$EXTENSION" != tar.gz ]; then
+	m 'file extension must be tar.gz' "$RED"
+	exit 1
+fi
+
+WORK=$(mktemp --directory)
+
+copy_function goodbye old_goodbye
+function goodbye () {
+	rm --recursive --force "$WORK"
+	old_goodbye $1
+}
+
+# Save
+m "saving $IMAGE..."
+podman save "$IMAGE" --output "$WORK/image.tar"
+
+# Unpack
+m "unpacking..."
+mkdir --parents "$WORK/image"
+tar --extract --file="$WORK/image.tar" --directory="$WORK/image"
+
+# Fix
+cat "$WORK/image/manifest.json" | jq '.[].RepoTags += ["portable"]' > "$WORK/image/manifest.json~" 
+mv --force "$WORK/image/manifest.json~" "$WORK/image/manifest.json"
+
+# Repack
+m "repacking to $FILE..."
+pushd "$WORK/image" > /dev/null
+tar --create --use-compress-program=pigz --file="$FILE" *
+popd > /dev/null

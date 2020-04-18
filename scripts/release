@@ -1,0 +1,46 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+"$HERE/build"
+
+curl --silent --fail --location https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | \
+sh -s -- -b "$GOPATH/bin"
+#go get github.com/goreleaser/goreleaser
+
+# Uses the current tag for the release version
+# (So you likely want to tag before running this)
+
+WORK=$(mktemp --directory)
+
+function the_end () {
+	local ERR=$?
+	rm --recursive --force "$WORK"
+	exit $ERR
+}
+
+trap the_end EXIT
+
+# Create a clean copy of our repo
+rsync --recursive "$ROOT/" "$WORK"
+cd "$WORK"
+git clean -xdf
+find . -type f -name .gitignore -exec rm {} \;
+
+git_version
+
+ARGS=
+if [ "$1" == -t ]; then
+	ARGS='--snapshot --skip-publish'
+fi
+
+VERSION=$VERSION REVISION=$REVISION TIMESTAMP=$TIMESTAMP \
+"$GOPATH/bin/goreleaser" \
+	--parallelism=$(nproc) \
+	--skip-validate $ARGS
+
+# Copy releases back here
+rm --recursive --force "$ROOT/dist/release"
+rsync --recursive "$WORK/dist/" "$ROOT/dist/release"

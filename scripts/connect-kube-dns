@@ -1,0 +1,58 @@
+#!/bin/bash
+set -e
+
+# Do we really need a new service?
+# Unfortunately, yes: port-forward will only work with TCP, but we need UDP for proper DNS support
+#kubectl port-forward service/kube-dns --namespace=kube-system 5353:53
+
+echo 'exposing kube-dns...'
+cat <<- EOT | kubectl apply -f -
+	kind: Service
+	apiVersion: v1
+
+	metadata:
+	  name: kube-dns-external
+	  namespace: kube-system
+	  labels:
+	    k8s-app: kube-dns
+
+	spec:
+	  type: LoadBalancer
+	  selector:
+	    k8s-app: kube-dns
+	  ports:
+	  - name: dns
+	    protocol: UDP
+	    port: 53
+	    targetPort: 53
+EOT
+
+echo 'waiting for kube-dns-external IP...'
+while [ -z "$IP" ]; do
+	IP=$(kubectl get services kube-dns-external --namespace=kube-system --output=jsonpath={.status.loadBalancer.ingress[0].ip})
+	sleep 1
+done
+
+echo $IP
+
+echo 'enabling dnsmasq plugin for NetworkManager...'
+cat <<- EOT | sudo tee /etc/NetworkManager/conf.d/00-dnsmasq.conf > /dev/null
+	[main]
+	dns=dnsmasq
+EOT
+
+# http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html
+cat <<- EOT | sudo tee /etc/NetworkManager/dnsmasq.d/minikube.conf > /dev/null
+	server=/cluster.local/$IP
+	addn-hosts=/etc/hosts
+EOT
+
+sudo systemctl reload NetworkManager.service
+
+# If we were trying to use localhost#5353 (in the port-forward situation) we would also need to
+# change SELinux permissions:
+#semanage permissive --add dnsmasq_t
+
+# test
+#dig @127.0.0.1 a asterisk-vnf-tcp.workspace.svc.cluster.local
+#host asterisk-vnf-tcp.workspace.svc.cluster.local

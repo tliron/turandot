@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+minikube profile edge
+
+"$HERE/../../telephony-network-service/multus/deploy"
+
+minikube profile central
+
+"$HERE/../../telephony-network-service/multus/deploy"
+"$HERE/../../telephony-network-service/kubevirt/deploy"

@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+export VERSION=1.0
+
+m "deleting operator from namespace \"$WORKSPACE\"..."
+
+kubectl_delete_template "$ROOT/assets/hello-world.yaml"
+kubectl_delete_template "$ROOT/assets/turandot.yaml"
+kubectl_delete_template "$ROOT/assets/cluster-mode-authorization.yaml"
+kubectl_delete_template "$ROOT/assets/namespace.yaml"
+kubectl_delete_template "$ROOT/assets/custom-resource-definitions.yaml"

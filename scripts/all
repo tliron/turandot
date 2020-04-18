@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+"$HERE/build-container-image"
+"$HERE/publish-container-image"
+"$HERE/deploy-operator" -c
+"$HERE/logs" -f

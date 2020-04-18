@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+function register () {
+	local NAME=$1
+	turandot template register "$NAME" --file="$ROOT/dist/$NAME.csar" --namespace=workspace
+}
+
+register telephony-network-service
+register asterisk-cnf
+register asterisk-vnf
+register simple-data-plane

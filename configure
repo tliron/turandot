@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/scripts/_env"
+. "$ROOT/scripts/_trap"
+
+cd "$HERE/../telephony-network-service"
+
+minikube profile central
+
+EXTERNAL_IP=$(kubectl_external_ip asterisk-vnf-tcp)
+IP=$EXTERNAL_IP \
+ssh/update
+
+data-plane/configure
+asterisk/vnf/configure
+asterisk/cnf/configure
+
+minikube profile central

@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+"$HERE/build"
+
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/building_running_and_managing_containers/using_red_hat_universal_base_images_standard_minimal_and_runtimes
+
+function build () {
+	local EXECUTABLE=$1
+	local IMAGE=$EXECUTABLE
+	local LOCAL=localhost/$IMAGE
+	local BASE_IMAGE=registry.access.redhat.com/ubi8/ubi
+	# ubi-minimal does not have "tar" which is needed for kubectl cp
+
+	local CONTAINER_ID=$(buildah from "$BASE_IMAGE")
+	buildah add "$CONTAINER_ID" "$GOPATH/bin/$EXECUTABLE" /usr/bin/
+	buildah config --entrypoint "/usr/bin/$EXECUTABLE" "$CONTAINER_ID"
+	buildah commit "$CONTAINER_ID" "$LOCAL"
+}
+
+build turandot-operator

@@ -1,0 +1,90 @@
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
+
+# Colored messages (blue is the default)
+# Examples:
+#   m "hello world"
+#   m "hello world" "$GREEN"
+function m () {
+	local COLOR=${2:-$BLUE}
+	echo -e "$COLOR$1$RESET"
+}
+
+function copy_function () {
+	local ORIG_FUNC=$(declare -f $1)
+	local NEWNAME_FUNC="$2${ORIG_FUNC#$1}"
+	eval "$NEWNAME_FUNC"
+}
+
+# git
+
+function git_version () {
+	VERSION=$(git -C "$ROOT" describe --tags --always)
+	REVISION=$(git -C "$ROOT" rev-parse HEAD)
+	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S %Z")
+}
+
+# kubectl
+
+function kubectl_apply_template () {
+	cat "$1" | NAMESPACE=$WORKSPACE envsubst | kubectl apply -f -
+}
+
+function kubectl_delete_template () {
+	cat "$1" | NAMESPACE=$WORKSPACE envsubst | kubectl delete -f - || true
+}
+
+function kubectl_first_pod () {
+	local NAME=$1
+	kubectl get pods --selector="app.kubernetes.io/name=$NAME" --field-selector=status.phase=Running --namespace="$WORKSPACE" \
+		--output=jsonpath={.items[0].metadata.name}
+}
+
+function kubectl_wait_for_deployment () {
+	local NAME=$1
+	kubectl wait "deployments/$NAME" --namespace="$WORKSPACE" \
+		--for=condition=available
+	kubectl_wait_for_pod "$NAME"
+}
+
+function kubectl_wait_for_pod () {
+	local NAME=$1
+	local POD=$(kubectl_first_pod "$NAME")
+	kubectl wait "pods/$POD" --namespace="$WORKSPACE" \
+		--for=condition=ready
+}
+
+function kubectl_cluster_ip () {
+	local NAME=$1
+	kubectl get services "$NAME" --namespace="$WORKSPACE" \
+		--output=jsonpath={.spec.clusterIP}
+}
+
+function kubectl_external_ip () {
+	local NAME=$1
+	kubectl get services "$NAME" --namespace="$WORKSPACE" \
+		--output=jsonpath={.status.loadBalancer.ingress[0].ip}
+}
+
+function kubectl_control_plane_ip () {
+	local NAME=$1
+	local POD=$(kubectl_first_pod "$NAME")
+	kubectl get pods "$POD" --namespace="$WORKSPACE" \
+		--output=jsonpath={.status.podIP}
+}
+
+function kubectl_data_plane_ip () {
+	local NAME=$1
+	local POD=$(kubectl_first_pod "$NAME")
+	kubectl get pods "$POD" --namespace="$WORKSPACE" \
+		--output=jsonpath="{.metadata.annotations['k8s\.v1\.cni\.cncf\.io/networks-status']}" |
+	jq --raw-output .[1].ips[0]
+}
+
+function kubectl_registry_url () {
+	echo $(kubectl get services registry --namespace=kube-system --output=jsonpath={.spec.clusterIP}):80
+}

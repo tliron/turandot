@@ -1,0 +1,44 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+minikube profile edge
+turandot uninstall -n workspace
+minikube profile central
+turandot uninstall -n workspace
+
+if [ "$1" == -b ]; then
+	"$HERE/build-container-image"
+	#minikube profile edge
+	#"$HERE/publish-container-image"
+	#minikube profile central
+	"$HERE/publish-container-image"
+else
+	sleep 10
+fi
+
+turandot install -s central -n workspace -w -v
+kubectl config set-context --current --namespace=workspace
+
+sleep 20
+
+turandot service deploy hello-world -f dist/hello-world.csar -v
+
+turandot delegate set edge --delegate-context=edge
+
+turandot template register telephony-network-service -f dist/telephony-network-service.csar -v
+turandot template register simple-data-plane -f dist/simple-data-plane.csar -v
+turandot template register asterisk-cnf -f dist/asterisk-cnf.csar -v
+turandot template register asterisk-vnf -f dist/asterisk-vnf.csar -v
+
+turandot service deploy telephony-network-service -t telephony-network-service -v
+#turandot service deploy simple-data-plane -t simple-data-plane -v
+#turandot service deploy asterisk-cnf -t asterisk-cnf -v
+#turandot service deploy asterisk-vnf -t asterisk-vnf -v
+
+echo Done!
+
+# Clean ~/.local/share/containers/ occassionally!

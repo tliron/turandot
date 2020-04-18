@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+
+# For virt-customize:
+#   dnf install libguestfs-tools-c
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+BASE_IMAGE=scratch
+DISK_NAME=Fedora-Cloud-Base-31-1.9.x86_64.qcow2
+URL=https://download.fedoraproject.org/pub/fedora/linux/releases/31/Cloud/x86_64/images/$DISK_NAME
+DISK=$TMPDIR/$DISK_NAME
+IMAGE=asterisk-vnf
+LOCAL=localhost/$IMAGE
+
+m 'downloading base disk...'
+rm --force "$DISK"
+wget --quiet --show-progress --output-document="$DISK" "$URL"
+
+m 'installing asterisk packages...'
+virt-customize \
+	--add "$DISK" \
+	--selinux-relabel \
+	--install asterisk,asterisk-pjsip,asterisk-sounds-core-en,asterisk-sounds-core-en-ulaw,tcpdump,grc
+
+CONTAINER_ID=$(buildah from "$BASE_IMAGE")
+
+buildah add "$CONTAINER_ID" "$DISK" "/disk/$DISK_NAME"
+
+buildah config \
+	--author Turandot \
+	--created-by buildah \
+	"$CONTAINER_ID"
+
+buildah commit "$CONTAINER_ID" "$LOCAL"

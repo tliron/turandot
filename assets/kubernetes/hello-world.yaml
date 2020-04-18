@@ -1,0 +1,22 @@
+
+apiVersion: turandot.puccini.cloud/v1alpha1
+kind: Service
+
+metadata:
+  name: hello-world
+  namespace: !!string $NAMESPACE
+
+  labels:
+    app.kubernetes.io/name: hello-world-service
+    app.kubernetes.io/instance: hello-world-service-$NAMESPACE
+    app.kubernetes.io/version: !!string $VERSION
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: hello-world
+    app.kubernetes.io/managed-by: turandot
+
+spec:
+  serviceTemplateUrl: /cache/bookinfo.csar
+  inputs:
+    v1: hello
+    v2: world
+    v3: '12'

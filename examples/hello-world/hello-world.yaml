@@ -1,0 +1,57 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+imports:
+
+- namespace_prefix: k8s
+  file: profiles/kubernetes/1.18/profile.yaml
+
+node_types:
+
+  Application:
+    capabilities:
+      metadata: k8s:Metadata
+      deployment: k8s:Deployment
+      web: k8s:LoadBalancer
+
+topology_template:
+
+  inputs:
+
+    namespace:
+      type: string
+      default: workspace
+
+  node_templates:
+
+    hello-world:
+      type: Application
+      capabilities:
+        metadata:
+          properties:
+            name: hello-world
+            namespace: { get_input: namespace }
+            labels:
+              app.kubernetes.io/name: hello-world
+              app.kubernetes.io/instance: { concat: [ hello-world-, { get_input: namespace } ] }
+        deployment:
+          properties:
+            template:
+              containers:
+              - name: hello-world
+                image: { get_artifact: [ SELF, image ] }
+                imagePullPolicy: Always
+        web:
+          properties:
+            ports:
+            - { name: http, protocol: TCP, port: 80, targetPort: 8080 }
+      artifacts:
+        image:
+          type: k8s:ContainerImage
+          file: artifacts/images/hello-world.tar.gz
+          properties:
+            tag: hello-world
+
+# TODO:
+#  outputs:
+#
+#    url: { get_attribute: [ hello-world, service, url ] }

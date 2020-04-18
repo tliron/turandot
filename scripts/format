@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+gofmt -w -s -e \
+	"$ROOT/common" \
+	"$ROOT/controller" \
+	"$ROOT/client" \
+	"$ROOT/resources" \
+	"$ROOT/resources/turandot.puccini.cloud" \
+	"$ROOT/resources/turandot.puccini.cloud/v1alpha1" \
+	"$ROOT/turandot" \
+	"$ROOT/turandot/commands" \
+	"$ROOT/turandot-operator" \
+	"$ROOT/version"
