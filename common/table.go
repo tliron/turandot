@@ -11,7 +11,6 @@ import (
 )
 
 type Table struct {
-	Headings []string
 	Rows     [][][]string
 	Style    TableStyle
 	MaxWidth int
@@ -42,8 +41,7 @@ func NewTable(headings ...string) *Table {
 		width = -1
 	}
 
-	return &Table{
-		Headings: headings,
+	self := Table{
 		Style:    TopSeparatorTableStyle | ColumnSeparatorTableStyle | RowSeparatorTableStyle | BottomSeparatorTableStyle,
 		MaxWidth: width,
 
@@ -54,21 +52,18 @@ func NewTable(headings ...string) *Table {
 		TopDivider:             "═",
 		MiddleDividerSeparator: "┼",
 		MiddleDivider:          "─",
-		BottomDividerSeparator: "┴",
-		BottomDivider:          "─",
+		BottomDividerSeparator: "╧",
+		BottomDivider:          "═",
 	}
+
+	self.Add(headings...)
+
+	return &self
 }
 
 func (self *Table) ColumnWidths() (int, []int) {
-	columns := len(self.Headings)
+	columns := len(self.Rows[0])
 	columnWidths := make([]int, columns)
-
-	for index, heading := range self.Headings {
-		width := len(heading)
-		if width > columnWidths[index] {
-			columnWidths[index] = width
-		}
-	}
 
 	for _, row := range self.Rows {
 		for index, cell := range row {
@@ -83,19 +78,81 @@ func (self *Table) ColumnWidths() (int, []int) {
 }
 
 func (self *Table) Add(cells ...string) {
-	row := make([][]string, len(cells))
-	for index, cell := range cells {
-		row[index] = strings.Split(strings.Trim(cell, "\n"), "\n")
+	if len(self.Rows) > 0 {
+		columns := len(self.Rows[0])
+		length := len(cells)
+		if length != columns {
+			panic(fmt.Sprintf("row has %d columns but must have %d", length, columns))
+		}
 	}
-	self.Rows = append(self.Rows, row)
+
+	self.Rows = append(self.Rows, splitCells(cells))
 }
 
-func (self *Table) Rebuild() {
-	// TODO: make sure it fits in maxwidth
+func splitCells(cells []string) [][]string {
+	length := len(cells)
+	splitCells := make([][]string, length)
+	for index, cell := range cells {
+		splitCells[index] = strings.Split(strings.Trim(cell, "\n"), "\n")
+	}
+	return splitCells
+}
+
+func (self *Table) Wrap() {
+	columns, columnWidths := self.ColumnWidths()
+
+	cellsTotalWidth := 0
+	for column := 0; column < columns; column++ {
+		cellsTotalWidth += columnWidths[column]
+	}
+	totalWidth := cellsTotalWidth + columns - 1 // with dividers
+
+	if totalWidth > self.MaxWidth {
+		// Column shrink factor
+		cellsMaxWidth := self.MaxWidth - (columns - 1)
+		factor := float64(cellsMaxWidth) / float64(cellsTotalWidth)
+
+		// Leftover
+		realWidth := columns - 1 // just the dividers
+		for _, columnWidth := range columnWidths {
+			realWidth += int(float64(columnWidth) * factor)
+		}
+		leftover := self.MaxWidth - realWidth
+
+		// New widths
+		for column, columnWidth := range columnWidths {
+			columnWidth = int(float64(columnWidth) * factor)
+
+			// We'll apply the leftover from left to right
+			if leftover > 0 {
+				columnWidth += 1
+				leftover -= 1
+			}
+
+			// Minimum column width
+			if columnWidth < 1 {
+				columnWidth = 1
+			}
+
+			columnWidths[column] = columnWidth
+		}
+
+		// Wrap rows
+		for _, row := range self.Rows {
+			for column, cell := range row {
+				row[column] = wrap(cell, columnWidths[column])
+			}
+		}
+	}
 }
 
 func (self *Table) Write(writer io.Writer) {
-	self.Rebuild()
+	if len(self.Rows) <= 1 {
+		// Empty table
+		return
+	}
+
+	self.Wrap()
 
 	columns, columnWidths := self.ColumnWidths()
 	rows := len(self.Rows)
@@ -111,21 +168,6 @@ func (self *Table) Write(writer io.Writer) {
 		return r
 	}
 
-	for column, heading := range self.Headings {
-		fmt.Fprint(writer, terminal.ColorTypeName(pad(heading, columnWidths[column])))
-		if column < columns-1 {
-			fmt.Fprint(writer, self.HeadingSeparator)
-		}
-	}
-	fmt.Fprint(writer, "\n")
-
-	if self.Style&TopSeparatorTableStyle != 0 {
-		if self.Style&ColumnSeparatorTableStyle != 0 {
-			fmt.Fprintln(writer, separator(self.TopDivider, self.TopDividerSeparator))
-		} else {
-			fmt.Fprintln(writer, separator(self.TopDivider, self.TopDivider))
-		}
-	}
 	rowSeparator := separator(self.MiddleDivider, self.MiddleDividerSeparator)
 	bottomSeparator := separator(self.BottomDivider, self.BottomDividerSeparator)
 
@@ -134,26 +176,45 @@ func (self *Table) Write(writer io.Writer) {
 		for line := 0; line < height; line++ {
 			for column, cell := range row {
 				if line < len(cell) {
-					fmt.Fprint(writer, terminal.ColorName(pad(cell[line], columnWidths[column])))
+					if r != 0 {
+						fmt.Fprint(writer, terminal.ColorName(pad(cell[line], columnWidths[column])))
+					} else {
+						// Heading
+						fmt.Fprint(writer, terminal.ColorTypeName(pad(cell[line], columnWidths[column])))
+					}
 				} else {
+					// Pad lines
 					fmt.Fprint(writer, strings.Repeat(" ", columnWidths[column]))
 				}
+
 				if column < columns-1 {
-					if self.Style&ColumnSeparatorTableStyle != 0 {
+					if (r != 0) && (self.Style&ColumnSeparatorTableStyle != 0) {
 						fmt.Fprint(writer, self.RowSeparator)
 					} else {
 						fmt.Fprint(writer, " ")
 					}
 				}
 			}
+
 			fmt.Fprint(writer, "\n")
 		}
 
-		if r < rows-1 {
+		if r == 0 {
+			// Heading
+			if self.Style&TopSeparatorTableStyle != 0 {
+				if self.Style&ColumnSeparatorTableStyle != 0 {
+					fmt.Fprintln(writer, separator(self.TopDivider, self.TopDividerSeparator))
+				} else {
+					fmt.Fprintln(writer, separator(self.TopDivider, self.TopDivider))
+				}
+			}
+		} else if r < rows-1 {
+			// Middle row
 			if self.Style&RowSeparatorTableStyle != 0 {
 				fmt.Fprintln(writer, rowSeparator)
 			}
 		} else if self.Style&BottomSeparatorTableStyle != 0 {
+			// Bottom row
 			fmt.Fprintln(writer, bottomSeparator)
 		}
 	}
@@ -162,6 +223,8 @@ func (self *Table) Write(writer io.Writer) {
 func (self *Table) Print() {
 	self.Write(terminal.Stdout)
 }
+
+// Utils
 
 func cellWidth(cell []string) int {
 	width := 0
@@ -183,6 +246,24 @@ func rowHeight(row [][]string) int {
 		}
 	}
 	return height
+}
+
+func wrap(lines []string, width int) []string {
+	var newLines []string
+	for _, line := range lines {
+		for {
+			remainder := ""
+			if len(line) > width {
+				line, remainder = line[:width], line[width:]
+			}
+			newLines = append(newLines, line)
+			line = remainder
+			if line == "" {
+				break
+			}
+		}
+	}
+	return newLines
 }
 
 func pad(s string, width int) string {

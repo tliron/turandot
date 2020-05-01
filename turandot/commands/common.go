@@ -51,7 +51,7 @@ func NewClient() *Client {
 			namespace_ = namespace__
 		}
 		if namespace_ == "" {
-			puccinicommon.Failf("could not discover namespace and \"--namespace\" not provided")
+			puccinicommon.Fail("could not discover namespace and \"--namespace\" not provided")
 		}
 	}
 

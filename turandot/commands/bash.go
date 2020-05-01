@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"github.com/tliron/puccini/common"
+	puccinicommon "github.com/tliron/puccini/common"
 )
 
 func init() {
-	rootCommand.AddCommand(common.NewBashCompletionCommand(toolName, rootCommand))
+	rootCommand.AddCommand(puccinicommon.NewBashCompletionCommand(toolName, rootCommand))
 }

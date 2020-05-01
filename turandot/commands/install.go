@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/tliron/puccini/common"
+	puccinicommon "github.com/tliron/puccini/common"
 )
 
 var site string
@@ -22,6 +22,6 @@ var installCommand = &cobra.Command{
 	Short: "Install Turandot",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := NewClient().Turandot().Install(site, registry, wait)
-		common.FailOnError(err)
+		puccinicommon.FailOnError(err)
 	},
 }

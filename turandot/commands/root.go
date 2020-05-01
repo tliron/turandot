@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/puccini/common"
+	puccinicommon "github.com/tliron/puccini/common"
 	"github.com/tliron/puccini/common/terminal"
 )
 
@@ -39,14 +39,14 @@ var rootCommand = &cobra.Command{
 			terminal.EnableColor()
 		}
 		if logTo == "" {
-			common.ConfigureLogging(verbose, nil)
+			puccinicommon.ConfigureLogging(verbose, nil)
 		} else {
-			common.ConfigureLogging(verbose, &logTo)
+			puccinicommon.ConfigureLogging(verbose, &logTo)
 		}
 	},
 }
 
 func Execute() {
 	err := rootCommand.Execute()
-	common.FailOnError(err)
+	puccinicommon.FailOnError(err)
 }

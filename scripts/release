@@ -43,4 +43,5 @@ VERSION=$VERSION REVISION=$REVISION TIMESTAMP=$TIMESTAMP \
 
 # Copy releases back here
 rm --recursive --force "$ROOT/dist/release"
+mkdir --parents "$ROOT/dist"
 rsync --recursive "$WORK/dist/" "$ROOT/dist/release"

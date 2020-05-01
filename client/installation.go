@@ -128,8 +128,7 @@ func (self *Client) createNamespace() (*core.Namespace, error) {
 func (self *Client) createServiceAccount() (*core.ServiceAccount, error) {
 	serviceAccount := &core.ServiceAccount{
 		ObjectMeta: meta.ObjectMeta{
-			Name:      self.namePrefix,
-			Namespace: self.namespace,
+			Name: self.namePrefix,
 		},
 	}
 
@@ -145,8 +144,7 @@ func (self *Client) createServiceAccount() (*core.ServiceAccount, error) {
 func (self *Client) createRole() (*rbac.Role, error) {
 	role := &rbac.Role{
 		ObjectMeta: meta.ObjectMeta{
-			Name:      self.namePrefix,
-			Namespace: self.namespace,
+			Name: self.namePrefix,
 		},
 		Rules: []rbac.PolicyRule{
 			{
@@ -169,8 +167,7 @@ func (self *Client) createRole() (*rbac.Role, error) {
 func (self *Client) createRoleBinding(serviceAccount *core.ServiceAccount, role *rbac.Role) (*rbac.RoleBinding, error) {
 	roleBinding := &rbac.RoleBinding{
 		ObjectMeta: meta.ObjectMeta{
-			Name:      self.namePrefix,
-			Namespace: self.namespace,
+			Name: self.namePrefix,
 		},
 		Subjects: []rbac.Subject{
 			{
@@ -229,8 +226,7 @@ func (self *Client) createOperatorDeployment(site string, registry string, servi
 
 	deployment := &apps.Deployment{
 		ObjectMeta: meta.ObjectMeta{
-			Name:      appName,
-			Namespace: self.namespace,
+			Name: appName,
 			Labels: map[string]string{
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
@@ -332,8 +328,7 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 
 	deployment := &apps.Deployment{
 		ObjectMeta: meta.ObjectMeta{
-			Name:      appName,
-			Namespace: self.namespace,
+			Name: appName,
 			Labels: map[string]string{
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
