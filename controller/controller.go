@@ -24,26 +24,26 @@ import (
 //
 
 type Controller struct {
-	site string
+	Site string
 
-	dynamic     *common.Dynamic
-	kubernetes  kubernetes.Interface
-	turandot    turandotclientset.Interface
-	config      *restpkg.Config
-	cachePath   string
-	stopChannel <-chan struct{}
+	Dynamic     *common.Dynamic
+	Kubernetes  kubernetes.Interface
+	Turandot    turandotclientset.Interface
+	Config      *restpkg.Config
+	CachePath   string
+	StopChannel <-chan struct{}
 
-	processors        *common.Processors
-	instantiationWork chan Instantiation
-	events            record.EventRecorder
+	Processors        *common.Processors
+	InstantiationWork chan Instantiation
+	Events            record.EventRecorder
 
-	kubernetesInformerFactory informers.SharedInformerFactory
-	turandotInformerFactory   turandotinformers.SharedInformerFactory
+	KubernetesInformerFactory informers.SharedInformerFactory
+	TurandotInformerFactory   turandotinformers.SharedInformerFactory
 
-	services turandotlisters.ServiceLister
+	Services turandotlisters.ServiceLister
 
-	context contextpkg.Context
-	log     *logging.Logger
+	Context contextpkg.Context
+	Log     *logging.Logger
 }
 
 func NewController(toolName string, site string, cluster bool, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, turandot turandotclientset.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
@@ -54,43 +54,43 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 	}
 
 	self := Controller{
-		site:              site,
-		config:            config,
-		dynamic:           common.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
-		kubernetes:        kubernetes,
-		turandot:          turandot,
-		cachePath:         cachePath,
-		processors:        common.NewProcessors(),
-		instantiationWork: make(chan Instantiation, 10),
-		events:            common.CreateEventRecorder(kubernetes, toolName),
-		context:           context,
-		log:               logging.MustGetLogger(fmt.Sprintf("turandot.controller.%s", toolName)),
+		Site:              site,
+		Config:            config,
+		Dynamic:           common.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
+		Kubernetes:        kubernetes,
+		Turandot:          turandot,
+		CachePath:         cachePath,
+		Processors:        common.NewProcessors(),
+		InstantiationWork: make(chan Instantiation, 10),
+		Events:            common.CreateEventRecorder(kubernetes, toolName),
+		Context:           context,
+		Log:               logging.MustGetLogger(fmt.Sprintf("%s.controller", toolName)),
 	}
 
 	if cluster {
-		self.kubernetesInformerFactory = informers.NewSharedInformerFactory(kubernetes, informerResyncPeriod)
-		self.turandotInformerFactory = turandotinformers.NewSharedInformerFactory(turandot, informerResyncPeriod)
+		self.KubernetesInformerFactory = informers.NewSharedInformerFactory(kubernetes, informerResyncPeriod)
+		self.TurandotInformerFactory = turandotinformers.NewSharedInformerFactory(turandot, informerResyncPeriod)
 	} else {
-		self.kubernetesInformerFactory = informers.NewSharedInformerFactoryWithOptions(kubernetes, informerResyncPeriod, informers.WithNamespace(namespace))
-		self.turandotInformerFactory = turandotinformers.NewSharedInformerFactoryWithOptions(turandot, informerResyncPeriod, turandotinformers.WithNamespace(namespace))
+		self.KubernetesInformerFactory = informers.NewSharedInformerFactoryWithOptions(kubernetes, informerResyncPeriod, informers.WithNamespace(namespace))
+		self.TurandotInformerFactory = turandotinformers.NewSharedInformerFactoryWithOptions(turandot, informerResyncPeriod, turandotinformers.WithNamespace(namespace))
 	}
 
 	// Informers
-	serviceInformer := self.turandotInformerFactory.Turandot().V1alpha1().Services()
+	serviceInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Services()
 
 	// Listers
-	self.services = serviceInformer.Lister()
+	self.Services = serviceInformer.Lister()
 
 	// Processors
 
 	processorPeriod := 5 * time.Second
 
-	self.processors.Add(turandotresources.ServiceGVK, common.NewProcessor(
+	self.Processors.Add(turandotresources.ServiceGVK, common.NewProcessor(
 		"services",
 		serviceInformer.Informer(),
 		processorPeriod,
 		func(name string, namespace string) (interface{}, error) {
-			return self.getService(name, namespace)
+			return self.GetService(name, namespace)
 		},
 		func(object interface{}) (bool, error) {
 			return self.processService(object.(*turandotresources.Service))
@@ -103,24 +103,24 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 func (self *Controller) Run(threadiness uint) error {
 	defer utilruntime.HandleCrash()
 
-	self.log.Info("starting informer factories")
-	self.kubernetesInformerFactory.Start(self.stopChannel)
-	self.turandotInformerFactory.Start(self.stopChannel)
+	self.Log.Info("starting informer factories")
+	self.KubernetesInformerFactory.Start(self.StopChannel)
+	self.TurandotInformerFactory.Start(self.StopChannel)
 
-	self.log.Info("waiting for processor informer caches to sync")
-	utilruntime.HandleError(self.processors.WaitForCacheSync(self.stopChannel))
+	self.Log.Info("waiting for processor informer caches to sync")
+	utilruntime.HandleError(self.Processors.WaitForCacheSync(self.StopChannel))
 
-	self.log.Info("starting processors")
-	self.processors.Start(threadiness, self.stopChannel)
-	defer self.processors.ShutDown()
+	self.Log.Info("starting processors")
+	self.Processors.Start(threadiness, self.StopChannel)
+	defer self.Processors.ShutDown()
 
-	self.log.Info("starting instantiator")
-	go self.runInstantiator()
-	defer self.stopInstantiator()
+	self.Log.Info("starting instantiator")
+	go self.RunInstantiator()
+	defer self.StopInstantiator()
 
-	<-self.stopChannel
+	<-self.StopChannel
 
-	self.log.Info("shutting down")
+	self.Log.Info("shutting down")
 
 	return nil
 }

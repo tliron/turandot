@@ -6,9 +6,9 @@ import (
 	"github.com/tliron/turandot/common"
 )
 
-func (self *Controller) compileServiceTemplate(serviceTemplateURL string, inputs map[string]string, cloutPath string) (string, error) {
-	self.log.Infof("compiling TOSCA service template: %s", serviceTemplateURL)
-	self.log.Infof("inputs: %s", inputs)
+func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs map[string]string, cloutPath string) (string, error) {
+	self.Log.Infof("compiling TOSCA service template: %s", serviceTemplateURL)
+	self.Log.Infof("inputs: %s", inputs)
 
 	// Decode inputs
 	inputs_ := make(map[string]ard.Value)

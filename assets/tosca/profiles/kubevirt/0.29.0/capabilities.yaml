@@ -6,7 +6,7 @@ imports:
 
 capability_types:
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_virtualmachine
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_virtualmachine
   VirtualMachine:
     description: >-
       VirtualMachine handles the VirtualMachines that are not running or are in a stopped state. The

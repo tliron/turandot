@@ -1,4 +1,4 @@
-package client
+package delegate
 
 import (
 	"io"
@@ -42,9 +42,9 @@ func (self *Client) Exec(podName string, stdin io.Reader, stdout io.Writer, comm
 		streamOptions.Stdout = stdout
 	}
 
-	request := self.rest.Post().Namespace(self.namespace).Resource("pods").Name(podName).SubResource("exec").VersionedParams(&execOptions, scheme.ParameterCodec)
+	request := self.REST.Post().Namespace(self.Namespace).Resource("pods").Name(podName).SubResource("exec").VersionedParams(&execOptions, scheme.ParameterCodec)
 
-	if executor, err := remotecommand.NewSPDYExecutor(self.config, "POST", request.URL()); err == nil {
+	if executor, err := remotecommand.NewSPDYExecutor(self.Config, "POST", request.URL()); err == nil {
 		if err = executor.Stream(streamOptions); err == nil {
 			return nil
 		} else {

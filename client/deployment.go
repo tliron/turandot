@@ -1,4 +1,4 @@
-package client
+package delegate
 
 import (
 	"strings"
@@ -44,11 +44,11 @@ func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoole
 }
 
 func (self *Client) DeleteService(serviceName string) error {
-	return self.turandot.TurandotV1alpha1().Services(self.namespace).Delete(self.context, serviceName, meta.DeleteOptions{})
+	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
 }
 
 func (self *Client) ListServices() (*resources.ServiceList, error) {
-	return self.turandot.TurandotV1alpha1().Services(self.namespace).List(self.context, meta.ListOptions{})
+	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
 func (self *Client) createService(name string, url urlpkg.URL, inputs map[string]interface{}) (*resources.Service, error) {
@@ -66,7 +66,7 @@ func (self *Client) createService(name string, url urlpkg.URL, inputs map[string
 	service := &resources.Service{
 		ObjectMeta: meta.ObjectMeta{
 			Name:      name,
-			Namespace: self.namespace,
+			Namespace: self.Namespace,
 		},
 		Spec: resources.ServiceSpec{
 			ServiceTemplateURL: url.String(),
@@ -74,10 +74,10 @@ func (self *Client) createService(name string, url urlpkg.URL, inputs map[string
 		},
 	}
 
-	if service, err := self.turandot.TurandotV1alpha1().Services(self.namespace).Create(self.context, service, meta.CreateOptions{}); err == nil {
+	if service, err := self.Turandot.TurandotV1alpha1().Services(self.Namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
 		return service, nil
 	} else if errors.IsAlreadyExists(err) {
-		return self.turandot.TurandotV1alpha1().Services(self.namespace).Get(self.context, name, meta.GetOptions{})
+		return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Get(self.Context, name, meta.GetOptions{})
 	} else {
 		return nil, err
 	}

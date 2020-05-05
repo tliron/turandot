@@ -1,4 +1,4 @@
-package client
+package delegate
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	urlpkg "github.com/tliron/puccini/url"
+	"github.com/tliron/turandot/common"
 )
 
 const serviceTemplateCategory = "service-template"
@@ -25,8 +26,8 @@ func ServiceTemplateNameFromInventoryImageName(imageName string) (string, bool) 
 }
 
 func (self *Client) GetInventoryServiceTemplateURL(serviceTemplateName string) (*urlpkg.DockerURL, error) {
-	appName := fmt.Sprintf("%s-inventory", self.namePrefix)
-	if ip, err := self.getFirstPodIp(appName); err == nil {
+	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+	if ip, err := common.GetFirstPodIP(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		imageName := GetInventoryImageName(serviceTemplateName)
 		url := fmt.Sprintf("docker://%s:5000/%s?format=csar", ip, imageName)
 		if url_, err := neturlpkg.ParseRequestURI(url); err == nil {

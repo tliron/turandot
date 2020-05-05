@@ -9,9 +9,9 @@ import (
 	"k8s.io/klog"
 )
 
-func CreateEventRecorder(kubeClientset kubernetes.Interface, component string) record.EventRecorder {
+func CreateEventRecorder(kubernetes kubernetes.Interface, component string) record.EventRecorder {
 	broadcaster := record.NewBroadcaster()
 	broadcaster.StartLogging(klog.Infof)
-	broadcaster.StartRecordingToSink(&typedcore.EventSinkImpl{Interface: kubeClientset.CoreV1().Events("")})
+	broadcaster.StartRecordingToSink(&typedcore.EventSinkImpl{Interface: kubernetes.CoreV1().Events("")})
 	return broadcaster.NewRecorder(scheme.Scheme, core.EventSource{Component: component})
 }

@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/common"
+	"github.com/tliron/turandot/client"
 )
 
 func init() {
@@ -28,7 +28,7 @@ func PullServiceTemplate(serviceTemplateName string, path string) {
 	file, err := os.Create(path)
 	puccinicommon.FailOnError(err)
 	defer file.Close()
-	imageName := client.GetInventoryImageName(serviceTemplateName)
+	imageName := delegate.GetInventoryImageName(serviceTemplateName)
 	err = common.PullLayerFromRegistry(imageName, file, NewClient().Spooler())
 	puccinicommon.FailOnError(err)
 }

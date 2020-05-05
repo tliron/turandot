@@ -8,7 +8,7 @@ import (
 	kubernetespkg "k8s.io/client-go/kubernetes"
 )
 
-func Log(kubernetes *kubernetespkg.Clientset, namespace string, podName string, containerName string, tail int, follow bool) (io.ReadCloser, error) {
+func Log(kubernetes kubernetespkg.Interface, namespace string, podName string, containerName string, tail int, follow bool) (io.ReadCloser, error) {
 	options := core.PodLogOptions{
 		Container: containerName,
 		Follow:    follow,

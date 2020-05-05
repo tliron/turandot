@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/cobra"
 	puccinicommon "github.com/tliron/puccini/common"
 	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/common"
+	"github.com/tliron/turandot/client"
 )
 
 func init() {
@@ -39,7 +39,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		}
 		puccinicommon.FailOnError(err)
 
-		imageName := client.GetInventoryImageName(serviceTemplateName)
+		imageName := delegate.GetInventoryImageName(serviceTemplateName)
 		err = common.PushToRegistry(imageName, url, NewClient().Spooler())
 		puccinicommon.FailOnError(err)
 	} else if directoryPath != "" {

@@ -7,10 +7,12 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
 
 KUBERNETES_VERSION=v1.18.2
 MINIKUBE_VERSION=v1.9.2
-KUBEVIRT_VERSION=v0.28.0
+KUBEVIRT_VERSION=v0.29.0
+
 OVERWRITE=false
 
 for ARG in "$@"; do
@@ -19,13 +21,17 @@ for ARG in "$@"; do
 			OVERWRITE=true
 			;;
 		-l)
-			echo "checking for latest versions..."
+			m "checking for latest versions..."
 			KUBERNETES_VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
 			MINIKUBE_VERSION=$(curl --silent https://api.github.com/repos/kubernetes/minikube/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 			KUBEVIRT_VERSION=$(curl --silent https://api.github.com/repos/kubevirt/kubevirt/releases | grep tag_name | grep -v -- - | sort -V | tail -1 | awk -F':' '{print $2}' | sed 's/,//' | xargs)
 			;;
 	esac
 done
+
+m "KUBERNETES_VERSION=$KUBERNETES_VERSION"
+m "MINIKUBE_VERSION=$MINIKUBE_VERSION"
+m "KUBEVIRT_VERSION=$KUBEVIRT_VERSION"
 
 function fetch () {
 	local NAME=$1
@@ -34,18 +40,23 @@ function fetch () {
 	local EXEC=/usr/bin/$NAME
 	if [ -f "$EXEC" ]; then
 		if [ "$OVERWRITE" == true ]; then
-			echo "overriding existing \"$EXEC\"..."
+			m "overriding existing \"$EXEC\"..."
 		else
-			echo "\"$EXEC\" already exists (use -f to overwrite)"
+			m "\"$EXEC\" already exists (use -f to overwrite)"
 			return 0
 		fi
 	fi
-	echo "downloading $NAME $VERSION..."
+	m "downloading $NAME $VERSION..."
 	wget --quiet --output-document="$EXEC" "$URL"
 	chmod a+x "$EXEC"
-	echo "installed \"$EXEC\""
+	m "installed \"$EXEC\""
 }
 
-fetch kubectl "$KUBERNETES_VERSION" "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kubectl"
-fetch minikube "$MINIKUBE_VERSION" "https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64"
-fetch virtctl "$KUBEVIRT_VERSION" "https://github.com/kubevirt/kubevirt/releases/download/$KUBEVIRT_VERSION/virtctl-${KUBEVIRT_VERSION}-linux-amd64"
+fetch kubectl "$KUBERNETES_VERSION" \
+"https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kubectl"
+
+fetch minikube "$MINIKUBE_VERSION" \
+"https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64"
+
+fetch virtctl "$KUBEVIRT_VERSION" \
+"https://github.com/kubevirt/kubevirt/releases/download/$KUBEVIRT_VERSION/virtctl-${KUBEVIRT_VERSION}-linux-amd64"

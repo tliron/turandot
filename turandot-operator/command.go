@@ -62,7 +62,7 @@ var command = &cobra.Command{
 		// TODO: init "k8s.io/klog"?
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		Operator()
+		Controller()
 	},
 }
 

@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	puccinicommon "github.com/tliron/puccini/common"
 	"github.com/tliron/puccini/common/terminal"
-	"github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/common"
+	"github.com/tliron/turandot/client"
 )
 
 func init() {
@@ -33,14 +33,14 @@ func ListServiceTemplates() {
 
 	if bare {
 		for _, image := range images {
-			if serviceTemplateName, ok := client.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := delegate.ServiceTemplateNameFromInventoryImageName(image); ok {
 				fmt.Fprintln(terminal.Stdout, serviceTemplateName)
 			}
 		}
 	} else {
 		table := common.NewTable("Name", "Services")
 		for _, image := range images {
-			if serviceTemplateName, ok := client.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := delegate.ServiceTemplateNameFromInventoryImageName(image); ok {
 				// TODO: get services
 				services := []string{"TODO"}
 				table.Add(serviceTemplateName, strings.Join(services, "\n"))

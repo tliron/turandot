@@ -10,10 +10,10 @@ import (
 func (self *Controller) processResources(objects []ard.StringMap, owner meta.Object) error {
 	for _, object := range objects {
 		object_ := &unstructured.Unstructured{Object: object}
-		self.log.Infof("creating resource \"%s/%s %s\"", object_.GetAPIVersion(), object_.GetKind(), object_.GetName())
-		if _, err := self.dynamic.CreateControlledResource(object_, owner, self.processors, self.stopChannel); err != nil {
+		self.Log.Infof("creating resource \"%s/%s %s\"", object_.GetAPIVersion(), object_.GetKind(), object_.GetName())
+		if _, err := self.Dynamic.CreateControlledResource(object_, owner, self.Processors, self.StopChannel); err != nil {
 			if errorspkg.IsAlreadyExists(err) {
-				self.log.Infof("%s", err.Error())
+				self.Log.Infof("%s", err.Error())
 			} else {
 				return err
 			}

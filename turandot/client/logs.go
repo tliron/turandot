@@ -8,12 +8,12 @@ import (
 )
 
 func (self *Client) Logs(appNameSuffix string, containerName string, tail int, follow bool) ([]io.ReadCloser, error) {
-	appName := fmt.Sprintf("%s-%s", self.namePrefix, appNameSuffix)
+	appName := fmt.Sprintf("%s-%s", self.NamePrefix, appNameSuffix)
 
-	if podNames, err := self.getPodNames(appName); err == nil {
+	if podNames, err := common.GetPodNames(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		readers := make([]io.ReadCloser, len(podNames))
 		for index, podName := range podNames {
-			if reader, err := common.Log(self.kubernetes, self.namespace, podName, containerName, tail, follow); err == nil {
+			if reader, err := common.Log(self.Kubernetes, self.Namespace, podName, containerName, tail, follow); err == nil {
 				readers[index] = reader
 			} else {
 				for i := 0; i < index; i++ {

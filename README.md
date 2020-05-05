@@ -19,6 +19,9 @@ Kubernetes resources, as well as their
 on a single cluster or on multi-cluster clouds. Virtual machines are supported via
 [KubeVirt](https://kubevirt.io/).
 
+External orchestrators (e.g. [Ansible](https://www.ansible.com/)) are supported via custom artifacts
+(e.g. Ansible playbooks) encapsulated as TOSCA types.
+
 See the included [examples](examples/).
 
 Turandot targets complex, large-scale workloads. Moreover, it intends to handle the
@@ -159,10 +162,10 @@ scenario. Kubernetes introduces a new, cloud-native orchestration paradigm.
 
 Surely, for production systems a robust inventory is necessary. Turandot can work with various
 inventory backends, as well as any container image repository adhering to the
-[OCI](https://www.opencontainers.org/) or Docker standards, e.g. [Quay](https://quay.io/) and
-[Harbor](https://goharbor.io/). Indeed, the internal repository is a simple Docker repository.
-Note that Turandot can store and retrieves CSAR files from such repositories even though they are
-not container images.
+[OCI](https://www.opencontainers.org/) or Docker standards, e.g.
+[Quay](https://github.com/quay/quay) and [Harbor](https://goharbor.io/). Indeed, the internal
+repository is a simple Docker repository. Note that Turandot can store and retrieves CSAR files from
+such repositories even though they are not container images.
 
 The built-in inventory does not have to be used in production, but it can be useful as a local cache
 if the repositories are slow to access or if access is unreliable, e.g. on cloud edge datacenters.

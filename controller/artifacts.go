@@ -6,30 +6,12 @@ import (
 	"github.com/tliron/puccini/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
 	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/turandot/common"
+	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) processArtifacts(artifacts interface{}, service *resources.Service) (map[string]string, error) {
-	if artifacts_, ok := NewKubernetesArtifacts(artifacts); ok {
-		artifactMappings := make(map[string]string)
-		if len(artifacts_) > 0 {
-			if ips, err := self.getPodIps(service.Namespace, "turandot-inventory"); err == nil {
-				for _, artifact := range artifacts_ {
-					if name, err := self.Push(artifact.Name, artifact.SourcePath, ips); err == nil {
-						artifactMappings[artifact.SourcePath] = name
-					} else {
-						return nil, err
-					}
-				}
-			}
-		}
-		return artifactMappings, nil
-	} else {
-		return nil, errors.New("could not parse artifacts")
-	}
-}
-
-func (self *Controller) updateCloutArtifacts(clout *cloutpkg.Clout, artifactMappings map[string]string) {
+func (self *Controller) UpdateCloutArtifacts(clout *cloutpkg.Clout, artifactMappings map[string]string) {
 	history := ard.StringMap{
 		"description": "artifacts",
 		"timestamp":   puccinicommon.Timestamp(false),
@@ -59,7 +41,7 @@ func (self *Controller) updateCloutArtifacts(clout *cloutpkg.Clout, artifactMapp
 				if sourcePath, ok := artifact_.Get("sourcePath").String(true); ok {
 					if name, ok := artifactMappings[sourcePath]; ok {
 						if artifact_.Put("$artifact", name) {
-							self.log.Infof("setting $artifact for %s to %s", sourcePath, name)
+							self.Log.Infof("setting $artifact for %s to %s", sourcePath, name)
 						}
 					}
 				}
@@ -68,42 +50,22 @@ func (self *Controller) updateCloutArtifacts(clout *cloutpkg.Clout, artifactMapp
 	}
 }
 
-//
-// KubernetesArtifact
-//
-
-type KubernetesArtifact struct {
-	Name       string
-	SourcePath string
-}
-
-func NewKubernetesArtifact(data interface{}) (*KubernetesArtifact, bool) {
-	artifact := ard.NewNode(data)
-	if name, ok := artifact.Get("name").String(false); ok {
-		if sourcePath, ok := artifact.Get("sourcePath").String(false); ok {
-			return &KubernetesArtifact{name, sourcePath}, true
-		}
-	}
-	return nil, false
-}
-
-//
-// KubernetesArtifacts
-//
-
-type KubernetesArtifacts []*KubernetesArtifact
-
-func NewKubernetesArtifacts(data interface{}) (KubernetesArtifacts, bool) {
-	if artifacts, ok := ard.NewNode(data).Get("artifacts").List(false); ok {
-		self := make(KubernetesArtifacts, len(artifacts))
-		for index, artifact := range artifacts {
-			if artifact_, ok := NewKubernetesArtifact(artifact); ok {
-				self[index] = artifact_
-			} else {
-				return nil, false
+func (self *Controller) processArtifacts(artifacts interface{}, service *resources.Service) (map[string]string, error) {
+	if artifacts_, ok := parser.NewKubernetesArtifacts(artifacts); ok {
+		artifactMappings := make(map[string]string)
+		if len(artifacts_) > 0 {
+			if ips, err := common.GetPodIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-inventory"); err == nil {
+				for _, artifact := range artifacts_ {
+					if name, err := self.PushToInventory(artifact.Name, artifact.SourcePath, ips); err == nil {
+						artifactMappings[artifact.SourcePath] = name
+					} else {
+						return nil, err
+					}
+				}
 			}
 		}
-		return self, true
+		return artifactMappings, nil
+	} else {
+		return nil, errors.New("could not parse artifacts")
 	}
-	return nil, false
 }

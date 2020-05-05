@@ -26,7 +26,7 @@ var templateDelistCommand = &cobra.Command{
 }
 
 func DelistServiceTemplate(serviceTemplateName string) {
-	imageName := client.GetInventoryImageName(serviceTemplateName)
+	imageName := delegate.GetInventoryImageName(serviceTemplateName)
 	err := NewClient().Spooler().Delete(imageName)
 	puccinicommon.FailOnError(err)
 }

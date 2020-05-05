@@ -6,14 +6,14 @@ import (
 
 	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
-	"github.com/tliron/turandot/client"
+	clientpkg "github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/common"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kubernetespkg "k8s.io/client-go/kubernetes"
 )
 
-func (self *Controller) NewDelegate(name string, cachePath string) (*client.Client, *spoolerpkg.Client, error) {
-	configPath := filepath.Join(self.cachePath, "delegates", fmt.Sprintf("%s.yaml", name))
+func (self *Controller) NewDelegate(name string) (*clientpkg.Client, *spoolerpkg.Client, error) {
+	configPath := filepath.Join(self.CachePath, "delegates", fmt.Sprintf("%s.yaml", name))
 	if config, err := common.NewConfig(configPath); err == nil {
 		namespace, _ := common.GetConfiguredNamespace(configPath)
 
@@ -37,30 +37,32 @@ func (self *Controller) NewDelegate(name string, cachePath string) (*client.Clie
 
 		rest := kubernetes.CoreV1().RESTClient()
 
-		return client.NewClient(
+		return clientpkg.NewClient(
+				fmt.Sprintf("turandot.client.%s", name),
 				kubernetes,
 				apiExtensions,
 				turandot,
 				rest,
 				config,
-				false, // TODO: a lot of these don't matter
+				false,
 				namespace,
-				"turandot",
-				"turandot",
-				"turandot",
-				"tliron/turandot-operator",
-				"library/registry",
-				"tliron/kubernetes-registry-spooler",
-				cachePath, // this *does* matter
+				NamePrefix,
+				PartOf,
+				ManagedBy,
+				OperatorImageName,
+				InventoryImageName,
+				InventorySpoolerImageName,
+				CacheDirectory,
+				SpoolDirectory,
 			),
 			spoolerpkg.NewClient(
 				kubernetes,
 				rest,
 				config,
 				namespace,
-				"turandot-inventory",
-				"spooler",
-				"/spool",
+				SpoolerAppName,
+				SpoolerContainerName,
+				SpoolDirectory,
 			),
 			nil
 	} else {

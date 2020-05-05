@@ -9,7 +9,7 @@ imports:
 - namespace_prefix: k8s
   file: profiles/kubernetes/1.18/profile.yaml
 - namespace_prefix: kubevirt
-  file: profiles/kubevirt/0.28.0/profile.yaml
+  file: profiles/kubevirt/0.29.0/profile.yaml
 - namespace_prefix: o11n
   file: profiles/orchestration/1.0/profile.yaml
 

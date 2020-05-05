@@ -26,9 +26,9 @@ func (self *Client) SetDelegate(name string, kubeconfigPath string, context stri
 		return err
 	}
 
-	appName := fmt.Sprintf("%s-%s", self.namePrefix, "operator")
-	configPath := getDelegateConfigPath(name)
-	if podNames, err := self.getPodNames(appName); err == nil {
+	appName := fmt.Sprintf("%s-%s", self.NamePrefix, "operator")
+	configPath := self.getDelegateConfigPath(name)
+	if podNames, err := common.GetPodNames(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		for _, podName := range podNames {
 			//os.Stdout.Write(configBytes)
 			if err := self.WriteToContainer(podName, bytes.NewReader(configBytes), configPath); err != nil {
@@ -43,9 +43,9 @@ func (self *Client) SetDelegate(name string, kubeconfigPath string, context stri
 }
 
 func (self *Client) DeleteDelegate(name string) error {
-	appName := fmt.Sprintf("%s-%s", self.namePrefix, "operator")
-	configPath := getDelegateConfigPath(name)
-	if podNames, err := self.getPodNames(appName); err == nil {
+	appName := fmt.Sprintf("%s-%s", self.NamePrefix, "operator")
+	configPath := self.getDelegateConfigPath(name)
+	if podNames, err := common.GetPodNames(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		for _, podName := range podNames {
 			if err := self.Exec(podName, nil, nil, "rm", "--force", configPath); err != nil {
 				return err
@@ -59,10 +59,10 @@ func (self *Client) DeleteDelegate(name string) error {
 }
 
 func (self *Client) ListDelegates() ([]string, error) {
-	appName := fmt.Sprintf("%s-%s", self.namePrefix, "operator")
-	if podName, err := self.getFirstPodName(appName); err == nil {
+	appName := fmt.Sprintf("%s-%s", self.NamePrefix, "operator")
+	if podName, err := common.GetFirstPodName(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		var buffer bytes.Buffer
-		if err := self.Exec(podName, nil, &buffer, "find", filepath.Join("/cache", "delegates"), "-type", "f", "-printf", "%f\n"); err == nil {
+		if err := self.Exec(podName, nil, &buffer, "find", filepath.Join(self.CachePath, "delegates"), "-type", "f", "-printf", "%f\n"); err == nil {
 			var names []string
 			for _, filename := range strings.Split(strings.TrimRight(buffer.String(), "\n"), "\n") {
 				names = append(names, strings.TrimSuffix(filename, ".yaml"))
@@ -76,6 +76,6 @@ func (self *Client) ListDelegates() ([]string, error) {
 	}
 }
 
-func getDelegateConfigPath(name string) string {
-	return filepath.Join("/cache", "delegates", fmt.Sprintf("%s.yaml", name))
+func (self *Client) getDelegateConfigPath(name string) string {
+	return filepath.Join(self.CachePath, "delegates", fmt.Sprintf("%s.yaml", name))
 }

@@ -7,7 +7,7 @@ imports:
 
 data_types:
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_virtualmachineinstancespec
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_virtualmachineinstancespec
   VirtualMachineInstanceTemplate:
     description: >-
       VirtualMachineInstanceSpec is a description of a VirtualMachineInstance.
@@ -105,7 +105,7 @@ data_types:
         entry_schema: Volume
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_domainspec
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_domainspec
   Domain:
     properties:
       chassis:
@@ -160,7 +160,7 @@ data_types:
         type: ResourceRequirements
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_chassis
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_chassis
   Chassis:
     properties:
       asset:
@@ -179,7 +179,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_clock
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_clock
   Clock:
     description: >-
       Represents the clock and timers of a vmi.
@@ -201,7 +201,7 @@ data_types:
         type: ClockOffsetUTC
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_hpettimer
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_hpettimer
   HPETimer:
     properties:
       present:
@@ -220,7 +220,7 @@ data_types:
         - valid_values: [ delay, catchup, merge, discard ]
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_clockoffsetutc
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_clockoffsetutc
   ClockOffsetUTC:
     description: >-
       UTC sets the guest clock to UTC on each boot.
@@ -232,7 +232,7 @@ data_types:
         type: integer
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_cpu
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cpu
   CPU:
     description: >-
       CPU allows specifying the CPU topology.
@@ -284,7 +284,7 @@ data_types:
         - greater_or_equal: 1
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_cpufeature
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cpufeature
   CPUFeature:
     description: >-
       CPUFeature allows specifying a CPU feature.
@@ -317,7 +317,7 @@ data_types:
         default: require
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_devices
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_devices
   Devices:
     properties:
       autoattachGraphicsDevice:
@@ -386,7 +386,7 @@ data_types:
         type: Watchdog
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_disk
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_disk
   Disk:
     properties:
       bootOrder:
@@ -440,7 +440,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_cdromtarget
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cdromtarget
   CDRomTarget:
     properties:
       bus:
@@ -466,7 +466,7 @@ data_types:
         default: closed
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_disktarget
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_disktarget
   DiskTarget:
     properties:
       bus:
@@ -489,7 +489,7 @@ data_types:
         default: false
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_floppytarget
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_floppytarget
   FloppyTarget:
     properties:
       readonly:
@@ -508,7 +508,7 @@ data_types:
         default: closed
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_luntarget
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_luntarget
   LunTarget:
     properties:
       bus:
@@ -525,7 +525,7 @@ data_types:
         default: false
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_gpu
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_gpu
   GPU:
     properties:
       deviceName:
@@ -535,7 +535,7 @@ data_types:
           Name of the GPU device as exposed by a device plugin.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_input
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_input
   Input:
     properties:
       bus:
@@ -557,7 +557,7 @@ data_types:
         #- valid_values: [ tablet ]
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_interface
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_interface
   Interface:
     properties:
       bootOrder:
@@ -619,7 +619,7 @@ data_types:
         type: string # TODO: InterfaceSRIOV
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_dhcpoptions
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_dhcpoptions
   DHCPOptions:
     description: >-
       Extra DHCP options to use in the interface.
@@ -647,7 +647,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_dhcpprivateoptions
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_dhcpprivateoptions
   DHCPPrivateOption:
     description: >-
       DHCPExtraOption defines Extra DHCP options for a VM.
@@ -663,7 +663,7 @@ data_types:
           Value is a String value for the Option provided.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_port
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_port
   Port:
     description: >-
       Port repesents a port to expose from the virtual machine. Default protocol TCP. The port field
@@ -691,7 +691,7 @@ data_types:
         default: TCP
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_watchdog
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_watchdog
   Watchdog:
     description: >-
       Named watchdog device.
@@ -706,7 +706,7 @@ data_types:
           Name of the watchdog.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_i6300esbwatchdog
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_i6300esbwatchdog
   I6300ESBWatchdog:
     description: >-
       i6300esb watchdog device.
@@ -720,7 +720,7 @@ data_types:
         default: reset
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_features
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_features
   Features:
     properties:
       acpi:
@@ -744,7 +744,7 @@ data_types:
         type: FeatureState
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_featurestate
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurestate
   FeatureState:
     description: >-
       Represents if a feature is enabled or disabled.
@@ -757,7 +757,7 @@ data_types:
         default: true
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_featureapic
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featureapic
   FeatureAPIC:
     properties:
       enabled:
@@ -774,7 +774,7 @@ data_types:
         default: false
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_featurehyperv
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurehyperv
   FeatureHyperv:
     description: >-
       Hyperv specific features.
@@ -860,7 +860,7 @@ data_types:
         type: FeatureState
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_featurespinlocks
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurespinlocks
   FeatureSpinlocks:
     properties:
       enabled:
@@ -880,7 +880,7 @@ data_types:
         default: 4096
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_featurevendorid
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurevendorid
   FeatureVendorID:
     properties:
       enabled:
@@ -899,7 +899,7 @@ data_types:
         - max_length: 12
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_firmware
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_firmware
   Firmware:
     properties:
       bootloader:
@@ -918,7 +918,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_bootloader
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_bootloader
   Bootloader:
     description: >-
       Represents the firmware blob used to assist in the domain creation process. Used for setting
@@ -935,7 +935,7 @@ data_types:
         type: string # TODO: EFI
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_machine
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_machine
   Machine:
     properties:
       type:
@@ -943,7 +943,7 @@ data_types:
           QEMU machine type is the actual chipset of the VirtualMachineInstance.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_memory
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_memory
   Memory:
     description: >-
       Memory allows specifying the VirtualMachineInstance memory features.
@@ -961,7 +961,7 @@ data_types:
         type: Hugepages
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_hugepages
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_hugepages
   Hugepages:
     description: >-
       Hugepages allow to use hugepages for the VirtualMachineInstance instead of regular memory.
@@ -973,7 +973,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_resourcerequirements
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_resourcerequirements
   ResourceRequirements:
     properties:
       limits:
@@ -999,7 +999,7 @@ data_types:
         entry_schema: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1alpha1_datavolumespec
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1alpha1_datavolumespec
   DataVolume:
     description: >-
       DataVolumeSpec defines our specification for a DataVolume type.
@@ -1020,7 +1020,7 @@ data_types:
           Source is the src of the data for the requested DataVolume.
         type: DataVolumeSource
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_network
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_network
   KubeVirtNetwork:
     description: >-
       Network represents a network type and a resource that should be connected to the vm.
@@ -1039,7 +1039,7 @@ data_types:
         type: PodNetwork
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_genienetwork
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_genienetwork
   GenieNetwork:
     description: >-
       Represents the genie cni network.
@@ -1049,7 +1049,7 @@ data_types:
           References the CNI plugin name.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_multusnetwork
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_multusnetwork
   MultusNetwork:
     description: >-
       Represents the multus cni network.
@@ -1065,7 +1065,7 @@ data_types:
           <namespace>/<networkName>. If namespace is not specified, VMI namespace is assumed.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_podnetwork
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_podnetwork
   PodNetwork:
     description: >-
       Represents the stock pod network interface.
@@ -1076,7 +1076,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_volume
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_volume
   Volume:
     description: >-
       Volume represents a named volume in a vmi.
@@ -1149,7 +1149,7 @@ data_types:
         type: ServiceAccountVolumeSource
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_cloudinitconfigdrivesource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cloudinitconfigdrivesource
   CloudInitConfigDriveSource:
     description: >-
       Represents a cloud-init config drive user data source.
@@ -1185,7 +1185,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_cloudinitnocloudsource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cloudinitnocloudsource
   CloudInitNoCloudSource:
     description: >-
       Represents a cloud-init nocloud user data source.
@@ -1221,7 +1221,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_localobjectreference
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_localobjectreference
   LocalObjectReference:
     description: >-
       LocalObjectReference contains enough information to let you locate the referenced object
@@ -1233,7 +1233,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_configmapvolumesource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_configmapvolumesource
   ConfigMapVolumeSource:
     description: >-
       ConfigMapVolumeSource adapts a ConfigMap into a volume.
@@ -1249,7 +1249,7 @@ data_types:
         type: boolean
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_containerdisksource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_containerdisksource
   ContainerDiskSource:
     description: >-
       Represents a docker image with an embedded disk.
@@ -1278,7 +1278,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_datavolumesource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_datavolumesource
   DataVolumeSource:
     properties:
       name:
@@ -1286,7 +1286,7 @@ data_types:
           Name represents the name of the DataVolume in the same namespace.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_emptydisksource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_emptydisksource
   EmptyDiskSource:
     description: >-
       EmptyDisk represents a temporary disk which shares the vmi's lifecycle.
@@ -1296,7 +1296,7 @@ data_types:
           Capacity of the sparse disk.
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_ephemeralvolumesource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_ephemeralvolumesource
   EphemeralVolumeSource:
     properties:
       persistentVolumeClaim:
@@ -1306,7 +1306,7 @@ data_types:
         type: PersistentVolumeClaimVolumeSource
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_hostdisk
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_hostdisk
   HostDisk:
     description: >-
       Represents a disk created on the cluster level.
@@ -1333,7 +1333,7 @@ data_types:
         - valid_values: [ Disk, DiskOrCreate ]
         type: string
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_persistentvolumeclaimvolumesource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_persistentvolumeclaimvolumesource
   PersistentVolumeClaimVolumeSource:
     description: >-
       PersistentVolumeClaimVolumeSource references the user's PVC in the same namespace. This volume
@@ -1353,7 +1353,7 @@ data_types:
         default: false
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_secretvolumesource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_secretvolumesource
   SecretVolumeSource:
     description: >-
       SecretVolumeSource adapts a Secret into a volume.
@@ -1369,7 +1369,7 @@ data_types:
         type: string
         required: false
 
-  # https://kubevirt.io/api-reference/v0.28.0/definitions.html#_v1_serviceaccountvolumesource
+  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_serviceaccountvolumesource
   ServiceAccountVolumeSource:
     description: >-
       ServiceAccountVolumeSource adapts a ServiceAccount into a volume.

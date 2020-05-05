@@ -4,7 +4,7 @@ go 1.14
 
 replace github.com/tliron/puccini => /Depot/Projects/RedHat/puccini
 
-replace github.com/tliron/kubernetes-registry-spooler => /Depot/Projects/RedHat/kubernetes-registry-spooler
+// replace github.com/tliron/kubernetes-registry-spooler => /Depot/Projects/RedHat/kubernetes-registry-spooler
 
 require (
 	github.com/google/go-containerregistry v0.0.0-20200413145205-82d30a103c0a
@@ -16,8 +16,8 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/tebeka/atexit v0.3.0
-	github.com/tliron/kubernetes-registry-spooler v1.0.1
-	github.com/tliron/puccini v0.13.0
+	github.com/tliron/kubernetes-registry-spooler v1.0.2
+	github.com/tliron/puccini v0.14.0
 	github.com/tliron/yamlkeys v1.3.3
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 	k8s.io/api v0.18.2
