@@ -45,12 +45,15 @@ func DeployService(serviceName string) {
 
 	client := NewClient()
 
+	urlContext := urlpkg.NewContext()
+	defer urlContext.Release()
+
 	if template != "" {
 		if (filePath != "") || (directoryPath != "") || (url != "") {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().DeployServiceFromTemplate(serviceName, template, inputValues)
+		err := client.Turandot().DeployServiceFromTemplate(serviceName, template, inputValues, urlContext)
 		puccinicommon.FailOnError(err)
 	} else if filePath != "" {
 		if (template != "") || (directoryPath != "") || (url != "") {
@@ -60,13 +63,13 @@ func DeployService(serviceName string) {
 		var url_ urlpkg.URL
 		var err error
 		if filePath != "" {
-			url_, err = urlpkg.NewValidFileURL(filePath)
+			url_, err = urlpkg.NewValidFileURL(filePath, nil)
 		} else {
 			url_, err = urlpkg.ReadToInternalURLFromStdin("yaml")
 		}
 		puccinicommon.FailOnError(err)
 
-		err = client.Turandot().DeployServiceFromContent(serviceName, client.Spooler(), url_, inputValues)
+		err = client.Turandot().DeployServiceFromContent(serviceName, client.Spooler(), url_, inputValues, urlContext)
 		puccinicommon.FailOnError(err)
 	} else if directoryPath != "" {
 		if (template != "") || (filePath != "") || (url != "") {
@@ -79,7 +82,7 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().DeployServiceFromURL(serviceName, url, inputValues)
+		err := client.Turandot().DeployServiceFromURL(serviceName, url, inputValues, urlContext)
 		puccinicommon.FailOnError(err)
 	} else {
 		deployFailOnlyOneOf()
@@ -89,7 +92,11 @@ func DeployService(serviceName string) {
 func ParseInputs() {
 	if inputsUrl != "" {
 		log.Infof("load inputs from \"%s\"", inputsUrl)
-		url, err := urlpkg.NewValidURL(inputsUrl, nil)
+
+		urlContext := urlpkg.NewContext()
+		defer urlContext.Release()
+
+		url, err := urlpkg.NewValidURL(inputsUrl, nil, urlContext)
 		puccinicommon.FailOnError(err)
 		reader, err := url.Open()
 		puccinicommon.FailOnError(err)

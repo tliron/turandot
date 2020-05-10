@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/op/go-logging"
@@ -18,13 +19,12 @@ import (
 
 var pucciniLog = logging.MustGetLogger("turandot.puccini")
 
-func CompileTOSCA(url string, cloutPath string, inputs map[string]ard.Value) error {
-	if url_, err := urlpkg.NewURL(url); err == nil {
-		defer url_.Release()
+func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, urlContext *urlpkg.Context) error {
+	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
 		if serviceTemplate, problems, err := parser.Parse(url_, nil, inputs); err == nil {
 			if problems.Empty() {
 				if clout, err := compiler.Compile(serviceTemplate, true); err == nil {
-					return UpdateClout(clout, cloutPath)
+					return WriteClout(clout, writer)
 				} else {
 					return err
 				}
@@ -41,40 +41,25 @@ func CompileTOSCA(url string, cloutPath string, inputs map[string]ard.Value) err
 	}
 }
 
-func ReadClout(cloutPath string) (*cloutpkg.Clout, error) {
-	if url_, err := urlpkg.NewURL(cloutPath); err == nil {
-		defer url_.Release()
-		if reader, err := url_.Open(); err == nil {
-			defer reader.Close()
-			if clout, err := cloutpkg.Read(reader, url_.Format()); err == nil {
-				var problems problemspkg.Problems
-				if compiler.Resolve(clout, &problems, "yaml", false, true, false); problems.Empty() {
-					return clout, nil
-				} else {
-					return nil, fmt.Errorf("%s", problems)
-				}
-			} else {
-				return nil, err
-			}
+func ReadClout(reader io.Reader, urlContext *urlpkg.Context) (*cloutpkg.Clout, error) {
+	if clout, err := cloutpkg.Read(reader, "yaml"); err == nil {
+		var problems problemspkg.Problems
+		if compiler.Resolve(clout, &problems, urlContext, "yaml", false, true, false); problems.Empty() {
+			return clout, nil
 		} else {
-			return nil, err
+			return nil, fmt.Errorf("%s", problems)
 		}
 	} else {
 		return nil, err
 	}
 }
 
-func UpdateClout(clout *cloutpkg.Clout, cloutPath string) error {
-	if file, err := format.OpenFileForWrite(cloutPath); err == nil {
-		defer file.Close()
-		return format.Write(clout, "yaml", terminal.Indent, false, file)
-	} else {
-		return err
-	}
+func WriteClout(clout *cloutpkg.Clout, writer io.Writer) error {
+	return format.Write(clout, "yaml", terminal.Indent, false, writer)
 }
 
-func ExecScriptlet(clout *cloutpkg.Clout, scriptletName string) (string, error) {
-	jsContext := js.NewContext(scriptletName, pucciniLog, false, "yaml", false, true, false, "")
+func ExecScriptlet(clout *cloutpkg.Clout, scriptletName string, urlContext *urlpkg.Context) (string, error) {
+	jsContext := js.NewContext(scriptletName, pucciniLog, false, "yaml", false, true, false, "", urlContext)
 	var builder strings.Builder
 	jsContext.Stdout = &builder
 	if err := jsContext.Exec(clout, scriptletName, nil); err == nil {

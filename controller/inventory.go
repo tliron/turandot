@@ -10,16 +10,16 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	gzip "github.com/klauspost/pgzip"
 	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/client"
+	"github.com/tliron/turandot/common"
 )
 
-func (self *Controller) GetInventoryServiceTemplateURL(namespace string, serviceTemplateName string) (*urlpkg.DockerURL, error) {
+func (self *Controller) GetInventoryServiceTemplateURL(namespace string, serviceTemplateName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
 	if ip, err := common.GetFirstPodIP(self.Context, self.Kubernetes, namespace, "turandot-inventory"); err == nil {
 		imageName := delegate.GetInventoryImageName(serviceTemplateName)
 		url := fmt.Sprintf("docker://%s:5000/%s?format=csar", ip, imageName)
 		if url_, err := neturlpkg.ParseRequestURI(url); err == nil {
-			return urlpkg.NewDockerURL(url_), nil
+			return urlpkg.NewDockerURL(url_, urlContext), nil
 		} else {
 			return nil, err
 		}
@@ -28,10 +28,8 @@ func (self *Controller) GetInventoryServiceTemplateURL(namespace string, service
 	}
 }
 
-func (self *Controller) PushToInventory(imageName string, url string, ips []string) (string, error) {
-	if url, err := urlpkg.NewURL(url); err == nil {
-		defer url.Release()
-
+func (self *Controller) PushToInventory(imageName string, url string, ips []string, urlContext *urlpkg.Context) (string, error) {
+	if url, err := urlpkg.NewURL(url, urlContext); err == nil {
 		opener := func() (io.ReadCloser, error) {
 			if reader, err := url.Open(); err == nil {
 				return gzip.NewReader(reader)

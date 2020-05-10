@@ -6,6 +6,7 @@ import (
 	"github.com/tliron/puccini/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
 	puccinicommon "github.com/tliron/puccini/common"
+	urlpkg "github.com/tliron/puccini/url"
 	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
@@ -50,13 +51,13 @@ func (self *Controller) UpdateCloutArtifacts(clout *cloutpkg.Clout, artifactMapp
 	}
 }
 
-func (self *Controller) processArtifacts(artifacts interface{}, service *resources.Service) (map[string]string, error) {
+func (self *Controller) processArtifacts(artifacts interface{}, service *resources.Service, urlContext *urlpkg.Context) (map[string]string, error) {
 	if artifacts_, ok := parser.NewKubernetesArtifacts(artifacts); ok {
 		artifactMappings := make(map[string]string)
 		if len(artifacts_) > 0 {
 			if ips, err := common.GetPodIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-inventory"); err == nil {
 				for _, artifact := range artifacts_ {
-					if name, err := self.PushToInventory(artifact.Name, artifact.SourcePath, ips); err == nil {
+					if name, err := self.PushToInventory(artifact.Name, artifact.SourcePath, ips, urlContext); err == nil {
 						artifactMappings[artifact.SourcePath] = name
 					} else {
 						return nil, err

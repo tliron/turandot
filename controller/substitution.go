@@ -1,6 +1,10 @@
 package controller
 
-func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, site string) error {
+import (
+	urlpkg "github.com/tliron/puccini/url"
+)
+
+func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, site string, urlContext *urlpkg.Context) error {
 	// hacky ;)
 	var serviceTemplateName string
 	switch nodeTemplateName {
@@ -13,9 +17,7 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 	}
 	serviceName := serviceTemplateName
 
-	if url, err := self.GetInventoryServiceTemplateURL(namespace, serviceTemplateName); err == nil {
-		defer url.Release()
-
+	if url, err := self.GetInventoryServiceTemplateURL(namespace, serviceTemplateName, urlContext); err == nil {
 		if (site == "") || (site == self.Site) {
 			// Local
 			if _, err := self.CreateService(namespace, serviceName, url, inputs); err != nil {
@@ -23,12 +25,13 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 			}
 		} else {
 			// Delegate
+			self.Log.Infof("delegating %s to: %s", serviceTemplateName, site)
 			if client, spooler, err := self.NewDelegate(site); err == nil {
 				if err := client.Install(site, "docker.io", true); err != nil {
 					return err
 				}
 
-				if err := client.DeployServiceFromContent(serviceName, spooler, url, inputs); err != nil {
+				if err := client.DeployServiceFromContent(serviceName, spooler, url, inputs, urlContext); err != nil {
 					return err
 				}
 			} else {

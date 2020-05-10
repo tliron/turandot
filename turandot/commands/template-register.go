@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/cobra"
 	puccinicommon "github.com/tliron/puccini/common"
 	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/client"
+	"github.com/tliron/turandot/common"
 )
 
 func init() {
@@ -33,7 +33,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		var url urlpkg.URL
 		var err error
 		if filePath != "" {
-			url, err = urlpkg.NewValidFileURL(filePath)
+			url, err = urlpkg.NewValidFileURL(filePath, nil)
 		} else {
 			url, err = urlpkg.ReadToInternalURLFromStdin("yaml")
 		}

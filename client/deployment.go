@@ -13,9 +13,8 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (self *Client) DeployServiceFromTemplate(serviceName string, serviceTemplateName string, inputs map[string]interface{}) error {
-	if url, err := self.GetInventoryServiceTemplateURL(serviceTemplateName); err == nil {
-		defer url.Release()
+func (self *Client) DeployServiceFromTemplate(serviceName string, serviceTemplateName string, inputs map[string]interface{}, urlContext *urlpkg.Context) error {
+	if url, err := self.GetInventoryServiceTemplateURL(serviceTemplateName, urlContext); err == nil {
 		_, err := self.createService(serviceName, url, inputs)
 		return err
 	} else {
@@ -23,9 +22,8 @@ func (self *Client) DeployServiceFromTemplate(serviceName string, serviceTemplat
 	}
 }
 
-func (self *Client) DeployServiceFromURL(serviceName string, url string, inputs map[string]interface{}) error {
-	if url_, err := urlpkg.NewURL(url); err == nil {
-		defer url_.Release()
+func (self *Client) DeployServiceFromURL(serviceName string, url string, inputs map[string]interface{}, urlContext *urlpkg.Context) error {
+	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
 		_, err = self.createService(serviceName, url_, inputs)
 		return err
 	} else {
@@ -33,11 +31,11 @@ func (self *Client) DeployServiceFromURL(serviceName string, url string, inputs 
 	}
 }
 
-func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}) error {
+func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, urlContext *urlpkg.Context) error {
 	serviceTemplateName := uuid.New().String()
 	imageName := GetInventoryImageName(serviceTemplateName)
 	if err := common.PushToRegistry(imageName, url, spooler); err == nil {
-		return self.DeployServiceFromTemplate(serviceName, serviceTemplateName, inputs)
+		return self.DeployServiceFromTemplate(serviceName, serviceTemplateName, inputs, urlContext)
 	} else {
 		return err
 	}

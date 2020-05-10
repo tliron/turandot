@@ -2,7 +2,6 @@ package controller
 
 import (
 	contextpkg "context"
-	"fmt"
 	"time"
 
 	"github.com/op/go-logging"
@@ -64,7 +63,7 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		InstantiationWork: make(chan Instantiation, 10),
 		Events:            common.CreateEventRecorder(kubernetes, toolName),
 		Context:           context,
-		Log:               logging.MustGetLogger(fmt.Sprintf("%s.controller", toolName)),
+		Log:               logging.MustGetLogger("turandot.controller"),
 	}
 
 	if cluster {
