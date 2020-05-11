@@ -11,7 +11,7 @@ node_types:
         entry_schema: string
         required: false
     capabilities:
-      connectable: Connectable
+      connection: Connectable
 
   NetworkFunction:
     properties:
@@ -20,7 +20,7 @@ node_types:
         entry_schema: string
         required: false
     capabilities:
-      deployable: Deployable
+      deployment: Deployable
     requirements:
     - connection:
         capability: Connectable
@@ -29,7 +29,7 @@ node_types:
   Router:
     derived_from: NetworkFunction
     capabilities:
-      routable: Routable
+      route: Routable
 
 capability_types:
 

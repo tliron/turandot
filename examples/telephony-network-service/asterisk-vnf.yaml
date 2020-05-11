@@ -3,9 +3,11 @@ tosca_definitions_version: tosca_simple_yaml_1_3
 imports:
 
 - namespace_prefix: ns
-  file: profiles/network-service.yaml
+  file: profiles/network-service/profile.yaml
 - namespace_prefix: telephony
-  file: profiles/telephony.yaml
+  file: profiles/telephony/profile.yaml
+- namespace_prefix: mariadb
+  file: profiles/mariadb/profile.yaml
 - namespace_prefix: k8s
   file: profiles/kubernetes/1.18/profile.yaml
 - namespace_prefix: kubevirt
@@ -21,11 +23,13 @@ node_types:
       virtual-machine: kubevirt:VirtualMachine
       tcp: k8s:LoadBalancer
       udp: k8s:LoadBalancer
-      connectable: ns:Connectable
+      connection: ns:Connectable
     requirements:
     - data-plane:
         capability: ns:Connectable
         node: ns:NetworkPlane
+    - db:
+        capability: mariadb:Connectable
     interfaces:
       configuration:
         type: o11n:SSHConfiguration
@@ -133,6 +137,14 @@ topology_template:
            type: o11n:ShellScript
            file: artifacts/scripts/asterisk/configure.sh
 
+    db:
+      type: mariadb:Cluster
+      properties:
+        database: asterisk
+        username: asterisk
+        password: asterisk
+        rootpwd: asterisk
+
     data-plane:
       type: ns:NetworkPlane
       # TODO: inject these via substitution mapping
@@ -144,7 +156,7 @@ topology_template:
 
     node_type: telephony:PBX
     capabilities:
-      connectable: [ vnf, connectable ]
+      connection: [ vnf, connection ]
 
   policies:
 

@@ -164,6 +164,25 @@ data_types:
         constraints:
         - valid_values: [ TCP, UDP ]
 
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#loadbalanceringress-v1-core
+  LoadBalancerIngress:
+    description: >-
+      LoadBalancerIngress represents the status of a load-balancer ingress point: traffic intended
+      for the service should be sent to an ingress point.
+    properties:
+      hostname:
+        description: >-
+          Hostname is set for load-balancer ingress points that are DNS based (typically AWS
+          load-balancers)
+        type: string
+        required: false
+      ip:
+        description: >-
+          IP is set for load-balancer ingress points that are IP based (typically GCE or OpenStack
+          load-balancers)
+        type: IP
+        required: false
+
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#deploymentstrategy-v1-apps
   DeploymentStrategy:
     description: >-

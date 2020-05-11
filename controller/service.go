@@ -59,7 +59,7 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 }
 
 func (self *Controller) UpdateServiceStatus(service *resources.Service, cloutPath string, cloutHash string) (*resources.Service, error) {
-	self.Log.Infof("updating status for service: \"%s %s\"", service.Namespace, service.Name)
+	self.Log.Infof("updating status for service: %s/%s", service.Namespace, service.Name)
 
 	service = service.DeepCopy()
 	service.Status.ServiceTemplateURL = service.Spec.ServiceTemplateURL
@@ -67,11 +67,26 @@ func (self *Controller) UpdateServiceStatus(service *resources.Service, cloutPat
 	for key, input := range service.Spec.Inputs {
 		service.Status.Inputs[key] = input
 	}
-	service.Status.Outputs = make(map[string]string)
-	// TODO: outputs
+	if service.Status.Outputs == nil {
+		service.Status.Outputs = make(map[string]string)
+	}
 	service.Status.CloutPath = cloutPath
 	service.Status.CloutHash = cloutHash
+
 	// TODO: check: does update return an error if there was no change?
+	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
+		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+		return service, nil
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Controller) UpdateServiceOutputs(service *resources.Service, outputs map[string]string) (*resources.Service, error) {
+	self.Log.Infof("updating outputs for service: %s/%s", service.Namespace, service.Name)
+
+	service = service.DeepCopy()
+	service.Status.Outputs = outputs
 
 	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
 		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()

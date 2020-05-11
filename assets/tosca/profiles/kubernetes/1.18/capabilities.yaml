@@ -287,10 +287,14 @@ capability_types:
         - valid_values: [ ClientIP, None ]
       # TODO: sessionAffinityConfig
     attributes:
-      status:
+      clusterIP:
         description: >-
-          Most recently observed status of the service. Populated by the system. Read-only.
-        type: string # TODO
+          clusterIP is the IP address of the service and is usually assigned randomly by the master.
+          If an address is specified manually and is not in use by others, it will be allocated to
+          the service; otherwise, creation of the service will fail. This field can not be changed
+          through updates. Valid values are "None", empty string (""), or a valid IP address.
+          "None" can be specified for headless services when proxying is not required.
+        type: IP
 
   ClusterIP:
     description: >-
@@ -302,15 +306,6 @@ capability_types:
     properties:
       type:
         default: ClusterIP
-    attributes:
-      clusterIP:
-        description: >-
-          clusterIP is the IP address of the service and is usually assigned randomly by the master.
-          If an address is specified manually and is not in use by others, it will be allocated to
-          the service; otherwise, creation of the service will fail. This field can not be changed
-          through updates. Valid values are "None", empty string (""), or a valid IP address.
-          "None" can be specified for headless services when proxying is not required.
-        type: IP
 
   NodePort:
     description: >-
@@ -346,6 +341,12 @@ capability_types:
         entry_schema: IP
         required: false
     attributes:
+      ingress:
+        description: >-
+          Ingress is a list containing ingress points for the load-balancer. Traffic intended for
+          the service should be sent to these ingress points.
+        type: list
+        entry_schema: LoadBalancerIngress
       healthCheckNodePort:
         description: >-
           healthCheckNodePort specifies the healthcheck nodePort for the service. If not specified,

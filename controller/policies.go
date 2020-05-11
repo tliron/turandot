@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/tliron/turandot/controller/parser"
 )
@@ -18,7 +18,6 @@ func (self *Controller) processPolicies(policies interface{}) (parser.Orchestrat
 		}
 		return policies_, nil
 	} else {
-		self.Log.Criticalf("%s", policies)
-		return nil, errors.New("could not parse policies")
+		return nil, fmt.Errorf("could not parse policies: %s", policies)
 	}
 }

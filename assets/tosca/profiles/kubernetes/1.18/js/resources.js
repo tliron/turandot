@@ -2,7 +2,7 @@
 clout.exec('tosca.lib.traversal');
 
 // Run plugins
-clout.execAll('kubernetes.pre-generate-plugins');
+clout.execAll('kubernetes.pre-resources-plugins');
 
 tosca.coerce();
 
@@ -37,7 +37,7 @@ for (var vertexId in clout.vertexes) {
 }
 
 // Run plugins
-clout.execAll('kubernetes.generate-plugins');
+clout.execAll('kubernetes.resources-plugins');
 
 puccini.write(specs);
 

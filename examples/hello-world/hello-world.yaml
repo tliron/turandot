@@ -44,6 +44,9 @@ topology_template:
           properties:
             ports:
             - { name: http, protocol: TCP, port: 80, targetPort: 8080 }
+          attributes:
+            ingress:
+            - ip: <unknown>
       artifacts:
         image:
           type: k8s:ContainerImage
@@ -51,7 +54,7 @@ topology_template:
           properties:
             tag: hello-world
 
-# TODO:
-#  outputs:
-#
-#    url: { get_attribute: [ hello-world, service, url ] }
+  outputs:
+
+    url:
+      value: { concat: [ http://, { get_attribute: [ hello-world, web, ingress, 0, ip ] }, ':80' ] }

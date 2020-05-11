@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"io"
 
 	cloutpkg "github.com/tliron/puccini/clout"
@@ -46,10 +47,10 @@ func (self *Controller) UpdateClout(clout *cloutpkg.Clout, service *resources.Se
 }
 
 func (self *Controller) processClout(service *resources.Service, urlContext *urlpkg.Context) error {
-	artifactMappings := make(map[string]string)
-	orchestrationPolicies := make(parser.OrchestrationPolicies)
+	// TODO: update attributes in clout
 
 	// Artifacts
+	artifactMappings := make(map[string]string)
 	self.Log.Infof("processing artifacts for: %s", service.Status.CloutPath)
 	if clout, err := self.ReadClout(service.Status.CloutPath, urlContext); err == nil {
 		if yaml, err := common.ExecScriptlet(clout, "kubernetes.artifacts", urlContext); err == nil {
@@ -71,13 +72,14 @@ func (self *Controller) processClout(service *resources.Service, urlContext *url
 		self.Log.Infof("updating artifacts for: %s", service.Status.CloutPath)
 		if clout, err := self.ReadClout(service.Status.CloutPath, urlContext); err == nil {
 			self.UpdateCloutArtifacts(clout, artifactMappings)
-			if _, err = self.UpdateClout(clout, service); err != nil {
+			if service, err = self.UpdateClout(clout, service); err != nil {
 				return err
 			}
 		}
 	}
 
 	// Policies
+	orchestrationPolicies := make(parser.OrchestrationPolicies)
 	self.Log.Infof("processing policies for: %s", service.Status.CloutPath)
 	if clout, err := self.ReadClout(service.Status.CloutPath, urlContext); err == nil {
 		if yaml, err := common.ExecScriptlet(clout, "orchestration.policies", urlContext); err == nil {
@@ -112,10 +114,32 @@ func (self *Controller) processClout(service *resources.Service, urlContext *url
 	// TODO: need to filter only non-substituted and instantiable node templates
 	self.Log.Infof("processing Kubernetes resources for: %s", service.Status.CloutPath)
 	if clout, err := self.ReadClout(service.Status.CloutPath, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, "kubernetes.generate", urlContext); err == nil {
+		if yaml, err := common.ExecScriptlet(clout, "kubernetes.resources", urlContext); err == nil {
 			if objects, err := common.DecodeAllYAML(yaml); err == nil {
 				if err := self.processResources(objects, service); err != nil {
 					return err
+				}
+			} else if err != io.EOF {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
+
+	// Outputs
+	self.Log.Infof("processing outputs for: %s", service.Status.CloutPath)
+	if clout, err := self.ReadClout(service.Status.CloutPath, urlContext); err == nil {
+		if yaml, err := common.ExecScriptlet(clout, "orchestration.outputs", urlContext); err == nil {
+			if outputs, err := format.DecodeYAML(yaml); err == nil {
+				if outputs_, ok := parser.ParseOutputs(outputs); ok {
+					if service, err = self.UpdateServiceOutputs(service, outputs_); err != nil {
+						return err
+					}
+				} else {
+					return fmt.Errorf("could not parse outputs", outputs)
 				}
 			} else if err != io.EOF {
 				return err

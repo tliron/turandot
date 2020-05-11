@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/tliron/puccini/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
@@ -67,6 +67,6 @@ func (self *Controller) processArtifacts(artifacts interface{}, service *resourc
 		}
 		return artifactMappings, nil
 	} else {
-		return nil, errors.New("could not parse artifacts")
+		return nil, fmt.Errorf("could not parse artifacts: %s", artifacts)
 	}
 }

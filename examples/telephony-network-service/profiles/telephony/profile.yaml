@@ -5,7 +5,7 @@ namespace: cloud.puccini.turandot.telephony
 imports:
 
 - namespace_prefix: ns
-  file: network-service.yaml
+  file: ../network-service/profile.yaml
 
 node_types:
 
