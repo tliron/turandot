@@ -83,6 +83,6 @@ func Controller() {
 
 	// Run
 
-	err = controller.Run(threadiness)
+	err = controller.Run(concurrency)
 	puccinicommon.FailOnError(err)
 }

@@ -27,7 +27,7 @@ func ServiceTemplateNameFromInventoryImageName(imageName string) (string, bool) 
 
 func (self *Client) GetInventoryServiceTemplateURL(serviceTemplateName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
 	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
-	if ip, err := common.GetFirstPodIP(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
+	if ip, err := common.GetFirstServiceIP(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		imageName := GetInventoryImageName(serviceTemplateName)
 		url := fmt.Sprintf("docker://%s:5000/%s?format=csar", ip, imageName)
 		if url_, err := neturlpkg.ParseRequestURI(url); err == nil {

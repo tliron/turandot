@@ -99,7 +99,7 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 	return &self
 }
 
-func (self *Controller) Run(threadiness uint) error {
+func (self *Controller) Run(concurrency uint) error {
 	defer utilruntime.HandleCrash()
 
 	self.Log.Info("starting informer factories")
@@ -109,12 +109,12 @@ func (self *Controller) Run(threadiness uint) error {
 	self.Log.Info("waiting for processor informer caches to sync")
 	utilruntime.HandleError(self.Processors.WaitForCacheSync(self.StopChannel))
 
-	self.Log.Info("starting processors")
-	self.Processors.Start(threadiness, self.StopChannel)
+	self.Log.Infof("starting processors (concurrency=%d)", concurrency)
+	self.Processors.Start(concurrency, self.StopChannel)
 	defer self.Processors.ShutDown()
 
-	self.Log.Info("starting instantiator")
-	go self.RunInstantiator()
+	self.Log.Infof("starting instantiator (concurrency=%d)", concurrency)
+	self.StartInstantiator(concurrency, self.StopChannel)
 	defer self.StopInstantiator()
 
 	<-self.StopChannel

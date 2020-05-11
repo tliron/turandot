@@ -86,6 +86,8 @@ spec:
           value: default
         - name: TURANDOT_OPERATOR_cache
           value: /cache
+        - name: TURANDOT_OPERATOR_concurrency
+          value: '3'
         - name: TURANDOT_OPERATOR_verbose
           value: '1'
         # To enable cluster mode we also need: cluster-mode-authorization.yaml
@@ -113,9 +115,9 @@ metadata:
   namespace: !!string $NAMESPACE
   labels:
     app.kubernetes.io/name: turandot-inventory
-    app.kubernetes.io/instance: turandot-operator-$NAMESPACE
+    app.kubernetes.io/instance: turandot-inventory-$NAMESPACE
     app.kubernetes.io/version: !!string $VERSION
-    app.kubernetes.io/component: operator
+    app.kubernetes.io/component: inventory
     app.kubernetes.io/part-of: turandot
     app.kubernetes.io/managed-by: turandot
 
@@ -179,3 +181,32 @@ spec:
       volumes:
       - name: spool
         emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: turandot-inventory
+  namespace: !!string $NAMESPACE
+  labels:
+    app.kubernetes.io/name: turandot-inventory
+    app.kubernetes.io/instance: turandot-operator-$NAMESPACE
+    app.kubernetes.io/version: !!string $VERSION
+    app.kubernetes.io/component: inventory
+    app.kubernetes.io/part-of: turandot
+    app.kubernetes.io/managed-by: turandot
+
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: turandot-inventory
+    app.kubernetes.io/instance: turandot-inventory-$NAMESPACE
+    app.kubernetes.io/version: !!string $VERSION
+    app.kubernetes.io/component: inventory
+  ports:
+  - name: registry
+    protocol: TCP
+    targetPort: 5000
+    port: 5000

@@ -63,9 +63,9 @@ func (self *Processor) HasSynced() bool {
 	return self.Informer.HasSynced()
 }
 
-func (self *Processor) Start(threadiness uint, stopChannel <-chan struct{}) {
+func (self *Processor) Start(concurrency uint, stopChannel <-chan struct{}) {
 	var i uint
-	for i = 0; i < threadiness; i++ {
+	for i = 0; i < concurrency; i++ {
 		go wait.Until(self.worker, self.Period, stopChannel)
 	}
 }
@@ -156,9 +156,9 @@ func (self *Processors) Get(name string) (*Processor, bool) {
 	return nil, false
 }
 
-func (self *Processors) Start(threadiness uint, stopChannel <-chan struct{}) {
+func (self *Processors) Start(concurrency uint, stopChannel <-chan struct{}) {
 	for _, processor := range self.processors {
-		processor.Start(threadiness, stopChannel)
+		processor.Start(concurrency, stopChannel)
 	}
 }
 

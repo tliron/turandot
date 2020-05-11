@@ -20,7 +20,7 @@ var version bool
 var site string
 var cluster bool
 var namespace string
-var threadiness uint
+var concurrency uint
 var resyncPeriod time.Duration
 var cachePath string
 var healthPort uint
@@ -39,7 +39,7 @@ func init() {
 	command.PersistentFlags().StringVar(&site, "site", "default", "site name")
 	command.PersistentFlags().BoolVar(&cluster, "cluster", false, "enable cluster mode")
 	command.PersistentFlags().StringVar(&namespace, "namespace", "", "namespace (overrides context namespace in Kubernetes configuration)")
-	command.PersistentFlags().UintVar(&threadiness, "threadiness", 1, "number of concurrent workers per processor")
+	command.PersistentFlags().UintVar(&concurrency, "concurrency", 1, "number of concurrent workers per processor")
 	command.PersistentFlags().DurationVar(&resyncPeriod, "resync", time.Second*30, "informer resync period")
 	command.PersistentFlags().StringVar(&cachePath, "cache", "", "cache path")
 	command.PersistentFlags().UintVar(&healthPort, "health-port", 8086, "HTTP port for health check (for liveness and readiness probes)")

@@ -29,10 +29,10 @@ func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, url
 					return err
 				}
 			} else {
-				return fmt.Errorf("%s", problems)
+				return fmt.Errorf("%s", problems.ToString(true))
 			}
 		} else if (problems != nil) && !problems.Empty() {
-			return fmt.Errorf("%s\n%s", err.Error(), problems)
+			return fmt.Errorf("%s\n%s", err.Error(), problems.ToString(true))
 		} else {
 			return err
 		}

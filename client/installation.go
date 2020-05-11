@@ -58,6 +58,10 @@ func (self *Client) Install(site string, registry string, wait bool) error {
 		return err
 	}
 
+	if _, err = self.createInventoryService(); err != nil {
+		return err
+	}
+
 	if wait {
 		if _, err := self.waitForDeployment(operatorDeployment.Name); err != nil {
 			return err
@@ -71,6 +75,9 @@ func (self *Client) Install(site string, registry string, wait bool) error {
 }
 
 func (self *Client) Uninstall() {
+	if err := self.Kubernetes.CoreV1().Services(self.Namespace).Delete(self.Context, fmt.Sprintf("%s-inventory", self.NamePrefix), meta.DeleteOptions{}); err != nil {
+		self.Log.Warningf("%s", err)
+	}
 	if err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Delete(self.Context, fmt.Sprintf("%s-inventory", self.NamePrefix), meta.DeleteOptions{}); err != nil {
 		self.Log.Warningf("%s", err)
 	}
@@ -280,6 +287,10 @@ func (self *Client) createOperatorDeployment(site string, registry string, servi
 									Value: self.CachePath,
 								},
 								{
+									Name:  "TURANDOT_OPERATOR_concurrency",
+									Value: "3",
+								},
+								{
 									Name:  "TURANDOT_OPERATOR_verbose",
 									Value: "1",
 								},
@@ -454,6 +465,50 @@ func (self *Client) createDeployment(deployment *apps.Deployment, appName string
 		return deployment, nil
 	} else if errors.IsAlreadyExists(err) {
 		return self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) createInventoryService() (*core.Service, error) {
+	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+
+	service := &core.Service{
+		ObjectMeta: meta.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       appName,
+				"app.kubernetes.io/instance":   instanceName,
+				"app.kubernetes.io/version":    version.GitVersion,
+				"app.kubernetes.io/component":  "inventory",
+				"app.kubernetes.io/part-of":    self.PartOf,
+				"app.kubernetes.io/managed-by": self.ManagedBy,
+			},
+		},
+		Spec: core.ServiceSpec{
+			Type: core.ServiceTypeClusterIP,
+			Selector: map[string]string{
+				"app.kubernetes.io/name":      appName,
+				"app.kubernetes.io/instance":  instanceName,
+				"app.kubernetes.io/version":   version.GitVersion,
+				"app.kubernetes.io/component": "inventory",
+			},
+			Ports: []core.ServicePort{
+				{
+					Name:       "registry",
+					Protocol:   "TCP",
+					TargetPort: intstr.FromInt(5000),
+					Port:       5000,
+				},
+			},
+		},
+	}
+
+	if service, err := self.Kubernetes.CoreV1().Services(self.Namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
+		return service, nil
+	} else if errors.IsAlreadyExists(err) {
+		return self.Kubernetes.CoreV1().Services(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
 	} else {
 		return nil, err
 	}

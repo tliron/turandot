@@ -21,20 +21,29 @@ func (self *Controller) EnqueueInstantiation(serviceName string, namespace strin
 	}
 }
 
+func (self *Controller) StartInstantiator(concurrency uint, stopChannel <-chan struct{}) {
+	var i uint
+	for i = 0; i < concurrency; i++ {
+		go self.runInstantiator(stopChannel)
+	}
+}
+
 func (self *Controller) StopInstantiator() {
 	close(self.InstantiationWork)
 }
 
-func (self *Controller) RunInstantiator() {
+func (self *Controller) runInstantiator(stopChannel <-chan struct{}) {
 	for {
-		if instantiation, ok := <-self.InstantiationWork; ok {
+		select {
+		case <-stopChannel:
+			self.Log.Warning("no more instantiations")
+			return
+
+		case instantiation := <-self.InstantiationWork:
 			self.Log.Infof("processing instantiation for: %s/%s", instantiation.namespace, instantiation.serviceName)
 			if err := self.processInstantiation(instantiation.serviceName, instantiation.namespace); err != nil {
 				self.Log.Errorf("%s", err.Error())
 			}
-		} else {
-			self.Log.Warning("no more instantiations")
-			break
 		}
 	}
 }

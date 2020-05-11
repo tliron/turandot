@@ -55,7 +55,7 @@ func (self *Controller) processArtifacts(artifacts interface{}, service *resourc
 	if artifacts_, ok := parser.NewKubernetesArtifacts(artifacts); ok {
 		artifactMappings := make(map[string]string)
 		if len(artifacts_) > 0 {
-			if ips, err := common.GetPodIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-inventory"); err == nil {
+			if ips, err := common.GetServiceIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-inventory"); err == nil {
 				for _, artifact := range artifacts_ {
 					if name, err := self.PushToInventory(artifact.Name, artifact.SourcePath, ips, urlContext); err == nil {
 						artifactMappings[artifact.SourcePath] = name
