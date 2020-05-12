@@ -139,6 +139,14 @@ topology_template:
 
     db:
       type: mariadb:Cluster
+      capabilities:
+        metadata:
+          properties:
+            name: asterisk-vnf
+            namespace: { get_input: namespace }
+            labels:
+              app.kubernetes.io/name: asterisk-vnf
+              app.kubernetes.io/instance: { concat: [ asterisk-vnf-, { get_input: namespace } ] }
       properties:
         database: asterisk
         username: asterisk

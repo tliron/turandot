@@ -52,6 +52,8 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		namespace = ""
 	}
 
+	log := logging.MustGetLogger("turandot.controller")
+
 	self := Controller{
 		Site:              site,
 		Config:            config,
@@ -61,9 +63,9 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		CachePath:         cachePath,
 		Processors:        common.NewProcessors(),
 		InstantiationWork: make(chan Instantiation, 10),
-		Events:            common.CreateEventRecorder(kubernetes, toolName),
+		Events:            common.CreateEventRecorder(kubernetes, "Turandot", log),
 		Context:           context,
-		Log:               logging.MustGetLogger("turandot.controller"),
+		Log:               log,
 	}
 
 	if cluster {

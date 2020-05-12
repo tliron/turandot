@@ -3,13 +3,13 @@ package common
 import (
 	"fmt"
 
+	"github.com/op/go-logging"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/klog"
 )
 
-func GetMetaObject(object interface{}) (meta.Object, error) {
+func GetMetaObject(object interface{}, log *logging.Logger) (meta.Object, error) {
 	switch o := object.(type) {
 	case meta.Object:
 		return o, nil
@@ -20,7 +20,7 @@ func GetMetaObject(object interface{}) (meta.Object, error) {
 	case cache.DeletedFinalStateUnknown:
 		switch oo := o.Obj.(type) {
 		case meta.Object:
-			klog.V(4).Infof("recovered deleted object '%s' from tombstone", oo.GetName())
+			log.Infof("recovered deleted object '%s' from tombstone", oo.GetName())
 			return oo, nil
 
 		default:

@@ -110,6 +110,7 @@ func (self *Client) createCustomResourceDefinition() (*apiextensions.CustomResou
 	if customResourceDefinition, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Create(self.Context, customResourceDefinition, meta.CreateOptions{}); err == nil {
 		return customResourceDefinition, nil
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.ServiceCustomResourceDefinition.Name, meta.GetOptions{})
 	} else {
 		return nil, err
@@ -126,6 +127,7 @@ func (self *Client) createNamespace() (*core.Namespace, error) {
 	if namespace, err := self.Kubernetes.CoreV1().Namespaces().Create(self.Context, namespace, meta.CreateOptions{}); err == nil {
 		return namespace, nil
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.CoreV1().Namespaces().Get(self.Context, self.Namespace, meta.GetOptions{})
 	} else {
 		return nil, err
@@ -142,6 +144,7 @@ func (self *Client) createServiceAccount() (*core.ServiceAccount, error) {
 	if serviceAccount, err := self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Create(self.Context, serviceAccount, meta.CreateOptions{}); err == nil {
 		return serviceAccount, nil
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
 	} else {
 		return nil, err
@@ -165,6 +168,7 @@ func (self *Client) createRole() (*rbac.Role, error) {
 	if role, err := self.Kubernetes.RbacV1().Roles(self.Namespace).Create(self.Context, role, meta.CreateOptions{}); err == nil {
 		return role, err
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.RbacV1().Roles(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
 	} else {
 		return nil, err
@@ -193,6 +197,7 @@ func (self *Client) createRoleBinding(serviceAccount *core.ServiceAccount, role 
 	if roleBinding, err := self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Create(self.Context, roleBinding, meta.CreateOptions{}); err == nil {
 		return roleBinding, nil
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
 	} else {
 		return nil, err
@@ -221,6 +226,7 @@ func (self *Client) createClusterRoleBinding(serviceAccount *core.ServiceAccount
 	if clusterRoleBinding, err := self.Kubernetes.RbacV1().ClusterRoleBindings().Create(self.Context, clusterRoleBinding, meta.CreateOptions{}); err == nil {
 		return clusterRoleBinding, nil
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.RbacV1().ClusterRoleBindings().Get(self.Context, self.NamePrefix, meta.GetOptions{})
 	} else {
 		return nil, err
@@ -464,6 +470,7 @@ func (self *Client) createDeployment(deployment *apps.Deployment, appName string
 	if deployment, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Create(self.Context, deployment, meta.CreateOptions{}); err == nil {
 		return deployment, nil
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
 	} else {
 		return nil, err
@@ -508,6 +515,7 @@ func (self *Client) createInventoryService() (*core.Service, error) {
 	if service, err := self.Kubernetes.CoreV1().Services(self.Namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
 		return service, nil
 	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.CoreV1().Services(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
 	} else {
 		return nil, err

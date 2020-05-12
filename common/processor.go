@@ -129,10 +129,11 @@ func (self *Processor) processWorkItem(item interface{}) {
 //
 
 type Processors struct {
-	processors         map[schema.GroupVersionKind]*Processor
-	controlledGvks     map[schema.GroupVersionKind]bool
-	controlledGvksLock sync.Mutex
+	processors     map[schema.GroupVersionKind]*Processor
+	controlledGvks map[schema.GroupVersionKind]bool
+
 	log                *logging.Logger
+	controlledGvksLock sync.Mutex
 }
 
 func NewProcessors() *Processors {
@@ -200,7 +201,7 @@ func (self *Processors) Control(dynamic *Dynamic, controlledGvk schema.GroupVers
 
 // OnChangedFunc signature
 func (self *Processors) onObjectChanged(object *unstructured.Unstructured) error {
-	if metaObject, err := GetMetaObject(object); err == nil {
+	if metaObject, err := GetMetaObject(object, self.log); err == nil {
 		if gvk, name, err := GetControllerOf(metaObject); err == nil {
 			if name != "" {
 				if processor, ok := self.processors[gvk]; ok {

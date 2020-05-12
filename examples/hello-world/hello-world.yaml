@@ -4,6 +4,8 @@ imports:
 
 - namespace_prefix: k8s
   file: profiles/kubernetes/1.18/profile.yaml
+- namespace_prefix: o11n
+  file: profiles/orchestration/1.0/profile.yaml
 
 node_types:
 

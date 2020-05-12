@@ -20,6 +20,9 @@ for (var vertexId in clout.vertexes) {
 		var capability = nodeTemplate.capabilities[capabilityName];
 		if ('cloud.puccini.kubernetes::Metadata' in capability.types) {
 			metadata = capability.properties;
+			if (!metadata.annotations)
+				metadata.annotations = {};
+			metadata.annotations['puccini.cloud/vertex'] = vertexId;
 			break;
 		}
 	}

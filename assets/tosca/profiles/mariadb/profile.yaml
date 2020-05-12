@@ -4,7 +4,12 @@ metadata:
 
   puccini.scriptlet.import|kubernetes.resources-plugins.mariadb: js/plugins/resources.js
 
-namespace: cloud.puccini.turandot.mariadb
+namespace: cloud.puccini.mariadb
+
+imports:
+
+- namespace_prefix: k8s
+  file: ../kubernetes/1.18/profile.yaml
 
 node_types:
 
@@ -44,8 +49,8 @@ node_types:
         type: list
         entry_schema: string
     capabilities:
-      connection:
-        type: Connectable
+      metadata: k8s:Metadata
+      connection: Connectable
 
 capability_types:
 

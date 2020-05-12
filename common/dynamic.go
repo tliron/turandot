@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/op/go-logging"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -14,7 +15,6 @@ import (
 	dynamicpkg "k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/klog"
 )
 
 //
@@ -27,6 +27,7 @@ type Dynamic struct {
 	Dynamic         dynamicpkg.Interface
 	Discovery       discovery.DiscoveryInterface
 	InformerFactory dynamicinformer.DynamicSharedInformerFactory
+	Log             *logging.Logger
 
 	informers     map[schema.GroupVersionResource]cache.SharedIndexInformer
 	informersLock sync.Mutex
@@ -45,6 +46,7 @@ func NewDynamic(dynamic dynamicpkg.Interface, discovery discovery.DiscoveryInter
 		Dynamic:         dynamic,
 		Discovery:       discovery,
 		InformerFactory: informerFactory,
+		Log:             logging.MustGetLogger(fmt.Sprintf("dynamic.%s", namespace)),
 		informers:       make(map[schema.GroupVersionResource]cache.SharedIndexInformer),
 		context:         context,
 	}
@@ -152,11 +154,11 @@ func (self *Dynamic) AddResourceEventHandler(gvk schema.GroupVersionKind, stopCh
 					hasSynced = append(hasSynced, informer.HasSynced)
 				}
 
-				klog.Infof("Waiting for dynamic informer caches to sync for \"%s\"", gvk.String())
+				self.Log.Infof("waiting for dynamic informer caches to sync for \"%s\"", gvk.String())
 				if ok := cache.WaitForCacheSync(stopChannel, hasSynced...); !ok {
 					return errors.New("interrupted by shutdown while waiting for informer caches to sync")
 				}
-				klog.Infof("Dynamic informer caches synced for \"%s\"", gvk.String())
+				self.Log.Infof("dynamic informer caches synced for \"%s\"", gvk.String())
 			}
 
 			return nil
