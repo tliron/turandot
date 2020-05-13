@@ -37,6 +37,7 @@ type ServiceSpec struct {
 }
 
 type ServiceStatus struct {
+	Status             string            `json:"status"`
 	ServiceTemplateURL string            `json:"serviceTemplateUrl"`
 	Inputs             map[string]string `json:"inputs"`
 	Outputs            map[string]string `json:"outputs"`
@@ -104,7 +105,8 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										Type: "string",
 									},
 									"inputs": {
-										Type: "object",
+										Type:     "object",
+										Nullable: true,
 										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
 											Schema: &apiextensions.JSONSchemaProps{
 												Type: "string",
@@ -116,11 +118,15 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 							"status": {
 								Type: "object",
 								Properties: map[string]apiextensions.JSONSchemaProps{
+									"status": {
+										Type: "string",
+									},
 									"serviceTemplateUrl": {
 										Type: "string",
 									},
 									"inputs": {
-										Type: "object",
+										Type:     "object",
+										Nullable: true,
 										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
 											Schema: &apiextensions.JSONSchemaProps{
 												Type: "string",
@@ -128,7 +134,8 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										},
 									},
 									"outputs": {
-										Type: "object",
+										Type:     "object",
+										Nullable: true,
 										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
 											Schema: &apiextensions.JSONSchemaProps{
 												Type: "string",

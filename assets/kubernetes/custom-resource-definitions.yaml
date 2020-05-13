@@ -35,19 +35,24 @@ spec:
                 type: string
               inputs:
                 type: object
+                nullable: true
                 additionalProperties:
                   type: string
           status:
             type: object
             properties:
+              status:
+                type: string
               serviceTemplateUrl:
                 type: string
               inputs:
                 type: object
+                nullable: true
                 additionalProperties:
                   type: string
               outputs:
                 type: object
+                nullable: true
                 additionalProperties:
                   type: string
               cloutPath:

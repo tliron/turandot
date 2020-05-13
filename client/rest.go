@@ -2,9 +2,9 @@ package delegate
 
 import (
 	"io"
-	"os"
 	"path/filepath"
 
+	"github.com/tliron/puccini/common/terminal"
 	core "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
@@ -28,7 +28,7 @@ func (self *Client) Exec(podName string, stdin io.Reader, stdout io.Writer, comm
 	}
 
 	streamOptions := remotecommand.StreamOptions{
-		Stderr: os.Stderr,
+		Stderr: terminal.Stderr,
 		Tty:    false,
 	}
 

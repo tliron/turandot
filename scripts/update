@@ -7,8 +7,10 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 minikube profile edge
 turandot uninstall -n workspace
+kubectl delete events --all --namespace=workspace
 minikube profile central
 turandot uninstall -n workspace
+kubectl delete events --all --namespace=workspace
 
 if [ "$1" == -b ]; then
 	"$HERE/build-container-image"

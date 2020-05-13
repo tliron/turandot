@@ -6,17 +6,27 @@ for (var vertexId in clout.vertexes) {
 	var nodeTemplate = vertex.properties;
 
 	// Find metadata
-	var metadata = {};
+	var metadata = {annotations: {}};
 	for (var capabilityName in nodeTemplate.capabilities) {
 		var capability = nodeTemplate.capabilities[capabilityName];
 		if ('cloud.puccini.kubernetes::Metadata' in capability.types) {
-			metadata = capability.properties;
+			metadata = puccini.deepCopy(capability.properties);
+			if (!metadata.name)
+				metadata.name = nodeTemplate.name;
+			if (!metadata.annotations)
+				metadata.annotations = {};
+			metadata.annotations['puccini.cloud/vertex'] = vertexId;
 			break;
 		}
 	}
 
-	if ('cloud.puccini.mariadb::Cluster' in nodeTemplate.types)
-		generateMariaDb(nodeTemplate, metadata);
+	for (var capabilityName in nodeTemplate.capabilities) {
+		var capability = nodeTemplate.capabilities[capabilityName];
+		var capabilityMetadata = puccini.deepCopy(metadata);
+		capabilityMetadata.annotations['puccini.cloud/capability'] = capabilityName;
+		if ('cloud.puccini.kubevirt::Cluster' in capability.types)
+			generateMariaDb(capability, capabilityMetadata);
+	}
 }
 
 function generateMariaDb(nodeTemplate, metadata) {

@@ -18,6 +18,6 @@ func (self *Controller) processPolicies(policies interface{}) (parser.Orchestrat
 		}
 		return policies_, nil
 	} else {
-		return nil, fmt.Errorf("could not parse policies: %s", policies)
+		return nil, fmt.Errorf("could not parse policies: %v", policies)
 	}
 }

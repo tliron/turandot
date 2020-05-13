@@ -41,6 +41,10 @@ func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoole
 	}
 }
 
+func (self *Client) GetService(serviceName string) (*resources.Service, error) {
+	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Get(self.Context, serviceName, meta.GetOptions{})
+}
+
 func (self *Client) DeleteService(serviceName string) error {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
 }
@@ -51,13 +55,16 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 
 func (self *Client) createService(name string, url urlpkg.URL, inputs map[string]interface{}) (*resources.Service, error) {
 	// Encode inputs
-	inputs_ := make(map[string]string)
-	for key, input := range inputs {
-		var err error
-		if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
-			inputs_[key] = strings.TrimRight(inputs_[key], "\n")
-		} else {
-			return nil, err
+	var inputs_ map[string]string
+	if (inputs != nil) && len(inputs) > 0 {
+		inputs_ = make(map[string]string)
+		for key, input := range inputs {
+			var err error
+			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
+				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
+			} else {
+				return nil, err
+			}
 		}
 	}
 
@@ -69,6 +76,9 @@ func (self *Client) createService(name string, url urlpkg.URL, inputs map[string
 		Spec: resources.ServiceSpec{
 			ServiceTemplateURL: url.String(),
 			Inputs:             inputs_,
+		},
+		Status: resources.ServiceStatus{
+			Status: "Ready",
 		},
 	}
 

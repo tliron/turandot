@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -29,7 +30,7 @@ func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, url
 					return err
 				}
 			} else {
-				return fmt.Errorf("%s", problems.ToString(true))
+				return errors.New(problems.ToString(true))
 			}
 		} else if (problems != nil) && !problems.Empty() {
 			return fmt.Errorf("%s\n%s", err.Error(), problems.ToString(true))
@@ -47,7 +48,7 @@ func ReadClout(reader io.Reader, urlContext *urlpkg.Context) (*cloutpkg.Clout, e
 		if compiler.Resolve(clout, &problems, urlContext, "yaml", false, true, false); problems.Empty() {
 			return clout, nil
 		} else {
-			return nil, fmt.Errorf("%s", problems)
+			return nil, errors.New(problems.ToString(true))
 		}
 	} else {
 		return nil, err

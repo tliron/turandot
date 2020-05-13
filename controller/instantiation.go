@@ -50,11 +50,21 @@ func (self *Controller) runInstantiator(stopChannel <-chan struct{}) {
 
 func (self *Controller) processInstantiation(serviceName string, namespace string) error {
 	if service, err := self.GetService(serviceName, namespace); err == nil {
+		if (service.Status.Status != "") && (service.Status.Status != "Ready") {
+			self.Log.Infof("service not ready: %s", service.Name)
+			return nil
+		}
+
 		if dirty, err := self.serviceDirty(service); err == nil {
 			if !dirty {
+				self.Log.Infof("service not dirty: %s", service.Name)
 				return nil
 			}
 		} else {
+			return err
+		}
+
+		if service, err = self.UpdateServiceStatus(service, "Instantiating"); err != nil {
 			return err
 		}
 
@@ -71,18 +81,30 @@ func (self *Controller) processInstantiation(serviceName string, namespace strin
 			self.Events.Event(service, core.EventTypeNormal, "Compiled", "Service template compiled successfully")
 		} else {
 			self.Events.Event(service, core.EventTypeWarning, "CompilationError", fmt.Sprintf("Service template compilation error: %s", err.Error()))
+			if _, err := self.UpdateServiceStatus(service, "Ready"); err != nil {
+				return err
+			}
 			return err
 		}
 
-		if service, err = self.UpdateServiceStatus(service, cloutPath, cloutHash); err != nil {
+		if service, err = self.UpdateServiceClout(service, cloutPath, cloutHash); err != nil {
+			if _, err := self.UpdateServiceStatus(service, "Ready"); err != nil {
+				return err
+			}
 			return err
 		}
 
-		if err := self.processClout(service, urlContext); err == nil {
+		if service, err = self.instantiateClout(service, urlContext); err == nil {
 			self.Events.Event(service, core.EventTypeNormal, "Instantiated", "Service instantiated successfully")
+			if _, err := self.UpdateServiceStatus(service, "Ready"); err != nil {
+				return err
+			}
 			return nil
 		} else {
 			self.Events.Event(service, core.EventTypeWarning, "InstantiationError", fmt.Sprintf("Service instantiation error: %s", err.Error()))
+			if _, err := self.UpdateServiceStatus(service, "Ready"); err != nil {
+				return err
+			}
 			return err
 		}
 	} else {

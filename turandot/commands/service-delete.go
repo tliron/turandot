@@ -12,7 +12,7 @@ func init() {
 
 var serviceDeleteCommand = &cobra.Command{
 	Use:   "delete [[SERVICE NAME]]",
-	Short: "Delete deployed services",
+	Short: "Delete a deployed service",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {

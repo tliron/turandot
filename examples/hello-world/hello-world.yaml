@@ -4,14 +4,19 @@ imports:
 
 - namespace_prefix: k8s
   file: profiles/kubernetes/1.18/profile.yaml
-- namespace_prefix: o11n
-  file: profiles/orchestration/1.0/profile.yaml
 
 node_types:
 
+  # The Kubernetes profile comprises capability types, not node types
+  # You need to create your own node type that is an assemblage of capabilities
+  # In other words, the node is where we logically relate Kubernetes resources together
   Application:
     capabilities:
+      # The Metadata capability will be shared with all resources
+      # Only one should be used per node type
       metadata: k8s:Metadata
+      # Other capabilities can be added to represent Kubernetes resources
+      # (The same capability type can be used mulitple times, e.g. two Services)
       deployment: k8s:Deployment
       web: k8s:LoadBalancer
 
@@ -30,7 +35,10 @@ topology_template:
       capabilities:
         metadata:
           properties:
-            name: hello-world
+            # If "name" is not set, the TOSCA node template name will be used
+            #name: hello-world
+            # If "namespace" is not set, resources will be created in the same namespace as
+            # the Turandot operator 
             namespace: { get_input: namespace }
             labels:
               app.kubernetes.io/name: hello-world
@@ -40,6 +48,10 @@ topology_template:
             template:
               containers:
               - name: hello-world
+                # You can, of course, specify any container image URL
+                # (from the Docker Hub default or some other container image registry)
+                # In this case, because the "image" is a ContainerImage, get_artifact will return
+                # a URL for the Turandot inventory *after* the container image is pushed to it
                 image: { get_artifact: [ SELF, image ] }
                 imagePullPolicy: Always
         web:
@@ -47,16 +59,24 @@ topology_template:
             ports:
             - { name: http, protocol: TCP, port: 80, targetPort: 8080 }
           attributes:
+            # We're initializing this attribute to make sure the call to get_attribute in the ouput
+            # won't fail before a real value arrives
             ingress:
             - ip: <unknown>
       artifacts:
         image:
+          # Container images can be placed in the CSAR (or any other repository)
+          # They will all be pushed to the Turandot inventory 
           type: k8s:ContainerImage
+          # Note that the container image tarball must be "portable"
+          # (You can use the included "save-portable-container-image" script to create it)
           file: artifacts/images/hello-world.tar.gz
           properties:
+            # The tag is required
             tag: hello-world
 
   outputs:
 
     url:
+      # Before a real attribute value arrives this will evaluate to "http://<unknown>:80"
       value: { concat: [ http://, { get_attribute: [ hello-world, web, ingress, 0, ip ] }, ':80' ] }

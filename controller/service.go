@@ -28,13 +28,16 @@ func (self *Controller) GetService(name string, namespace string) (*resources.Se
 
 func (self *Controller) CreateService(namespace string, name string, url urlpkg.URL, inputs map[string]interface{}) (*resources.Service, error) {
 	// Encode inputs
-	inputs_ := make(map[string]string)
-	for key, input := range inputs {
-		var err error
-		if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
-			inputs_[key] = strings.TrimRight(inputs_[key], "\n")
-		} else {
-			return nil, err
+	var inputs_ map[string]string
+	if (inputs != nil) && len(inputs) > 0 {
+		inputs_ = make(map[string]string)
+		for key, input := range inputs {
+			var err error
+			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
+				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
+			} else {
+				return nil, err
+			}
 		}
 	}
 
@@ -47,6 +50,9 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 			ServiceTemplateURL: url.String(),
 			Inputs:             inputs_,
 		},
+		Status: resources.ServiceStatus{
+			Status: "Ready",
+		},
 	}
 
 	if service, err := self.Turandot.TurandotV1alpha1().Services(namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
@@ -58,17 +64,30 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 	}
 }
 
-func (self *Controller) UpdateServiceStatus(service *resources.Service, cloutPath string, cloutHash string) (*resources.Service, error) {
-	self.Log.Infof("updating status for service: %s/%s", service.Namespace, service.Name)
+func (self *Controller) UpdateServiceStatus(service *resources.Service, status string) (*resources.Service, error) {
+	self.Log.Infof("updating status to %s for service: %s/%s", status, service.Namespace, service.Name)
+
+	service = service.DeepCopy()
+	service.Status.Status = status
+
+	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
+		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+		return service, nil
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Controller) UpdateServiceClout(service *resources.Service, cloutPath string, cloutHash string) (*resources.Service, error) {
+	self.Log.Infof("updating clout for service: %s/%s", service.Namespace, service.Name)
 
 	service = service.DeepCopy()
 	service.Status.ServiceTemplateURL = service.Spec.ServiceTemplateURL
-	service.Status.Inputs = make(map[string]string)
-	for key, input := range service.Spec.Inputs {
-		service.Status.Inputs[key] = input
-	}
-	if service.Status.Outputs == nil {
-		service.Status.Outputs = make(map[string]string)
+	if service.Spec.Inputs != nil {
+		service.Status.Inputs = make(map[string]string)
+		for key, input := range service.Spec.Inputs {
+			service.Status.Inputs[key] = input
+		}
 	}
 	service.Status.CloutPath = cloutPath
 	service.Status.CloutHash = cloutHash
@@ -97,46 +116,10 @@ func (self *Controller) UpdateServiceOutputs(service *resources.Service, outputs
 }
 
 func (self *Controller) processService(service *resources.Service) (bool, error) {
-	/*
-		cloutPath := filepath.Join(self.CachePath, "clout", fmt.Sprintf("clout-%s.yaml", service.UID))
-		cloutHash := ""
-
-		// Get clout hash
-		if _, err := os.Stat(cloutPath); os.IsNotExist(err) {
-			self.Log.Infof("clout does not exist: %s", cloutPath)
-		} else {
-			if cloutHash, err = common.GetFileHash(cloutPath); err == nil {
-				if cloutHash == service.Status.CloutHash {
-					self.Log.Infof("clout has not changed: %s", cloutPath)
-				} else {
-					self.Log.Infof("clout has changed: %s", cloutPath)
-				}
-			} else {
-				return false, err
-			}
-		}
-
-		// Check if we need to compile or recompile
-		if (cloutHash == "") || (service.Spec.ServiceTemplateURL != service.Status.ServiceTemplateURL) || (!reflect.DeepEqual(service.Spec.Inputs, service.Status.Inputs)) {
-			var err error
-			if cloutHash, err = self.CompileServiceTemplate(service.Spec.ServiceTemplateURL, service.Spec.Inputs, cloutPath); err == nil {
-				self.Events.Event(service, core.EventTypeNormal, "Compiled", "Service template compiled successfully")
-			} else {
-				self.Events.Event(service, core.EventTypeWarning, "CompilationError", fmt.Sprintf("Service template compilation error: %s", err.Error()))
-				return false, err
-			}
-		}
-
-		if (service.Status.CloutPath != cloutPath) || (service.Status.CloutHash != cloutHash) {
-			if _, err := self.UpdateServiceStatus(service, cloutPath, cloutHash); err == nil {
-				self.Events.Event(service, core.EventTypeNormal, "Synced", "Service synced successfully")
-			} else {
-				// TODO: really return true?
-				return true, err
-			}
-			self.EnqueueInstantiation(cloutPath, service.Name, service.Namespace)
-			return true, nil
-		}*/
+	if (service.Status.Status != "") && (service.Status.Status != "Ready") {
+		self.Log.Infof("service not ready: %s", service.Name)
+		return true, nil
+	}
 
 	if dirty, err := self.serviceDirty(service); err == nil {
 		if dirty {
@@ -150,22 +133,27 @@ func (self *Controller) processService(service *resources.Service) (bool, error)
 }
 
 func (self *Controller) serviceDirty(service *resources.Service) (bool, error) {
-	if (service.Spec.ServiceTemplateURL != service.Status.ServiceTemplateURL) || (!reflect.DeepEqual(service.Spec.Inputs, service.Status.Inputs)) {
+	if service.Status.CloutPath == "" {
+		self.Log.Infof("no clout for service %s", service.Name)
 		return true, nil
-	} else if service.Status.CloutPath == "" {
+	} else if service.Spec.ServiceTemplateURL != service.Status.ServiceTemplateURL {
+		self.Log.Infof("service template URL has changed for service %s, from %s to %s", service.Name, service.Status.ServiceTemplateURL, service.Spec.ServiceTemplateURL)
+		return true, nil
+	} else if !reflect.DeepEqual(service.Spec.Inputs, service.Status.Inputs) {
+		self.Log.Infof("inputs have changed for service %s", service.Name)
 		return true, nil
 	} else {
 		// Get clout hash
 		if _, err := os.Stat(service.Status.CloutPath); os.IsNotExist(err) {
-			self.Log.Infof("clout does not exist: %s", service.Status.CloutPath)
+			self.Log.Infof("clout disappeared for service %s: %s", service.Name, service.Status.CloutPath)
 			return true, nil
 		} else {
 			if cloutHash, err := common.GetFileHash(service.Status.CloutPath); err == nil {
 				if cloutHash == service.Status.CloutHash {
-					self.Log.Infof("clout has not changed: %s", service.Status.CloutPath)
+					self.Log.Infof("clout has not changed for service %s: %s", service.Name, service.Status.CloutPath)
 					return false, nil
 				} else {
-					self.Log.Infof("clout has changed: %s", service.Status.CloutPath)
+					self.Log.Infof("clout has changed for service %s: %s", service.Name, service.Status.CloutPath)
 					return true, nil
 				}
 			} else {

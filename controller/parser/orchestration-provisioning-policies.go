@@ -17,8 +17,8 @@ type OrchestrationProvisioningPolicy struct {
 	SubstitutionInputs map[string]interface{}
 }
 
-func NewOrchestrationProvisioningPolicy(data interface{}) (*OrchestrationProvisioningPolicy, bool) {
-	properties := ard.NewNode(data)
+func NewOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvisioningPolicy, bool) {
+	properties := ard.NewNode(value)
 	self := OrchestrationProvisioningPolicy{
 		SubstitutionInputs: make(map[string]interface{}),
 	}
@@ -67,8 +67,8 @@ func NewOrchestrationProvisioningPolicy(data interface{}) (*OrchestrationProvisi
 
 type OrchestrationPolicies map[string][]*OrchestrationProvisioningPolicy
 
-func NewOrchestrationPolicies(data interface{}) (OrchestrationPolicies, bool) {
-	if policies, ok := data.(ard.Map); ok {
+func NewOrchestrationPolicies(value ard.Value) (OrchestrationPolicies, bool) {
+	if policies, ok := value.(ard.Map); ok {
 		self := make(OrchestrationPolicies)
 		for nodeTemplateName, nodePolicies := range policies {
 			if nodeTemplateName_, ok := nodeTemplateName.(string); ok {

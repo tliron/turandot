@@ -21,3 +21,5 @@ function build () {
 
 build turandot-operator
 build turandot
+
+ln --symbolic --force "$GOPATH/bin/turandot" "$GOPATH/bin/kubectl-tosca"

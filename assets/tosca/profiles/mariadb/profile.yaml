@@ -13,8 +13,18 @@ imports:
 
 node_types:
 
+  Cluster:
+    capabilities:
+      metadata: k8s:Metadata
+      cluster: Cluster
+
+capability_types:
+
+  Connectable: {}
+
   # See: https://github.com/abalki001/mariadb-operator/tree/master/deploy
   Cluster:
+    derived_from: Connectable
     properties:
       database:
         description: >-
@@ -48,11 +58,3 @@ node_types:
           Nodes are the names of the pods
         type: list
         entry_schema: string
-    capabilities:
-      metadata: k8s:Metadata
-      connection: Connectable
-
-capability_types:
-
-  Connectable:
-    attributes: {}

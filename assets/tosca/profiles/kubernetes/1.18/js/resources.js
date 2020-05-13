@@ -15,11 +15,13 @@ for (var vertexId in clout.vertexes) {
 	var nodeTemplate = vertex.properties;
 
 	// Find metadata
-	var metadata = {};
+	var metadata = {annotations: {}};
 	for (var capabilityName in nodeTemplate.capabilities) {
 		var capability = nodeTemplate.capabilities[capabilityName];
 		if ('cloud.puccini.kubernetes::Metadata' in capability.types) {
-			metadata = capability.properties;
+			metadata = puccini.deepCopy(capability.properties);
+			if (!metadata.name)
+				metadata.name = nodeTemplate.name;
 			if (!metadata.annotations)
 				metadata.annotations = {};
 			metadata.annotations['puccini.cloud/vertex'] = vertexId;
@@ -30,12 +32,14 @@ for (var vertexId in clout.vertexes) {
 	// Generate specs
 	for (var capabilityName in nodeTemplate.capabilities) {
 		var capability = nodeTemplate.capabilities[capabilityName];
+		var capabilityMetadata = puccini.deepCopy(metadata);
+		capabilityMetadata.annotations['puccini.cloud/capability'] = capabilityName;
 		if ('cloud.puccini.kubernetes::Service' in capability.types)
-			generateService(capabilityName, capability, puccini.deepCopy(metadata));
+			generateService(capabilityName, capability, capabilityMetadata);
 		else if ('cloud.puccini.kubernetes::Deployment' in capability.types)
-			generateDeployment(capability, puccini.deepCopy(metadata));
+			generateDeployment(capability, capabilityMetadata);
 		else if ('cloud.puccini.kubernetes::NetworkAttachmentDefinition' in capability.types)
-			generateNetworkAttachmentDefinition(capability, puccini.deepCopy(metadata));
+			generateNetworkAttachmentDefinition(capability, capabilityMetadata);
 	}
 }
 

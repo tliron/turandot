@@ -25,11 +25,11 @@ node_types:
       udp: k8s:LoadBalancer
       connection: ns:Connectable
     requirements:
+    - db:
+        capability: mariadb:Connectable
     - data-plane:
         capability: ns:Connectable
         node: ns:NetworkPlane
-    - db:
-        capability: mariadb:Connectable
     interfaces:
       configuration:
         type: o11n:SSHConfiguration
@@ -147,16 +147,17 @@ topology_template:
             labels:
               app.kubernetes.io/name: asterisk-vnf
               app.kubernetes.io/instance: { concat: [ asterisk-vnf-, { get_input: namespace } ] }
-      properties:
-        database: asterisk
-        username: asterisk
-        password: asterisk
-        rootpwd: asterisk
+        cluster:
+          properties:
+            database: asterisk
+            username: asterisk
+            password: asterisk
+            rootpwd: asterisk
 
     data-plane:
       type: ns:NetworkPlane
-      # TODO: inject these via substitution mapping
       properties:
+        # TODO: should happen via substitution property mapping
         annotations:
           name: data-plane
 

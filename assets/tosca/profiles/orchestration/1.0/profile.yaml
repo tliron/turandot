@@ -2,7 +2,6 @@ tosca_definitions_version: tosca_simple_yaml_1_3
 
 metadata:
 
-  puccini.scriptlet.import|orchestration.outputs: js/outputs.js
   puccini.scriptlet.import|orchestration.policies: js/policies.js
 
 namespace: cloud.puccini.turandot.orchestration
