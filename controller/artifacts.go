@@ -51,7 +51,7 @@ func (self *Controller) UpdateCloutArtifacts(clout *cloutpkg.Clout, artifactMapp
 	}
 }
 
-func (self *Controller) processArtifacts(artifacts interface{}, service *resources.Service, urlContext *urlpkg.Context) (map[string]string, error) {
+func (self *Controller) pushArtifactsToInventory(artifacts interface{}, service *resources.Service, urlContext *urlpkg.Context) (map[string]string, error) {
 	if artifacts_, ok := parser.NewKubernetesArtifacts(artifacts); ok {
 		artifactMappings := make(map[string]string)
 		if len(artifacts_) > 0 {

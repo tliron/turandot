@@ -1,4 +1,4 @@
-*This repository is a work in progress. Currently for demo purposes only.*
+*This is a work in process. There are still important features missing.*
 
 Turandot
 ========
@@ -33,8 +33,6 @@ Included is a comprehensive example of a multi-cluster
 
 Get It
 ------
-
-*This is a placeholder until we are ready to create releases.*
 
 [![Download](assets/media/download.png "Download")](https://github.com/tliron/turandot/releases)
 
@@ -208,5 +206,5 @@ for its legendary ruler, *Tūr* (meaning "brave"), a prince of the ancient
 [Shahnameh epic](https://en.wikipedia.org/wiki/Shahnameh).
 
 There is some disagreement over whether the final "t" should be pronounced or not, as it likely
-wasn't pronounced by Puccini himself. All you should know that if you pronounce it incorrectly this
-software will not work well for you.
+wasn't pronounced by Puccini himself. All you should know is that if you pronounce it incorrectly
+this software will not work well for you.

@@ -10,7 +10,7 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/_env"
 
 KUBERNETES_VERSION=v1.18.2
-MINIKUBE_VERSION=v1.9.2
+MINIKUBE_VERSION=v1.10.1
 KUBEVIRT_VERSION=v0.29.0
 
 OVERWRITE=false

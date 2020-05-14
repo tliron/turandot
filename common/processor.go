@@ -97,21 +97,22 @@ func (self *Processor) processWorkItem(item interface{}) {
 	if key, ok := item.(string); ok {
 		if namespace, name, err := cache.SplitMetaNamespaceKey(key); err == nil {
 			if object, err := self.GetControllerObject(name, namespace); err == nil {
+				self.Log.Infof("processing work item: %s/%s", namespace, name)
 				if finished, err := self.Process(object); finished {
 					utilruntime.HandleError(err)
-					self.Log.Infof("finished work item: \"%s %s\"", namespace, name)
+					self.Log.Infof("finished work item: %s/%s", namespace, name)
 					self.Workqueue.Forget(item)
 				} else {
 					utilruntime.HandleError(err)
-					self.Log.Infof("requeuing unfinished work item: \"%s %s\"", namespace, name)
+					self.Log.Infof("requeuing unfinished work item: %s/%s", namespace, name)
 					self.Workqueue.AddRateLimited(key)
 				}
 			} else if kuberneteserrors.IsNotFound(err) {
-				self.Log.Infof("swallowing stale work item: \"%s %s\"", namespace, name)
+				self.Log.Infof("ignoring stale work item: %s/%s", namespace, name)
 				self.Workqueue.Forget(item)
 			} else {
 				utilruntime.HandleError(err)
-				self.Log.Infof("requeuing failed work item: \"%s %s\"", namespace, name)
+				self.Log.Infof("requeuing failed work item: %s/%s", namespace, name)
 				self.Workqueue.AddRateLimited(key)
 			}
 		} else {

@@ -22,7 +22,7 @@ If you want to access the deployed web server from outside the cluster you will 
 loadbalancing supported on your Kubernetes cluster. On Minikube you can just
 [start a tunnel](https://minikube.sigs.k8s.io/docs/handbook/accessing/#using-minikube-tunnel).
 
-[Here](scripts/url) is a script to get the URL of the web server. To open the page on your default
-web browser in one command:
+If supported, the "url" output of the service template will work. To open from your default web
+browser:
 
-    xdg-open $(examples/hello-world/scripts/url)
+    xdg-open $(turandot service output hello-world url)

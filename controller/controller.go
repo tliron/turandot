@@ -32,9 +32,8 @@ type Controller struct {
 	CachePath   string
 	StopChannel <-chan struct{}
 
-	Processors        *common.Processors
-	InstantiationWork chan Instantiation
-	Events            record.EventRecorder
+	Processors *common.Processors
+	Events     record.EventRecorder
 
 	KubernetesInformerFactory informers.SharedInformerFactory
 	TurandotInformerFactory   turandotinformers.SharedInformerFactory
@@ -55,17 +54,16 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 	log := logging.MustGetLogger("turandot.controller")
 
 	self := Controller{
-		Site:              site,
-		Config:            config,
-		Dynamic:           common.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
-		Kubernetes:        kubernetes,
-		Turandot:          turandot,
-		CachePath:         cachePath,
-		Processors:        common.NewProcessors(),
-		InstantiationWork: make(chan Instantiation, 10),
-		Events:            common.CreateEventRecorder(kubernetes, "Turandot", log),
-		Context:           context,
-		Log:               log,
+		Site:       site,
+		Config:     config,
+		Dynamic:    common.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
+		Kubernetes: kubernetes,
+		Turandot:   turandot,
+		CachePath:  cachePath,
+		Processors: common.NewProcessors(),
+		Events:     common.CreateEventRecorder(kubernetes, "Turandot", log),
+		Context:    context,
+		Log:        log,
 	}
 
 	if cluster {
@@ -114,10 +112,6 @@ func (self *Controller) Run(concurrency uint) error {
 	self.Log.Infof("starting processors (concurrency=%d)", concurrency)
 	self.Processors.Start(concurrency, self.StopChannel)
 	defer self.Processors.ShutDown()
-
-	self.Log.Infof("starting instantiator (concurrency=%d)", concurrency)
-	self.StartInstantiator(concurrency, self.StopChannel)
-	defer self.StopInstantiator()
 
 	<-self.StopChannel
 

@@ -13,4 +13,7 @@ minikube profile central
 
 "$HERE/../../telephony-network-service/multus/deploy"
 "$HERE/../../telephony-network-service/kubevirt/deploy"
+
+kubectl create namespace workspace
+
 "$HERE/../../telephony-network-service/mariadb/deploy"

@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -9,6 +11,7 @@ import (
 	urlpkg "github.com/tliron/puccini/url"
 	"github.com/tliron/turandot/common"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
+	core "k8s.io/api/core/v1"
 	errorspkg "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -51,7 +54,7 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 			Inputs:             inputs_,
 		},
 		Status: resources.ServiceStatus{
-			Status: "Ready",
+			Status: "Created",
 		},
 	}
 
@@ -115,50 +118,124 @@ func (self *Controller) UpdateServiceOutputs(service *resources.Service, outputs
 	}
 }
 
-func (self *Controller) processService(service *resources.Service) (bool, error) {
-	if (service.Status.Status != "") && (service.Status.Status != "Ready") {
-		self.Log.Infof("service not ready: %s", service.Name)
-		return true, nil
-	}
-
-	if dirty, err := self.serviceDirty(service); err == nil {
-		if dirty {
-			self.EnqueueInstantiation(service.Name, service.Namespace)
-		}
-	} else {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (self *Controller) serviceDirty(service *resources.Service) (bool, error) {
+func (self *Controller) serviceChanged(service *resources.Service) (bool, error) {
 	if service.Status.CloutPath == "" {
-		self.Log.Infof("no clout for service %s", service.Name)
+		self.Log.Infof("no clout for service %s/%s", service.Namespace, service.Name)
 		return true, nil
 	} else if service.Spec.ServiceTemplateURL != service.Status.ServiceTemplateURL {
-		self.Log.Infof("service template URL has changed for service %s, from %s to %s", service.Name, service.Status.ServiceTemplateURL, service.Spec.ServiceTemplateURL)
+		self.Log.Infof("service template URL has changed for service %s/%s: from \"%s\" to \"%s\"", service.Namespace, service.Name, service.Status.ServiceTemplateURL, service.Spec.ServiceTemplateURL)
 		return true, nil
 	} else if !reflect.DeepEqual(service.Spec.Inputs, service.Status.Inputs) {
-		self.Log.Infof("inputs have changed for service %s", service.Name)
+		self.Log.Infof("inputs have changed for service %s/%s", service.Namespace, service.Name)
+		return true, nil
+	} else if service.Status.CloutHash == "" {
+		self.Log.Infof("no clout hash for service %s/%s", service.Namespace, service.Name)
 		return true, nil
 	} else {
 		// Get clout hash
 		if _, err := os.Stat(service.Status.CloutPath); os.IsNotExist(err) {
-			self.Log.Infof("clout disappeared for service %s: %s", service.Name, service.Status.CloutPath)
+			self.Log.Infof("clout disappeared for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 			return true, nil
 		} else {
 			if cloutHash, err := common.GetFileHash(service.Status.CloutPath); err == nil {
 				if cloutHash == service.Status.CloutHash {
-					self.Log.Infof("clout has not changed for service %s: %s", service.Name, service.Status.CloutPath)
+					self.Log.Infof("clout has not changed for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 					return false, nil
 				} else {
-					self.Log.Infof("clout has changed for service %s: %s", service.Name, service.Status.CloutPath)
+					self.Log.Infof("clout has changed for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 					return true, nil
 				}
 			} else {
 				return false, err
 			}
 		}
+	}
+}
+
+func (self *Controller) processService(service *resources.Service) (bool, error) {
+	if service.Status.Status == "Instantiating" {
+		return true, nil
+	}
+
+	instantiate := (service.Status.Status == "Created") || (service.Status.Status == "")
+	if !instantiate {
+		var err error
+		if instantiate, err = self.serviceChanged(service); err != nil {
+			return false, err
+		}
+	}
+
+	if instantiate {
+		if err := self.instantiateService(service); err != nil {
+			return false, err
+		}
+	} else if service.Status.Status == "Instantiated" {
+		if err := self.updateCloutForService(service); err != nil {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+func (self *Controller) instantiateService(service *resources.Service) error {
+	self.Log.Infof("instantiating service: %s/%s", service.Namespace, service.Name)
+
+	var err error
+	if service, err = self.UpdateServiceStatus(service, "Instantiating"); err != nil {
+		return err
+	}
+
+	cloutPath := service.Status.CloutPath
+	if cloutPath == "" {
+		cloutPath = filepath.Join(self.CachePath, "clout", fmt.Sprintf("clout-%s.yaml", service.UID))
+	}
+
+	urlContext := urlpkg.NewContext()
+	defer urlContext.Release()
+
+	var cloutHash string
+	if cloutHash, err = self.CompileServiceTemplate(service.Spec.ServiceTemplateURL, service.Spec.Inputs, cloutPath, urlContext); err == nil {
+		self.Events.Event(service, core.EventTypeNormal, "Compiled", "Service template compiled successfully")
+		if service, err = self.UpdateServiceClout(service, cloutPath, cloutHash); err != nil {
+			if _, err := self.UpdateServiceStatus(service, "Created"); err != nil {
+				return err
+			}
+			return err
+		}
+	} else {
+		self.Events.Event(service, core.EventTypeWarning, "CompilationError", fmt.Sprintf("Service template compilation error: %s", err.Error()))
+		if _, err := self.UpdateServiceStatus(service, "Created"); err != nil {
+			return err
+		}
+		return err
+	}
+
+	if service, err = self.instantiateClout(service, urlContext); err == nil {
+		self.Events.Event(service, core.EventTypeNormal, "Instantiated", "Service instantiated successfully")
+		if _, err := self.UpdateServiceStatus(service, "Instantiated"); err != nil {
+			return err
+		}
+		return nil
+	} else {
+		self.Events.Event(service, core.EventTypeWarning, "InstantiationError", fmt.Sprintf("Service instantiation error: %s", err.Error()))
+		if _, err := self.UpdateServiceStatus(service, "Created"); err != nil {
+			return err
+		}
+		return err
+	}
+}
+
+func (self *Controller) updateCloutForService(service *resources.Service) error {
+	self.Log.Infof("updating clout for service: %s/%s", service.Namespace, service.Name)
+
+	urlContext := urlpkg.NewContext()
+	defer urlContext.Release()
+
+	if _, err := self.updateCloutAttributes(service, urlContext); err == nil {
+		return nil
+	} else {
+		self.Events.Event(service, core.EventTypeWarning, "CloutUpdateError", fmt.Sprintf("Service clout update error: %s", err.Error()))
+		return err
 	}
 }

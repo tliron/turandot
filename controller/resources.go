@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-func (self *Controller) UpdateCloutResources(clout *cloutpkg.Clout, resources parser.KubernetesResources) {
+func (self *Controller) UpdateCloutResourcesMetadata(clout *cloutpkg.Clout, resources parser.KubernetesResources) {
 	history := ard.StringMap{
 		"description": "kubernetes-resources",
 		"timestamp":   puccinicommon.Timestamp(false),
@@ -24,7 +24,7 @@ func (self *Controller) UpdateCloutResources(clout *cloutpkg.Clout, resources pa
 	}
 }
 
-func (self *Controller) processResources(objects []ard.StringMap, owner meta.Object) (parser.KubernetesResources, error) {
+func (self *Controller) createResources(objects []ard.StringMap, owner meta.Object) (parser.KubernetesResources, error) {
 	resources := parser.NewKubernetesResources()
 
 	for _, object := range objects {
@@ -34,8 +34,8 @@ func (self *Controller) processResources(objects []ard.StringMap, owner meta.Obj
 		if object_, err = self.Dynamic.CreateControlledResource(object_, owner, self.Processors, self.StopChannel); err == nil {
 			if vertexId, ok := object_.GetAnnotations()["puccini.cloud/vertex"]; ok {
 				if capability, ok := object_.GetAnnotations()["puccini.cloud/capability"]; ok {
-					self.Log.Infof("adding resource %s %s %s to %s/capability", object_.GetAPIVersion(), object_.GetKind(), object_.GetName(), vertexId, capability)
-					resources.Add(vertexId, object_.GetAPIVersion(), object_.GetKind(), object_.GetName(), capability)
+					self.Log.Infof("adding resource %s %s %s %s to %s/capability", object_.GetAPIVersion(), object_.GetKind(), object_.GetName(), object_.GetNamespace(), vertexId, capability)
+					resources.Add(vertexId, capability, object_.GetAPIVersion(), object_.GetKind(), object_.GetName(), object_.GetNamespace())
 				}
 			}
 			//self.Log.Errorf("!!!!!!!!!!!!!!!!! %s", unstructured.GetUID())
@@ -49,18 +49,4 @@ func (self *Controller) processResources(objects []ard.StringMap, owner meta.Obj
 	// TODO: delete other resources owned by us
 
 	return resources, nil
-}
-
-func (self *Controller) updateAttributes(clout *cloutpkg.Clout) {
-	for vertexId, vertex := range clout.Vertexes {
-		if resources, ok := vertex.Metadata["turandot-kubernetes"]; ok {
-			if resources_, ok := parser.ParseKubernetesResources(resources); ok {
-				for _, resource := range resources_ {
-					self.Log.Infof("updating attributes for %s/%s from resource %s %s %s", vertexId, resource.Capability, resource.APIVersion, resource.Kind, resource.Name)
-				}
-			} else {
-				self.Log.Errorf("could not parse Kubernetes resources for: %s", vertexId)
-			}
-		}
-	}
 }

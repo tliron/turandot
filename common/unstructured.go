@@ -31,11 +31,11 @@ func SetControllerOfUnstructured(object *unstructured.Unstructured, controllerOb
 }
 
 func GetUnstructuredGVK(object *unstructured.Unstructured) (schema.GroupVersionKind, error) {
-	return ToGVK(object.GetAPIVersion(), object.GetKind())
+	return ParseGVK(object.GetAPIVersion(), object.GetKind())
 }
 
 func FindResourceForUnstructured(discovery discoverypkg.DiscoveryInterface, object *unstructured.Unstructured, supportedVerbs ...string) (schema.GroupVersionResource, error) {
-	if gvk, err := ToGVK(object.GetAPIVersion(), object.GetKind()); err == nil {
+	if gvk, err := ParseGVK(object.GetAPIVersion(), object.GetKind()); err == nil {
 		return FindResourceForKind(discovery, gvk, supportedVerbs...)
 	} else {
 		return schema.GroupVersionResource{}, err

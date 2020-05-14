@@ -34,7 +34,7 @@ func GetMetaObject(object interface{}, log *logging.Logger) (meta.Object, error)
 
 func GetControllerOf(metaObject meta.Object) (schema.GroupVersionKind, string, error) {
 	if ownerReference := meta.GetControllerOf(metaObject); ownerReference != nil {
-		if gvk, err := ToGVK(ownerReference.APIVersion, ownerReference.Kind); err == nil {
+		if gvk, err := ParseGVK(ownerReference.APIVersion, ownerReference.Kind); err == nil {
 			return gvk, ownerReference.Name, nil
 		} else {
 			return schema.GroupVersionKind{}, "", err
@@ -44,7 +44,7 @@ func GetControllerOf(metaObject meta.Object) (schema.GroupVersionKind, string, e
 	}
 }
 
-func ToGVK(apiVersion string, kind string) (schema.GroupVersionKind, error) {
+func ParseGVK(apiVersion string, kind string) (schema.GroupVersionKind, error) {
 	// Improvement of schema.FromAPIVersionAndKind
 	if gv, err := schema.ParseGroupVersion(apiVersion); err == nil {
 		gvk := gv.WithKind(kind)
