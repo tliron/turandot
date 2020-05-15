@@ -5,13 +5,15 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/_env"
 
 gofmt -w -s -e \
+	"$ROOT/client" \
 	"$ROOT/common" \
 	"$ROOT/controller" \
-	"$ROOT/client" \
+	"$ROOT/controller/parser" \
 	"$ROOT/resources" \
 	"$ROOT/resources/turandot.puccini.cloud" \
 	"$ROOT/resources/turandot.puccini.cloud/v1alpha1" \
 	"$ROOT/turandot" \
+	"$ROOT/turandot/client" \
 	"$ROOT/turandot/commands" \
 	"$ROOT/turandot-operator" \
 	"$ROOT/version"

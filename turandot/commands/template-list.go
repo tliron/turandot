@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	puccinicommon "github.com/tliron/puccini/common"
 	"github.com/tliron/puccini/common/terminal"
-	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/client"
+	"github.com/tliron/turandot/common"
 )
 
 func init() {

@@ -1,4 +1,4 @@
-*This is a work in process. There are still important features missing.*
+*This is an early release. There are still important features missing.*
 
 Turandot
 ========

@@ -17,7 +17,7 @@ func (self *Controller) UpdateCloutResourcesMetadata(clout *cloutpkg.Clout, reso
 	}
 	ard.NewNode(clout.Metadata).Get("puccini-tosca").Get("history").Append(history)
 
-	for vertexId, _ := range resources {
+	for vertexId := range resources {
 		if vertex, ok := clout.Vertexes[vertexId]; ok {
 			vertex.Metadata["turandot-kubernetes"] = resources.ARD(vertexId)
 		}
