@@ -3,11 +3,18 @@ tosca_definitions_version: tosca_simple_yaml_1_3
 imports:
 
 - data.yaml
+- namespace_prefix: k8s
+  file: ../../kubernetes/1.18/profile.yaml
 
 capability_types:
 
   # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_virtualmachine
   VirtualMachine:
+    metadata:
+      turandot.apiVersion: kubevirt.io/v1alpha3
+      turandot.move: spec.template->spec.template.spec
+      turandot.copy: metadata->spec.template.metadata
+    derived_from: k8s:Resource
     description: >-
       VirtualMachine handles the VirtualMachines that are not running or are in a stopped state. The
       VirtualMachine contains the template to create the VirtualMachineInstance. It also mirrors the

@@ -20,7 +20,7 @@ for ARG in "$@"; do
 		-f)
 			OVERWRITE=true
 			;;
-		-l)
+		-u)
 			m "checking for latest versions..."
 			KUBERNETES_VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
 			MINIKUBE_VERSION=$(curl --silent https://api.github.com/repos/kubernetes/minikube/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')

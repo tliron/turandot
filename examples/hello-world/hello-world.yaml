@@ -16,7 +16,7 @@ node_types:
       # Only one should be used per node type
       metadata: k8s:Metadata
       # Other capabilities can be added to represent Kubernetes resources
-      # (The same capability type can be used mulitple times, e.g. two Services)
+      # (The same capability type can be used multiple times, e.g. two Services)
       deployment: k8s:Deployment
       web: k8s:LoadBalancer
 
@@ -35,16 +35,15 @@ topology_template:
       capabilities:
         metadata:
           properties:
-            # If "name" is not set, the TOSCA node template name will be used
-            #name: hello-world
+            # If "name" is not specified, the TOSCA node template name will be used
             # If "namespace" is not set, resources will be created in the same namespace as
             # the Turandot operator 
             namespace: { get_input: namespace }
             labels:
               app.kubernetes.io/name: hello-world
-              app.kubernetes.io/instance: { concat: [ hello-world-, { get_input: namespace } ] }
         deployment:
           properties:
+            metadataNamePostfix: ''
             template:
               containers:
               - name: hello-world

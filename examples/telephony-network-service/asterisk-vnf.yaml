@@ -53,9 +53,10 @@ topology_template:
             namespace: { get_input: namespace }
             labels:
               app.kubernetes.io/name: asterisk-vnf
-              app.kubernetes.io/instance: { concat: [ asterisk-vnf-, { get_input: namespace } ] }
         virtual-machine:
           properties:
+            metadataNamePostfix: ''
+            running: true
             template:
               # Multithreadedness breaks the machine (because of nested virtualization?)
               #cpu:
@@ -94,6 +95,9 @@ topology_template:
           properties:
             ports:
             - { name: ssh, protocol: TCP, targetPort: 22, port: 22 }
+          attributes:
+            ingress:
+            - ip: <unknown>
         udp:
           properties:
             ports:
@@ -106,6 +110,9 @@ topology_template:
             - { name: rtp5, protocol: UDP, targetPort: 10005, port: 10005 }
             - { name: rtp6, protocol: UDP, targetPort: 10006, port: 10006 }
             - { name: rtp7, protocol: UDP, targetPort: 10007, port: 10007 }
+          attributes:
+            ingress:
+            - ip: <unknown>
       interfaces:
         configuration:
           inputs:
@@ -145,9 +152,8 @@ topology_template:
             name: asterisk-vnf
             namespace: { get_input: namespace }
             labels:
-              app.kubernetes.io/name: asterisk-vnf
-              app.kubernetes.io/instance: { concat: [ asterisk-vnf-, { get_input: namespace } ] }
-        cluster:
+              app.kubernetes.io/name: asterisk-vnf-mariadb
+        mariadb:
           properties:
             database: asterisk
             username: asterisk
@@ -160,6 +166,13 @@ topology_template:
         # TODO: should happen via substitution property mapping
         annotations:
           name: data-plane
+
+  outputs:
+
+    tcp-ip:
+      value: { get_attribute: [ vnf, tcp, ingress, 0, ip ] }
+    udp-ip:
+      value: { get_attribute: [ vnf, udp, ingress, 0, ip ] }
 
   substitution_mappings:
 

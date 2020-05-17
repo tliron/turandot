@@ -68,7 +68,7 @@ data_types:
         required: false
       priorityClassName:
         description: >-
-          If specified, indicates the pod''s priority. If not specified, the pod priority will be
+          If specified, indicates the pod's priority. If not specified, the pod priority will be
           default or zero if there is no default.
         type: string
         required: false

@@ -46,11 +46,11 @@ topology_template:
             namespace: { get_input: namespace }
             labels:
               app.kubernetes.io/name: asterisk-cnf
-              app.kubernetes.io/instance: { concat: [ asterisk-cnf-, { get_input: namespace } ] }
             annotations:
               k8s.v1.cni.cncf.io/networks: { get_property: [ data-plane, annotations, name ] }
         deployment:
           properties:
+            metadataNamePostfix: ''
             template:
               containers:
               - name: all-in-one
@@ -68,6 +68,9 @@ topology_template:
             - { name: rtp5, protocol: UDP, targetPort: 10005, port: 10005 }
             - { name: rtp6, protocol: UDP, targetPort: 10006, port: 10006 }
             - { name: rtp7, protocol: UDP, targetPort: 10007, port: 10007 }
+          attributes:
+            ingress:
+            - ip: <unknown>
       interfaces:
         configuration:
           inputs:
@@ -90,6 +93,11 @@ topology_template:
       properties:
         annotations:
           name: data-plane
+
+  outputs:
+
+    udp-ip:
+      value: { get_attribute: [ cnf, udp, ingress, 0, ip ] }
 
   substitution_mappings:
 

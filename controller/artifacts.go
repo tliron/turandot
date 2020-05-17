@@ -17,10 +17,10 @@ func (self *Controller) UpdateCloutArtifacts(clout *cloutpkg.Clout, artifactMapp
 		"description": "artifacts",
 		"timestamp":   puccinicommon.Timestamp(false),
 	}
-	ard.NewNode(clout.Metadata).Get("puccini-tosca").Get("history").Append(history)
+	ard.NewNode(clout.Metadata).Get("history").Append(history)
 
 	for _, vertex := range clout.Vertexes {
-		tosca := ard.NewNode(vertex.Metadata).Get("puccini-tosca")
+		tosca := ard.NewNode(vertex.Metadata).Get("puccini")
 		if kind, ok := tosca.Get("kind").String(true); ok {
 			if kind != "NodeTemplate" {
 				continue

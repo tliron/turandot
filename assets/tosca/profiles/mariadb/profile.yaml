@@ -1,9 +1,5 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
-metadata:
-
-  puccini.scriptlet.import|kubernetes.resources-plugins.mariadb: js/plugins/resources.js
-
 namespace: cloud.puccini.mariadb
 
 imports:
@@ -16,14 +12,18 @@ node_types:
   Cluster:
     capabilities:
       metadata: k8s:Metadata
-      cluster: Cluster
+      mariadb: Cluster
 
 capability_types:
 
-  Connectable: {}
+  Connectable:
+    derived_from: k8s:Resource
 
   # See: https://github.com/abalki001/mariadb-operator/tree/master/deploy
   Cluster:
+    metadata:
+      turandot.apiVersion: mariadb.persistentsys/v1alpha1
+      turandot.kind: MariaDB
     derived_from: Connectable
     properties:
       database:

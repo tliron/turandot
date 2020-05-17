@@ -8,6 +8,8 @@ data_types:
     - greater_or_equal: 0
 
   Factor:
+    metadata:
+      puccini.information:turandot.format: percentage 
     derived_from: float
     constraints:
     - in_range: [ 0.0, 1.0 ]
@@ -842,6 +844,8 @@ data_types:
   Volume: {}
 
   CNIConfig:
+    metadata:
+      puccini.information:turandot.format: json 
     properties:
       version:
         type: string
@@ -883,6 +887,8 @@ data_types:
 
   # https://github.com/containernetworking/plugins/tree/master/plugins/main/bridge
   BridgeCNIConfig:
+    metadata:
+      puccini.information:turandot.format: json 
     derived_from: CNIConfig
     properties:
       type:

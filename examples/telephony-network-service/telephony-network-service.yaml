@@ -126,6 +126,7 @@ topology_template:
           name: simple
         substitutionInputs:
           namespace: { get_input: namespace }
+          name: data-plane
           ip-prefix: 192.168.2
       targets:
       - data-plane

@@ -68,7 +68,7 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 }
 
 func (self *Controller) UpdateServiceStatus(service *resources.Service, status string) (*resources.Service, error) {
-	self.Log.Infof("updating status to %s for service: %s/%s", status, service.Namespace, service.Name)
+	self.Log.Infof("updating status to \"%s\" for service: %s/%s", status, service.Namespace, service.Name)
 
 	service = service.DeepCopy()
 	service.Status.Status = status
@@ -82,7 +82,7 @@ func (self *Controller) UpdateServiceStatus(service *resources.Service, status s
 }
 
 func (self *Controller) UpdateServiceClout(service *resources.Service, cloutPath string, cloutHash string) (*resources.Service, error) {
-	self.Log.Infof("updating clout for service: %s/%s", service.Namespace, service.Name)
+	self.Log.Infof("updating Clout for service: %s/%s", service.Namespace, service.Name)
 
 	service = service.DeepCopy()
 	service.Status.ServiceTemplateURL = service.Spec.ServiceTemplateURL
@@ -120,7 +120,7 @@ func (self *Controller) UpdateServiceOutputs(service *resources.Service, outputs
 
 func (self *Controller) serviceChanged(service *resources.Service) (bool, error) {
 	if service.Status.CloutPath == "" {
-		self.Log.Infof("no clout for service %s/%s", service.Namespace, service.Name)
+		self.Log.Infof("no Clout for service %s/%s", service.Namespace, service.Name)
 		return true, nil
 	} else if service.Spec.ServiceTemplateURL != service.Status.ServiceTemplateURL {
 		self.Log.Infof("service template URL has changed for service %s/%s: from \"%s\" to \"%s\"", service.Namespace, service.Name, service.Status.ServiceTemplateURL, service.Spec.ServiceTemplateURL)
@@ -129,20 +129,20 @@ func (self *Controller) serviceChanged(service *resources.Service) (bool, error)
 		self.Log.Infof("inputs have changed for service %s/%s", service.Namespace, service.Name)
 		return true, nil
 	} else if service.Status.CloutHash == "" {
-		self.Log.Infof("no clout hash for service %s/%s", service.Namespace, service.Name)
+		self.Log.Infof("no Clout hash for service %s/%s", service.Namespace, service.Name)
 		return true, nil
 	} else {
 		// Get clout hash
 		if _, err := os.Stat(service.Status.CloutPath); os.IsNotExist(err) {
-			self.Log.Infof("clout disappeared for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
+			self.Log.Infof("Clout disappeared for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 			return true, nil
 		} else {
 			if cloutHash, err := common.GetFileHash(service.Status.CloutPath); err == nil {
 				if cloutHash == service.Status.CloutHash {
-					self.Log.Infof("clout has not changed for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
+					self.Log.Infof("Clout has not changed for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 					return false, nil
 				} else {
-					self.Log.Infof("clout has changed for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
+					self.Log.Infof("Clout has changed for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 					return true, nil
 				}
 			} else {
@@ -211,9 +211,9 @@ func (self *Controller) instantiateService(service *resources.Service) error {
 		return err
 	}
 
-	if service, err = self.instantiateClout(service, urlContext); err == nil {
-		self.Events.Event(service, core.EventTypeNormal, "Instantiated", "Service instantiated successfully")
-		if _, err := self.UpdateServiceStatus(service, "Instantiated"); err != nil {
+	if service_, err := self.instantiateClout(service, urlContext); err == nil {
+		self.Events.Event(service_, core.EventTypeNormal, "Instantiated", "Service instantiated successfully")
+		if _, err := self.UpdateServiceStatus(service_, "Instantiated"); err != nil {
 			return err
 		}
 		return nil
@@ -227,15 +227,15 @@ func (self *Controller) instantiateService(service *resources.Service) error {
 }
 
 func (self *Controller) updateCloutForService(service *resources.Service) error {
-	self.Log.Infof("updating clout for service: %s/%s", service.Namespace, service.Name)
+	self.Log.Infof("updating Clout for service: %s/%s", service.Namespace, service.Name)
 
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
-	if _, err := self.updateCloutAttributes(service, urlContext); err == nil {
+	if _, err := self.UpdateCloutAttributesFromResources(service, urlContext); err == nil {
 		return nil
 	} else {
-		self.Events.Event(service, core.EventTypeWarning, "CloutUpdateError", fmt.Sprintf("Service clout update error: %s", err.Error()))
+		self.Events.Event(service, core.EventTypeWarning, "CloutUpdateError", fmt.Sprintf("Service Clout update error: %s", err.Error()))
 		return err
 	}
 }

@@ -12,6 +12,8 @@ imports:
 node_types:
 
   NetworkAttachmentDefinition:
+    metadata:
+      turandot.generateNames: 'false'
     capabilities:
       metadata: k8s:Metadata
       network-attachment-definition: k8s:BridgeNetworkAttachmentDefinition
@@ -44,8 +46,11 @@ topology_template:
           properties:
             name: { get_input: name }
             namespace: { get_input: namespace }
+            labels:
+              app.kubernetes.io/name: { get_input: name }
         network-attachment-definition:
           properties:
+            metadataNamePostfix: ''
             config:
               name: { get_input: name }
               bridge: { get_input: name }

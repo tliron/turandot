@@ -161,8 +161,27 @@ capability_types:
         type: scalar-unit.time
         default: 0 s
 
+  Resource:
+    description: >-
+      Kubernetes resources can derive from this, but don't have to. As long as the
+      "turandot.apiVersion" metadata is set, a Kubernetes resource will be created for that
+      capability.
+    properties:
+      metadataNamePostfix:
+        metadata:
+          puccini.information:turandot.ignore: 'true'
+        description: >-
+          If specified and not empty, this will be appended to the metadata capability's name after
+          a '-'. If specified and an empty string, the metadata capability's name will be used as
+          is. If not specified, the capability name will be used.
+        type: string
+        required: false
+
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcedefinition-v1-apiextensions-k8s-io
   CustomResourceDefinition:
+    metadata:
+      turandot.apiVersion: apiextensions.k8s.io/v1
+    derived_from: Resource
     properties:
       conversion:
         description: >-
@@ -206,6 +225,10 @@ capability_types:
   # https://kubernetes.io/docs/concepts/services-networking/service/
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#service-v1-core
   Service:
+    metadata:
+      turandot.apiVersion: v1
+      turandot.copy: metadata.labels->spec.selector
+    derived_from: Resource
     description: >-
       Service is a named abstraction of software service (for example, mysql) consisting of local
       port (for example 3306) that the proxy listens on, and the selector that determines which pods
@@ -225,7 +248,7 @@ capability_types:
         type: string
         constraints:
         - valid_values: [ ExternalName, ClusterIP, NodePort, and LoadBalancer ]
-        
+
       ports:
         description: >-
           The list of ports that are exposed by this service.
@@ -342,6 +365,8 @@ capability_types:
         required: false
     attributes:
       ingress:
+        metadata:
+          puccini.information:turandot.mapping: status.loadBalancer.ingress
         description: >-
           Ingress is a list containing ingress points for the load-balancer. Traffic intended for
           the service should be sent to these ingress points.
@@ -373,12 +398,18 @@ capability_types:
   #
 
   Controller:
+    derived_from: Resource
     description: >-
       Controller
 
   # https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#deployment-v1-apps
   Deployment:
+    metadata:
+      turandot.apiVersion: apps/v1
+      turandot.move: spec.template->spec.template.spec
+      turandot.copy.1: metadata.labels->spec.template.metadata.labels
+      turandot.copy.2: metadata.labels->spec.selector.matchLabels
     description: >-
       Deployment enables declarative updates for Pods and ReplicaSets.
     derived_from: Controller
@@ -444,6 +475,9 @@ capability_types:
 
   # https://github.com/k8snetworkplumbingwg/network-attachment-definition-client/blob/master/artifacts/networks-crd.yaml
   NetworkAttachmentDefinition:
+    metadata:
+      turandot.apiVersion: k8s.cni.cncf.io/v1
+    derived_from: Resource
     properties:
       config:
         type: CNIConfig
