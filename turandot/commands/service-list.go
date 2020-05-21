@@ -28,24 +28,27 @@ func ListServices() {
 	if len(services.Items) == 0 {
 		return
 	}
+	// TODO: sort services by name? they seem already sorted!
 
 	if bare {
 		for _, service := range services.Items {
 			fmt.Fprintln(terminal.Stdout, service.Name)
 		}
 	} else {
-		table := common.NewTable("Name", "ServiceTemplateURL", "Inputs", "Outputs")
+		table := common.NewTable(maxWidth, "Name", "ServiceTemplateURL", "Inputs", "Outputs")
 		for _, service := range services.Items {
 			var inputs string
 			if service.Spec.Inputs != nil {
-				for name, input := range service.Spec.Inputs {
+				for _, name := range common.SortedMapStringStringKeys(service.Spec.Inputs) {
+					input := service.Spec.Inputs[name]
 					inputs += fmt.Sprintf("%s: %s\n", name, input)
 				}
 			}
 
 			var outputs string
 			if service.Status.Outputs != nil {
-				for name, output := range service.Status.Outputs {
+				for _, name := range common.SortedMapStringStringKeys(service.Status.Outputs) {
+					output := service.Status.Outputs[name]
 					outputs += fmt.Sprintf("%s: %s\n", name, output)
 				}
 			}

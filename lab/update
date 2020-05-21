@@ -2,8 +2,8 @@
 set -e
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
-. "$HERE/_env"
-. "$HERE/_trap"
+. "$HERE/../scripts/_env"
+. "$ROOT/scripts/_trap"
 
 minikube profile edge
 turandot uninstall -n workspace
@@ -13,8 +13,8 @@ turandot uninstall -n workspace
 kubectl delete events --all --namespace=workspace
 
 if [ "$1" == -b ]; then
-	"$HERE/build-container-image"
-	"$HERE/publish-container-image"
+	"$ROOT/scripts/build-container-image"
+	"$ROOT/scripts/publish-container-image"
 else
 	sleep 10
 fi
@@ -25,6 +25,7 @@ kubectl config set-context --current --namespace=workspace
 sleep 20
 
 turandot service deploy hello-world -f dist/hello-world.csar -v
+turandot service deploy helm-hello-world -f dist/helm-hello-world.csar -v
 
 turandot delegate set edge --delegate-context=edge
 

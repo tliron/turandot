@@ -1,0 +1,61 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+imports:
+
+- data.yaml
+
+policy_types:
+
+  Provisioning:
+    description: >-
+      Direction for where and how nodes for a node template are provisioned.
+
+      "Provisioning" refers to either instantiation (creating a new node) or allocation (using an
+      existing node from an inventory).
+
+      Provisioning policies are "inherited" via node template substitution such that they would
+      be applied to all node templates within the substituted service template. That substituted
+      service template may override the inherited policy for specific nodes.
+    properties:
+      sites:
+        description: >-
+          Nodes will be provisioned on all listed sites.
+
+          Note that a site may have multiple clusters. One or more of them may be selected for
+          provisioning.
+        type: list
+        entry_schema: string
+        required: false
+      profile:
+        description: >-
+          Multiple provisioning profiles may be available, e.g. multiple service templates for
+          substitution, multiple physical resources for allocation, etc.
+
+          Setting this property will provide hints for selecting a specific profile.
+        type: ProvisioningProfile
+        required: false
+      substitutable:
+        description: >-
+          When true allows the node template to be substituted by another service template, which
+          must have compatible subtitution mappings.
+        type: boolean
+        default: true
+      instantiable:
+        description: >-
+          When true allows nodes to be instantiated. False means that only pre-existing nodes will
+          be allocated.
+        type: boolean
+        default: true
+      virtualizable:
+        description: >-
+          When true allows nodes to be virtual (virtual machines or containers). False means that
+          only physical nodes (baremetal) can be used. When false the "instantiable" property is
+          ignored, because physical nodes cannot be instantiated, only allocated.
+        type: boolean
+        default: true
+      substitutionInputs:
+        description: >-
+          These values will be used as inputs for substitution.
+        type: map
+        entry_schema: string
+        required: false

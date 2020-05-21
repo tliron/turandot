@@ -158,6 +158,23 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 		return nil, err
 	}
 
+	// Operations
+	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
+		if yaml, err := common.ExecScriptlet(clout, "orchestration.operations", urlContext); err == nil {
+			if operations, err := format.DecodeYAML(yaml); err == nil {
+				if err = self.processOperations(operations, clout, urlContext); err != nil {
+					return nil, err
+				}
+			} else if err != io.EOF {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+
 	return self.updateCloutOutputs(service, urlContext)
 }
 

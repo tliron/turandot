@@ -31,8 +31,8 @@ node_types:
         capability: ns:Connectable
         node: ns:NetworkPlane
     interfaces:
-      configuration:
-        type: o11n:SSHConfiguration
+      orchestration:
+        type: o11n:SSHOrchestration
 
 topology_template:
 
@@ -114,7 +114,7 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        configuration:
+        orchestration:
           inputs:
             host: TODO #{ get_attribute: [ SELF, ip ] }
             username: admin

@@ -12,6 +12,7 @@ import (
 var logTo string
 var verbose int
 var colorize bool
+var maxWidth int
 var kubeconfigPath string
 var masterUrl string
 var cluster bool
@@ -26,6 +27,7 @@ func init() {
 	rootCommand.PersistentFlags().StringVarP(&logTo, "log", "l", "", "log to file (defaults to stderr)")
 	rootCommand.PersistentFlags().CountVarP(&verbose, "verbose", "v", "add a log verbosity level (can be used twice)")
 	rootCommand.PersistentFlags().BoolVarP(&colorize, "colorize", "z", true, "colorize output")
+	rootCommand.PersistentFlags().IntVarP(&maxWidth, "width", "", -1, "maximum output width (-1 to use terminal width, 0 for no maximum)")
 	rootCommand.PersistentFlags().StringVarP(&masterUrl, "master", "m", "", "address of the Kubernetes API server")
 	rootCommand.PersistentFlags().StringVarP(&kubeconfigPath, "kubeconfig", "k", defaultKubeconfigPath, "path to Kubernetes configuration")
 	rootCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace (overrides context namespace in Kubernetes configuration)")

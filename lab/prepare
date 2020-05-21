@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+minikube profile edge
+
+"$ROOT/../telephony-network-service/multus/deploy"
+
+minikube profile central
+
+"$ROOT/../telephony-network-service/multus/deploy"
+"$ROOT/../telephony-network-service/kubevirt/deploy"
+
+kubectl create namespace workspace
+
+"$ROOT/../telephony-network-service/mariadb/deploy"

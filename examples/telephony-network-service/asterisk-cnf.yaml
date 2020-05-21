@@ -24,8 +24,8 @@ node_types:
         capability: ns:Connectable
         node: ns:NetworkPlane
     interfaces:
-      configuration:
-        type: o11n:ContainerConfiguration
+      orchestration:
+        type: o11n:ContainerOrchestration
 
 topology_template:
 
@@ -72,7 +72,7 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        configuration:
+        orchestration:
           inputs:
             container: all-in-one
           operations:

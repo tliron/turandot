@@ -7,13 +7,19 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
-. "$HERE/_env"
+. "$HERE/../scripts/_env"
 
-KUBERNETES_VERSION=v1.18.2
+KUBERNETES_VERSION=v1.18.3
 MINIKUBE_VERSION=v1.10.1
 KUBEVIRT_VERSION=v0.29.0
+HELM_VERSION=3.2.1
 
 OVERWRITE=false
+
+function github_version () {
+	local REPO=$1
+	curl --silent "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'	
+}
 
 for ARG in "$@"; do
 	case "$ARG" in
@@ -23,8 +29,9 @@ for ARG in "$@"; do
 		-u)
 			m "checking for latest versions..."
 			KUBERNETES_VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-			MINIKUBE_VERSION=$(curl --silent https://api.github.com/repos/kubernetes/minikube/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-			KUBEVIRT_VERSION=$(curl --silent https://api.github.com/repos/kubevirt/kubevirt/releases | grep tag_name | grep -v -- - | sort -V | tail -1 | awk -F':' '{print $2}' | sed 's/,//' | xargs)
+			MINIKUBE_VERSION=$(github_version kubernetes/minikube)
+			KUBEVIRT_VERSION=$(github_version kubevirt/kubevirt)
+			HELM_VERSION=$(github_version helm/helm)
 			;;
 	esac
 done
@@ -32,11 +39,13 @@ done
 m "KUBERNETES_VERSION=$KUBERNETES_VERSION"
 m "MINIKUBE_VERSION=$MINIKUBE_VERSION"
 m "KUBEVIRT_VERSION=$KUBEVIRT_VERSION"
+m "HELM_VERSION=$HELM_VERSION"
 
 function fetch () {
 	local NAME=$1
 	local VERSION=$2
 	local URL=$3
+	local ARCHIVE_PREFIX=$4
 	local EXEC=/usr/bin/$NAME
 	if [ -f "$EXEC" ]; then
 		if [ "$OVERWRITE" == true ]; then
@@ -47,7 +56,14 @@ function fetch () {
 		fi
 	fi
 	m "downloading $NAME $VERSION..."
-	wget --quiet --output-document="$EXEC" "$URL"
+	if [ "${URL: -7}" == .tar.gz ]; then
+		local ARCHIVE=$(mktemp --suffix=.tar.gz)
+		wget --quiet --output-document="$ARCHIVE" "$URL"
+		tar --extract --file="$ARCHIVE" --directory=/usr/bin --strip=1 "$ARCHIVE_PREFIX$NAME"
+		rm --force "$ARCHIVE"
+	else
+		wget --quiet --output-document="$EXEC" "$URL"
+	fi
 	chmod a+x "$EXEC"
 	m "installed \"$EXEC\""
 }
@@ -60,3 +76,7 @@ fetch minikube "$MINIKUBE_VERSION" \
 
 fetch virtctl "$KUBEVIRT_VERSION" \
 "https://github.com/kubevirt/kubevirt/releases/download/$KUBEVIRT_VERSION/virtctl-${KUBEVIRT_VERSION}-linux-amd64"
+
+fetch helm "$HELM_VERSION" \
+"https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz" \
+"linux-amd64/"

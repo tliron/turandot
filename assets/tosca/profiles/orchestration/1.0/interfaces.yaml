@@ -1,0 +1,59 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+interface_types:
+
+  # Orchestration
+
+  Orchestration:
+    operations:
+      provision: {}
+      configure: {}
+
+  ScriptletOrchestration:
+    description: >-
+      Operation implementations are names of scriptlets within the Clout.
+
+      This interface does not support inputs.
+    derived_from: Orchestration
+
+  ContainerOrchestration:
+    derived_from: Orchestration
+    inputs:
+      container:
+        type: string
+
+  SSHOrchestration:
+    derived_from: Orchestration
+    inputs:
+      host:
+        type: string
+      username:
+        type: string
+      key:
+        type: string
+
+  # Rendering
+
+  Rendering:
+    description: >-
+      The orchestrator can "render" the node template before instantiating it. This can involve
+      interpolating variables in a text template, adding platform-specific fields, etc.
+
+      The orchestrator will provide the complete Clout to the implementation in YAML format, and it
+      expected that the implementation will modify its specific vertex.
+    operations:
+      render: {}
+
+  TextTemplateRendering:
+    description: >-
+      Expects a "render-text-template" artifact to be attached to the node template, which will
+      accept a "context" of string values for interpolation.
+    derived_from: Rendering
+    operations:
+      render:
+        implementation: render-text-template
+        inputs:
+          context:
+            type: map
+            entry_schema: string
+            required: false

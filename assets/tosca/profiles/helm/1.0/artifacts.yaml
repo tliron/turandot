@@ -5,3 +5,4 @@ artifact_types:
   Chart:
     description: >-
       Helm chart
+    file_ext: [ tar, tar.gz, tgz ]

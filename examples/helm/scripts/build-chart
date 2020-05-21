@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+CHARTS=$(readlink --canonicalize "$HERE/../artifacts/charts")
+
+mkdir --parents "$CHARTS"
+
+tar --create --gzip --file="$CHARTS/hello-world.tar.gz" --directory="$HERE/../hello-world" .

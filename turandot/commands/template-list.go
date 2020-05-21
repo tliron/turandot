@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -30,6 +31,7 @@ func ListServiceTemplates() {
 	if len(images) == 0 {
 		return
 	}
+	sort.Strings(images)
 
 	if bare {
 		for _, image := range images {
@@ -38,11 +40,12 @@ func ListServiceTemplates() {
 			}
 		}
 	} else {
-		table := common.NewTable("Name", "Services")
+		table := common.NewTable(maxWidth, "Name", "Services")
 		for _, image := range images {
 			if serviceTemplateName, ok := delegate.ServiceTemplateNameFromInventoryImageName(image); ok {
 				// TODO: get services
 				services := []string{"TODO"}
+				sort.Strings(services)
 				table.Add(serviceTemplateName, strings.Join(services, "\n"))
 			}
 		}

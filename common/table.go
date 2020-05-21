@@ -34,11 +34,12 @@ const (
 	BottomSeparatorTableStyle
 )
 
-func NewTable(headings ...string) *Table {
-	var width int
-	var err error
-	if width, _, err = sshterminal.GetSize(int(os.Stdout.Fd())); err != nil {
-		width = -1
+func NewTable(width int, headings ...string) *Table {
+	if width == -1 {
+		var err error
+		if width, _, err = sshterminal.GetSize(int(os.Stdout.Fd())); err != nil {
+			width = -1
+		}
 	}
 
 	self := Table{
@@ -99,6 +100,10 @@ func splitCells(cells []string) [][]string {
 }
 
 func (self *Table) Wrap() {
+	if self.MaxWidth <= 0 {
+		return
+	}
+
 	columns, columnWidths := self.ColumnWidths()
 
 	cellsTotalWidth := 0

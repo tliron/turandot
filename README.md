@@ -19,8 +19,9 @@ Kubernetes resources, as well as their
 on a single cluster or on multi-cluster clouds. Virtual machines are supported via
 [KubeVirt](https://kubevirt.io/).
 
-External orchestrators (e.g. [Ansible](https://www.ansible.com/)) are supported via custom artifacts
-(e.g. Ansible playbooks) encapsulated as TOSCA types.
+[Helm](https://helm.sh/) charts and external orchestrators, such as
+[Ansible](https://www.ansible.com/)), are supported via custom artifacts encapsulated as TOSCA
+types.
 
 See the included [examples](examples/).
 
@@ -170,24 +171,21 @@ if the repositories are slow to access or if access is unreliable, e.g. on cloud
 
 ### Why use TOSCA and CSARs instead of packaged Helm charts?
 
-A [Helm](https://helm.sh/) chart is essentially a collection of text templates for low-level
-Kubernetes YAML resource specs stored in a bespoke
-[repository format](https://helm.sh/docs/topics/chart_repository/). Up to Helm version 3, it had an
-in-cluster controller named Tiller. At version 3 it was removed, leaving Helm entirely devoted
-to text templating. 
+Turandot comes with a Helm profile that allows you to package one or more Helm charts inside the
+CSAR or install them from an external chart repository. See the [example](examples/helm/). This
+feature allows you to use the advantages of TOSCA and Turandot with existing Helm packaging efforts.
 
-Text templating is a rather miserable method for generating YAML, and it's hard to use it to model
-reusable types. By contrast, TOSCA is a strictly-typed object-oriented language that supports
+However, it is worth considering converting your Helm charts into pure TOSCA CSARs.  
+
+A Helm chart is essentially a collection of text templates for low-level Kubernetes YAML resource
+specs stored in a bespoke [repository format](https://helm.sh/docs/topics/chart_repository/). Up to
+Helm version 3, it had an in-cluster controller named Tiller. At version 3 it was removed, leaving
+Helm entirely devoted to text templating.
+
+Text templating is a rather miserable mechanism for generating YAML, and it's hard to use it to
+model reusable types. By contrast, TOSCA is a strictly-typed object-oriented language that supports
 inheritance and topological composition, making it vastly superior for modeling complex cloud
-workloads. It's an industry-supported standard created exactly for this purpose. Note that TOSCA
-does not *have* to introduce "abstraction", indeed the included Kubernetes TOSCA profile is a
-one-to-one mapping of raw Kubernetes resources. TOSCA can and *should* precisely model the target
-domain.
-
-That said, in the future Turandot will support Helm charts in order to allow users to leverage
-existing packaging efforts. The current design goal is to have Helm charts modeled as a single type
-in TOSCA and have them packaged into the CSAR as artifacts, or referred to in external Helm chart
-repositories.
+workloads. TOSCA is an industry-supported standard created exactly for this purpose.
 
 ### Why is it called "Turandot"?
 

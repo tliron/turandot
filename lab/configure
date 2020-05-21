@@ -2,10 +2,10 @@
 set -e
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
-. "$HERE/scripts/_env"
+. "$HERE/../scripts/_env"
 . "$ROOT/scripts/_trap"
 
-cd "$HERE/../telephony-network-service"
+cd "$ROOT/../telephony-network-service"
 
 minikube profile central
 

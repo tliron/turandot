@@ -18,6 +18,7 @@ function build () {
 
 	local CONTAINER_ID=$(buildah from "$BASE_IMAGE")
 	buildah add "$CONTAINER_ID" "$GOPATH/bin/$EXECUTABLE" /usr/bin/
+	buildah add "$CONTAINER_ID" /usr/bin/helm /usr/bin/
 	buildah config --entrypoint "/usr/bin/$EXECUTABLE" "$CONTAINER_ID"
 	buildah commit "$CONTAINER_ID" "$LOCAL"
 }

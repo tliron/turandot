@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/spf13/cobra"
 	puccinicommon "github.com/tliron/puccini/common"
@@ -28,6 +29,7 @@ func ListDelegates() {
 	if len(delegates) == 0 {
 		return
 	}
+	sort.Strings(delegates)
 
 	if bare {
 		for _, delegate := range delegates {
@@ -35,7 +37,7 @@ func ListDelegates() {
 		}
 	} else {
 		// TODO fill table
-		table := common.NewTable("Name", "Server", "Namespace")
+		table := common.NewTable(maxWidth, "Name", "Server", "Namespace")
 		for _, delegate := range delegates {
 			table.Add(delegate, "TODO", "TODO")
 		}
