@@ -1,5 +1,5 @@
-Hello World
-===========
+Hello World Example
+===================
 
 A stateless single-pod web workload comprising a deployment and a loadbalancer service.
 

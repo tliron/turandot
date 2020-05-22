@@ -7,12 +7,19 @@ imports:
 
 topology_template:
 
+  inputs:
+
+    namespace:
+      type: string
+      default: workspace
+
   node_templates:
 
     hello-world:
       type: helm:Release
       properties:
         chart: { get_artifact: [ SELF, chart ] }
+        namespace: { get_input: namespace }
         values:
           nameOverride: helm # will be used as a postfix
           service.type: LoadBalancer

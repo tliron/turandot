@@ -8,6 +8,7 @@ interface_types:
     operations:
       provision: {}
       configure: {}
+      test: {}
 
   ScriptletOrchestration:
     description: >-

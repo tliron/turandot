@@ -1,5 +1,5 @@
-Telephony Network Service (MANO)
-================================
+Telephony Network Service (MANO) Example
+========================================
 
 This example of a multi-cluster network service comprises a VNF (Virtualized Network Function), a
 CNF (Containerized, or Cloud-native Network Function), and a PNF (Physical Network Function).
@@ -11,8 +11,9 @@ SD-WAN. The result is that SIP phones connected to either site can all call each
 
 ![Diagram](../../assets/media/telephony-network-service.png)
 
-The entire example is also available as a set of independent specs and scripts, without Turandot's
-orchestration. See [the repository](https://github.com/tliron/telephony-network-service).
+The entire example is also available as a set of independent Kubernetes manifests and scripts,
+without TOSCA and Turandot's orchestration. See
+[the repository](https://github.com/tliron/telephony-network-service).
 
 
 Building the Components

@@ -20,7 +20,7 @@ on a single cluster or on multi-cluster clouds. Virtual machines are supported v
 [KubeVirt](https://kubevirt.io/).
 
 [Helm](https://helm.sh/) charts and external orchestrators, such as
-[Ansible](https://www.ansible.com/)), are supported via custom artifacts encapsulated as TOSCA
+[Ansible](https://www.ansible.com/), are supported via custom artifacts encapsulated as TOSCA
 types.
 
 See the included [examples](examples/).
@@ -73,7 +73,7 @@ The core is a Kubernetes operator that:
 
 The Turandot operator can be controlled using the `turandot` utility, e.g.:
 
-    turandot service deploy myservice --file=myservice.csar
+    turandot service deploy my-service --file=my-service-template.csar
 
 ⮕ [Documentation](turandot/)
 
@@ -99,7 +99,7 @@ clusters) and takes it from there.
 
 **Day 2+: Cloud-native Operations.** Once they are up and running the services should orchestrate
 themselves by adapting to changing internal and external conditions, as well as triggered and manual
-actions from operations. Changes include scaling, healing, as well as more elaborate
+actions from operations. Changes include scaling, healing, migration, as well as more elaborate
 transformations. The Turandot operator will continue to monitor these changes and update the Clout.
 Components can refer to the Clout as "single source of truth" to see the complete topology in order
 to make self-orchestration decisions, as well as checking against policies to which they must or can
@@ -173,14 +173,15 @@ if the repositories are slow to access or if access is unreliable, e.g. on cloud
 
 Turandot comes with a Helm profile that allows you to package one or more Helm charts inside the
 CSAR or install them from an external chart repository. See the [example](examples/helm/). This
-feature allows you to use the advantages of TOSCA and Turandot with existing Helm packaging efforts.
+feature allows you to combine the advantages of TOSCA and Turandot with existing Helm packaging
+efforts.
 
 However, it is worth considering converting your Helm charts into pure TOSCA CSARs.  
 
 A Helm chart is essentially a collection of text templates for low-level Kubernetes YAML resource
-specs stored in a bespoke [repository format](https://helm.sh/docs/topics/chart_repository/). Up to
-Helm version 3, it had an in-cluster controller named Tiller. At version 3 it was removed, leaving
-Helm entirely devoted to text templating.
+manifests stored in a bespoke [repository format](https://helm.sh/docs/topics/chart_repository/). Up
+to Helm version 3, it had an in-cluster controller named Tiller. At version 3 it was removed,
+leaving Helm entirely devoted to text templating.
 
 Text templating is a rather miserable mechanism for generating YAML, and it's hard to use it to
 model reusable types. By contrast, TOSCA is a strictly-typed object-oriented language that supports

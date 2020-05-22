@@ -103,14 +103,16 @@ func ParseInputs() {
 		if closer, ok := reader.(io.Closer); ok {
 			defer closer.Close()
 		}
-		data, err := formatpkg.ReadYAML(reader)
+		data, err := formatpkg.ReadAllYAML(reader)
 		puccinicommon.FailOnError(err)
-		if map_, ok := data.(ard.Map); ok {
-			for key, value := range map_ {
-				inputValues[yamlkeys.KeyString(key)] = value
+		for _, data_ := range data {
+			if map_, ok := data_.(ard.Map); ok {
+				for key, value := range map_ {
+					inputValues[yamlkeys.KeyString(key)] = value
+				}
+			} else {
+				puccinicommon.Failf("malformed inputs in \"%s\"", inputsUrl)
 			}
-		} else {
-			puccinicommon.Failf("malformed inputs in \"%s\"", inputsUrl)
 		}
 	}
 
