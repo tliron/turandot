@@ -7,6 +7,7 @@ replace github.com/tliron/puccini => /Depot/Projects/RedHat/puccini
 // replace github.com/tliron/kubernetes-registry-spooler => /Depot/Projects/RedHat/kubernetes-registry-spooler
 
 require (
+	github.com/gofrs/flock v0.7.1
 	github.com/google/go-containerregistry v0.0.0-20200521151920-a873a21aff23
 	github.com/google/uuid v1.1.1
 	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40

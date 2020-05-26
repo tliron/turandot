@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+# https://github.com/abalki001/mariadb-operator
+
+if [ "$1" == -c ]; then
+	"$HERE/delete"
+fi
+
+. "$HERE/../_env"
+
+BASE=https://raw.githubusercontent.com/abalki001/mariadb-operator/$MARIADB_VERSION/deploy
+
+m 'deploying MariaDB operator...'
+kubectl apply --filename="$BASE/crds/mariadb.persistentsys_mariadbs_crd.yaml"
+kubectl apply --filename="$BASE/role.yaml" --namespace="$WORKSPACE"
+kubectl apply --filename="$BASE/role_binding.yaml" --namespace="$WORKSPACE"
+kubectl apply --filename="$BASE/service_account.yaml" --namespace="$WORKSPACE"
+kubectl apply --filename="$BASE/operator.yaml" --namespace="$WORKSPACE"
+kubectl apply --filename="$BASE/mariadb_pv.yaml" --namespace="$WORKSPACE"
+kubectl apply --filename="$BASE/mariadb_pvc.yaml" --namespace="$WORKSPACE"
+
+#kubectl apply --filename="$BASE/crds/mariadb.persistentsys_v1alpha1_mariadb_cr.yaml" --namespace="$WORKSPACE"
+
+m 'waiting for MariaDB operator to start...'
+POD=$(kubectl get pods --namespace="$WORKSPACE" --selector=name=mariadb-operator --output=jsonpath={.items[0].metadata.name})
+kubectl wait "pods/$POD" --namespace="$WORKSPACE" \
+	--for=condition=ContainersReady

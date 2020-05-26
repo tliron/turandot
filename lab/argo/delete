@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+. "$HERE/../_env"
+
+kubectl delete --filename="https://raw.githubusercontent.com/argoproj/argo/$ARGO_VERSION/manifests/namespace-install.yaml" --namespace="$WORKSPACE"

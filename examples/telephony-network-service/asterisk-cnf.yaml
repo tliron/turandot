@@ -24,8 +24,8 @@ node_types:
         capability: ns:Connectable
         node: ns:NetworkPlane
     interfaces:
-      orchestration:
-        type: o11n:ContainerOrchestration
+      execution:
+        type: o11n:ContainerExecution
 
 topology_template:
 
@@ -37,7 +37,7 @@ topology_template:
 
   node_templates:
 
-    cnf:
+    asterisk:
       type: Asterisk
       capabilities:
         metadata:
@@ -72,11 +72,16 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        orchestration:
+        execution:
           inputs:
+            phase: configure
             container: all-in-one
+            files:
+            - sourceUrl: { get_artifact: [ SELF, configure ] }
+              destinationPath: /configure
+              permissions: 0500
           operations:
-            configure: configure
+            execute: /configure
       artifacts:
         image:
           type: k8s:ContainerImage
@@ -97,13 +102,13 @@ topology_template:
   outputs:
 
     udp-ip:
-      value: { get_attribute: [ cnf, udp, ingress, 0, ip ] }
+      value: { get_attribute: [ asterisk, udp, ingress, 0, ip ] }
 
   substitution_mappings:
 
     node_type: telephony:PBX
     capabilities:
-      connection: [ cnf, connection ]
+      connection: [ asterisk, connection ]
 
   policies:
 

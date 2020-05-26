@@ -7,13 +7,14 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 minikube profile edge
 
-"$ROOT/../telephony-network-service/multus/deploy"
+"$HERE/multus/deploy"
 
 minikube profile central
 
-"$ROOT/../telephony-network-service/multus/deploy"
-"$ROOT/../telephony-network-service/kubevirt/deploy"
+"$HERE/multus/deploy"
+"$HERE/kubevirt/deploy"
 
-kubectl create namespace workspace
+kubectl create namespace workspace || true
 
-"$ROOT/../telephony-network-service/mariadb/deploy"
+#"$HERE/argo/deploy"
+"$HERE/mariadb/deploy"

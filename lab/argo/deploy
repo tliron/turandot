@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+# https://github.com/argoproj/argo/blob/master/docs/getting-started.md
+
+if [ "$1" == -c ]; then
+	"$HERE/delete"
+fi
+
+. "$HERE/../_env"
+
+m 'deploying Argo...'
+
+kubectl apply --filename="https://raw.githubusercontent.com/argoproj/argo/$ARGO_VERSION/manifests/namespace-install.yaml" --namespace="$WORKSPACE"
+
+m 'waiting for Argo to start...'
+
+POD=$(kubectl get pods --namespace="$WORKSPACE" --selector=app=argo-server --output=jsonpath={.items[0].metadata.name})
+kubectl wait "pods/$POD" --namespace="$WORKSPACE" \
+	--for=condition=ContainersReady
+
+POD=$(kubectl get pods --namespace="$WORKSPACE" --selector=app=workflow-controller --output=jsonpath={.items[0].metadata.name})
+kubectl wait "pods/$POD" --namespace="$WORKSPACE" \
+	--for=condition=ContainersReady

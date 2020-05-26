@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../scripts/_env"
+
+function github_version () {
+	local REPO=$1
+	curl --silent "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'	
+}
+
+KUBERNETES_VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+MINIKUBE_VERSION=$(github_version kubernetes/minikube)
+KUBEVIRT_VERSION=$(github_version kubevirt/kubevirt)
+HELM_VERSION=$(github_version helm/helm)
+MULTUS_VERSION=$(github_version intel/multus-cni)
+ARGO_VERSION=$(github_version argoproj/argo)
+
+m "KUBERNETES_VERSION=$KUBERNETES_VERSION"
+m "MINIKUBE_VERSION=$MINIKUBE_VERSION"
+m "KUBEVIRT_VERSION=$KUBEVIRT_VERSION"
+m "HELM_VERSION=$HELM_VERSION"
+m "MULTUS_VERSION=$MULTUS_VERSION"
+m "ARGO_VERSION=$ARGO_VERSION"

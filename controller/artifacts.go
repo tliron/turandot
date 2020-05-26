@@ -5,7 +5,6 @@ import (
 
 	"github.com/tliron/puccini/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
-	puccinicommon "github.com/tliron/puccini/common"
 	urlpkg "github.com/tliron/puccini/url"
 	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/controller/parser"
@@ -13,11 +12,7 @@ import (
 )
 
 func (self *Controller) UpdateCloutArtifacts(clout *cloutpkg.Clout, artifactMappings map[string]string) {
-	history := ard.StringMap{
-		"description": "artifacts",
-		"timestamp":   puccinicommon.Timestamp(false),
-	}
-	ard.NewNode(clout.Metadata).Get("history").Append(history)
+	self.AddToCloutHistory(clout, "artifacts")
 
 	for _, vertex := range clout.Vertexes {
 		tosca := ard.NewNode(vertex.Metadata).Get("puccini")

@@ -8,9 +8,9 @@ imports:
 
 capability_types:
 
-  # https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_virtualmachine
   VirtualMachine:
     metadata:
+      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_virtualmachine' 
       turandot.apiVersion: kubevirt.io/v1alpha3
       turandot.move: spec.template->spec.template.spec
       turandot.copy: metadata->spec.template.metadata

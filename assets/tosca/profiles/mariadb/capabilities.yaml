@@ -11,7 +11,7 @@ capability_types:
     derived_from: k8s:Resource
 
   # See: https://github.com/abalki001/mariadb-operator/tree/master/deploy
-  Cluster:
+  DB:
     metadata:
       turandot.apiVersion: mariadb.persistentsys/v1alpha1
       turandot.kind: MariaDB
@@ -19,33 +19,29 @@ capability_types:
     properties:
       database:
         description: >-
-          New Database name
+          New database name.
         type: string
-      image:
-        description: >-
-          Image name with version
+      username:
         type: string
-        default: mariadb/server:10.3
       password:
-        description: >-
-          Database additional user password (base64 encoded)
         type: string
       rootpwd:
         description: >-
-          Root user password
+          Root user password.
         type: string
+      image:
+        description: >-
+          Image URL.
+        type: string
+        default: mariadb/server:10.3
       size:
         description: >-
-          Size is the size of the deployment
+          Size of the deployment.
         type: integer
         default: 1
-      username:
-        description: >-
-          Database additional user details (base64 encoded)
-        type: string
     attributes:
       nodes:
         description: >-
-          Nodes are the names of the pods
+          The names of the pods.
         type: list
         entry_schema: string

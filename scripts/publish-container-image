@@ -5,7 +5,7 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/_env"
 . "$HERE/_trap"
 
-# kubectl -n kube-system get svc registry -o jsonpath='{.spec.clusterIP}'
+buildah login docker.io
 
 function push () {
 	local EXECUTABLE=$1
@@ -19,9 +19,3 @@ function push () {
 }
 
 push turandot-operator
-
-#POD=$EXECUTABLE
-#kubectl delete pods "$POD" || true
-#kubectl run --generator=run-pod/v1 "$POD" --image="$INTERNAL"
-
-#skopeo inspect docker://$(minikube ip):5000/hi --tls-verify=false

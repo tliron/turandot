@@ -1,30 +1,67 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
+imports:
+
+- data.yaml
+
 interface_types:
 
-  # Orchestration
+  # Execution
 
-  Orchestration:
+  Execution:
+    inputs:
+      phase:
+        type: string
+      requirements:
+        type: ExecutionRequirements
+        required: false
+      pods:
+        type: ExecutionPods
+        default: All
     operations:
-      provision: {}
-      configure: {}
-      test: {}
+      execute: {}
 
-  ScriptletOrchestration:
+  CloutExecution:
     description: >-
-      Operation implementations are names of scriptlets within the Clout.
+      Implementations are names of scriptlets within the Clout.
+    derived_from: Execution
 
-      This interface does not support inputs.
-    derived_from: Orchestration
+  CommandExecution:
+    derived_from: Execution
+    description: >-
+      Base type for command executions.
 
-  ContainerOrchestration:
-    derived_from: Orchestration
+      The implementation is the command to execute. Additional arguments can be added via the
+      "arguments" input.
+    inputs:
+      arguments:
+        description: >-
+          Arguments to add to the command.
+        type: list
+        entry_schema: string
+        required: false
+      files:
+        description: >-
+          A list of files to copy to the target before execution. The source URLs can be the result
+          of a get_artifact function call. 
+        type: list
+        entry_schema: File
+        required: false
+
+  ContainerExecution:
+    description: >-
+      Uses the SPDY executor on the "exec" subresource of the pods.
+    derived_from: CommandExecution
     inputs:
       container:
+        description: >-
+          The name of the container in the pods in which to execute.
         type: string
 
-  SSHOrchestration:
-    derived_from: Orchestration
+  SSHExecution:
+    description: >-
+      Uses SSH to execute commands.
+    derived_from: CommandExecution
     inputs:
       host:
         type: string
@@ -32,29 +69,3 @@ interface_types:
         type: string
       key:
         type: string
-
-  # Rendering
-
-  Rendering:
-    description: >-
-      The orchestrator can "render" the node template before instantiating it. This can involve
-      interpolating variables in a text template, adding platform-specific fields, etc.
-
-      The orchestrator will provide the complete Clout to the implementation in YAML format, and it
-      expected that the implementation will modify its specific vertex.
-    operations:
-      render: {}
-
-  TextTemplateRendering:
-    description: >-
-      Expects a "render-text-template" artifact to be attached to the node template, which will
-      accept a "context" of string values for interpolation.
-    derived_from: Rendering
-    operations:
-      render:
-        implementation: render-text-template
-        inputs:
-          context:
-            type: map
-            entry_schema: string
-            required: false

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/tliron/puccini/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
+	puccinicommon "github.com/tliron/puccini/common"
 	"github.com/tliron/puccini/common/format"
 	problemspkg "github.com/tliron/puccini/common/problems"
 	"github.com/tliron/puccini/tosca/compiler"
@@ -58,6 +60,14 @@ func (self *Controller) WriteClout(clout *cloutpkg.Clout, cloutPath string) (str
 	}
 }
 
+func (self *Controller) AddToCloutHistory(clout *cloutpkg.Clout, description string) {
+	history := ard.StringMap{
+		"description": description,
+		"timestamp":   puccinicommon.Timestamp(false),
+	}
+	ard.NewNode(clout.Metadata).Get("history").Append(history)
+}
+
 func (self *Controller) UpdateClout(clout *cloutpkg.Clout, service *resources.Service) (*resources.Service, error) {
 	if cloutHash, err := self.WriteClout(clout, service.Status.CloutPath); err == nil {
 		return self.UpdateServiceClout(service, service.Status.CloutPath, cloutHash)
@@ -67,8 +77,6 @@ func (self *Controller) UpdateClout(clout *cloutpkg.Clout, service *resources.Se
 }
 
 func (self *Controller) instantiateClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
-	// TODO: update attributes in clout
-
 	// Artifacts
 	artifactMappings := make(map[string]string)
 	self.Log.Infof("processing artifacts for Clout: %s", service.Status.CloutPath)

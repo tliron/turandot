@@ -16,11 +16,7 @@ import (
 )
 
 func (self *Controller) UpdateCloutResourcesMetadata(clout *cloutpkg.Clout, resources parser.KubernetesResources) {
-	history := ard.StringMap{
-		"description": "kubernetes-resources-metadata",
-		"timestamp":   puccinicommon.Timestamp(false),
-	}
-	ard.NewNode(clout.Metadata).Get("history").Append(history)
+	self.AddToCloutHistory(clout, "kubernetes-resources-metadata")
 
 	for vertexId := range resources {
 		if vertex, ok := clout.Vertexes[vertexId]; ok {
@@ -47,13 +43,12 @@ func (self *Controller) UpdateCloutAttributesFromResources(service *resources.Se
 			if resources, ok := ard.NewNode(vertex.Metadata).Get("turandot").Get("resources").List(false); ok {
 				if resources_, ok := parser.ParseKubernetesResourceList(resources); ok {
 					for _, resource := range resources_ {
-						self.Log.Infof("updating attributes for %s/%s in Clout from resource %s/%s %s/%s", vertexId, resource.Capability, resource.APIVersion, resource.Kind, resource.Namespace, resource.Name)
-						if resource.AttributeMappings != nil {
-							for from, attributeName := range resource.AttributeMappings {
-								self.Log.Infof("updating attribute %s from %s", attributeName, from)
-
-								if gvk, err := resource.GVK(); err == nil {
-									if unstructured, err := self.Dynamic.GetResource(gvk, resource.Name, resource.Namespace); err == nil {
+						if (resource.AttributeMappings != nil) && (len(resource.AttributeMappings) > 0) {
+							self.Log.Infof("updating attributes for %s/%s in Clout from resource %s/%s %s/%s", vertexId, resource.Capability, resource.APIVersion, resource.Kind, resource.Namespace, resource.Name)
+							if gvk, err := resource.GVK(); err == nil {
+								if unstructured, err := self.Dynamic.GetResource(gvk, resource.Name, resource.Namespace); err == nil {
+									for from, attributeName := range resource.AttributeMappings {
+										self.Log.Infof("updating attribute %s from %s", attributeName, from)
 										if attributes, ok := ard.NewNode(vertex.Properties).Get("capabilities").Get(resource.Capability).Get("attributes").StringMap(false); ok {
 											fromNode := ard.NewNode(unstructured.Object)
 											for _, element := range strings.Split(from, ".") {
@@ -81,12 +76,12 @@ func (self *Controller) UpdateCloutAttributesFromResources(service *resources.Se
 										} else {
 											self.Log.Errorf("no attributes for capability: %s", resource.Capability)
 										}
-									} else {
-										return nil, err
 									}
 								} else {
 									return nil, err
 								}
+							} else {
+								return nil, err
 							}
 						}
 					}
@@ -95,6 +90,8 @@ func (self *Controller) UpdateCloutAttributesFromResources(service *resources.Se
 		}
 
 		if changed {
+			self.AddToCloutHistory(clout, "kubernetes-resource-attributes")
+
 			if service, err := self.UpdateClout(clout, service); err == nil {
 				return self.updateCloutOutputs(service, urlContext)
 			} else {

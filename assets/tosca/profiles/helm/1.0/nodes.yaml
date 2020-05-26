@@ -4,7 +4,7 @@ node_types:
 
   Release:
     description: >-
-      Helm release
+      Helm release.
     properties:
       name:
         description: >-

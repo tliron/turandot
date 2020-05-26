@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/gofrs/flock"
 	"github.com/tliron/puccini/common/format"
 	urlpkg "github.com/tliron/puccini/url"
 	"github.com/tliron/turandot/common"
@@ -166,9 +167,7 @@ func (self *Controller) processService(service *resources.Service) (bool, error)
 	}
 
 	if instantiate {
-		if err := self.instantiateService(service); err != nil {
-			return false, err
-		}
+		return self.instantiateService(service)
 	} else if service.Status.Status == "Instantiated" {
 		if err := self.updateCloutForService(service); err != nil {
 			return false, err
@@ -178,12 +177,12 @@ func (self *Controller) processService(service *resources.Service) (bool, error)
 	return true, nil
 }
 
-func (self *Controller) instantiateService(service *resources.Service) error {
+func (self *Controller) instantiateService(service *resources.Service) (bool, error) {
 	self.Log.Infof("instantiating service: %s/%s", service.Namespace, service.Name)
 
 	var err error
 	if service, err = self.UpdateServiceStatus(service, "Instantiating"); err != nil {
-		return err
+		return false, err
 	}
 
 	cloutPath := service.Status.CloutPath
@@ -194,40 +193,49 @@ func (self *Controller) instantiateService(service *resources.Service) error {
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
+	// Compile
 	var cloutHash string
 	if cloutHash, err = self.CompileServiceTemplate(service.Spec.ServiceTemplateURL, service.Spec.Inputs, cloutPath, urlContext); err == nil {
+		lock := flock.New(cloutPath)
+		if err := lock.Lock(); err == nil {
+			defer lock.Unlock()
+		} else {
+			return false, err
+		}
+
 		self.Events.Event(service, core.EventTypeNormal, "Compiled", "Service template compiled successfully")
 		if service, err = self.UpdateServiceClout(service, cloutPath, cloutHash); err != nil {
-			if _, err := self.UpdateServiceStatus(service, "Created"); err != nil {
-				return err
-			}
-			return err
+			_, err := self.UpdateServiceStatus(service, "Created")
+			return true, err
 		}
 	} else {
 		self.Events.Event(service, core.EventTypeWarning, "CompilationError", fmt.Sprintf("Service template compilation error: %s", err.Error()))
-		if _, err := self.UpdateServiceStatus(service, "Created"); err != nil {
-			return err
-		}
-		return err
+		_, err := self.UpdateServiceStatus(service, "Created")
+		// Note that we return true to avoid unnecessary recompilation of the same service template
+		return true, err
 	}
 
+	// Instantiate
 	if service_, err := self.instantiateClout(service, urlContext); err == nil {
 		self.Events.Event(service_, core.EventTypeNormal, "Instantiated", "Service instantiated successfully")
-		if _, err := self.UpdateServiceStatus(service_, "Instantiated"); err != nil {
-			return err
-		}
-		return nil
+		_, err := self.UpdateServiceStatus(service_, "Instantiated")
+		return true, err
 	} else {
 		self.Events.Event(service, core.EventTypeWarning, "InstantiationError", fmt.Sprintf("Service instantiation error: %s", err.Error()))
-		if _, err := self.UpdateServiceStatus(service, "Created"); err != nil {
-			return err
-		}
-		return err
+		_, err := self.UpdateServiceStatus(service, "Created")
+		return false, err
 	}
 }
 
 func (self *Controller) updateCloutForService(service *resources.Service) error {
 	self.Log.Infof("updating Clout for service: %s/%s", service.Namespace, service.Name)
+
+	lock := flock.New(service.Status.CloutPath)
+	if err := lock.Lock(); err == nil {
+		defer lock.Unlock()
+	} else {
+		return err
+	}
 
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()

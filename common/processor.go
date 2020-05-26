@@ -100,28 +100,28 @@ func (self *Processor) processWorkItem(item interface{}) {
 				self.Log.Infof("processing work item: %s/%s", namespace, name)
 				if finished, err := self.Process(object); finished {
 					utilruntime.HandleError(err)
-					self.Log.Infof("finished work item: %s/%s", namespace, name)
 					self.Workqueue.Forget(item)
+					self.Log.Infof("finished work item: %s/%s", namespace, name)
 				} else {
 					utilruntime.HandleError(err)
-					self.Log.Infof("requeuing unfinished work item: %s/%s", namespace, name)
 					self.Workqueue.AddRateLimited(key)
+					self.Log.Infof("requeuing unfinished work item (%d time): %s/%s", self.Workqueue.NumRequeues(key), namespace, name)
 				}
 			} else if kuberneteserrors.IsNotFound(err) {
-				self.Log.Infof("ignoring stale work item: %s/%s", namespace, name)
 				self.Workqueue.Forget(item)
+				self.Log.Infof("ignoring stale work item: %s/%s", namespace, name)
 			} else {
 				utilruntime.HandleError(err)
-				self.Log.Infof("requeuing failed work item: %s/%s", namespace, name)
 				self.Workqueue.AddRateLimited(key)
+				self.Log.Infof("requeuing failed work item (%d time): %s/%s", self.Workqueue.NumRequeues(key), namespace, name)
 			}
 		} else {
-			utilruntime.HandleError(fmt.Errorf("work item in wrong format: %v", key))
 			self.Workqueue.Forget(item)
+			utilruntime.HandleError(fmt.Errorf("work item in wrong format: %v", key))
 		}
 	} else {
-		utilruntime.HandleError(fmt.Errorf("work item not a string: %v", item))
 		self.Workqueue.Forget(item)
+		utilruntime.HandleError(fmt.Errorf("work item not a string: %v", item))
 	}
 }
 

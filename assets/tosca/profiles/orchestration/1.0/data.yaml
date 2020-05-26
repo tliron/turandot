@@ -18,3 +18,38 @@ data_types:
         type: map
         entry_schema: string
         required: false
+
+  ExecutionRequirements:
+    description: >-
+      Base type for execution requirements.
+
+  ExecutionPods:
+    description: >-
+      On which pods to execute.
+    derived_from: string
+    constraints:
+    - valid_values: [ All, Any ]
+
+  File:
+    properties:
+      sourceUrl:
+        description: >-
+          Can be the result of a get_artifact function call. 
+        type: string
+      destinationPath:
+        description: >-
+          Must be an absolute path. Directories will be created if they do not exist (using
+          `mkdir --parents`).
+        type: string
+      permissions:
+        description: >-
+          The permissions to apply to the file after copying it, via `chmod`. Note that literal
+          octals in YAML can be specified beginning with a '0', e.g. 0500. If not specified default
+          permissions will be used.  
+        type: FilePermissions
+        required: false
+
+  FilePermissions:
+    derived_from: integer
+    constraints:
+    - in_range: [ 0, 0777 ]

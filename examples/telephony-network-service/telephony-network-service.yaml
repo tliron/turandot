@@ -25,10 +25,6 @@ topology_template:
       type: string
       default: workspace
 
-    registry-url:
-      type: string
-      default: localhost:5000
-
   node_templates:
 
     central-pbx:

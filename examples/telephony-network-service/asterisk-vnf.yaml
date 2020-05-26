@@ -31,8 +31,8 @@ node_types:
         capability: ns:Connectable
         node: ns:NetworkPlane
     interfaces:
-      orchestration:
-        type: o11n:SSHOrchestration
+      execution:
+        type: o11n:SSHExecution
 
 topology_template:
 
@@ -44,7 +44,7 @@ topology_template:
 
   node_templates:
 
-    vnf:
+    asterisk:
       type: Asterisk
       capabilities:
         metadata:
@@ -90,7 +90,7 @@ topology_template:
                   imagePullPolicy: Always
               - name: cloudinitdisk
                 cloudInitNoCloud:
-                  userDataBase64: { get_artifact: [ SELF, cloud-config ] }
+                  userDataBase64: { get_artifact: [ SELF, cloudConfig ] }
         tcp:
           properties:
             ports:
@@ -114,38 +114,43 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        orchestration:
+        execution:
           inputs:
+            phase: configure
             host: TODO #{ get_attribute: [ SELF, ip ] }
             username: admin
-            key: { get_artifact: [ SELF, private-key ] }
+            key: { get_artifact: [ SELF, privateKey ] }
+            files:
+            - sourceUrl: { get_artifact: [ SELF, configure ] }
+              destinationPath: /configure
+              permissions: 0500
           operations:
-            configure: configure
+            execute: /configure
       artifacts:
         image:
           type: k8s:ContainerImage
           file: artifacts/images/asterisk-vnf.tar.gz
           properties:
             tag: asterisk-vnf
-        private-key:
+        privateKey:
           type: o11n:Key
           file: artifacts/keypairs/admin@asterisk-vnf
-        public-key:
+        publicKey:
           type: o11n:Key
           file: artifacts/keypairs/admin@asterisk-vnf.pub
-        cloud-config:
+        cloudConfig:
           type: kubevirt:CloudConfig
           file: artifacts/cloud-config/asterisk-vnf.yaml
           properties:
             base64: true
             variables:
-              $KEY: { get_artifact: [ SELF, public-key ] }
+              $KEY: { get_artifact: [ SELF, publicKey ] }
         configure:
            type: o11n:ShellScript
            file: artifacts/scripts/asterisk/configure.sh
 
     db:
-      type: mariadb:Cluster
+      type: mariadb:DB
       capabilities:
         metadata:
           properties:
@@ -153,7 +158,7 @@ topology_template:
             namespace: { get_input: namespace }
             labels:
               app.kubernetes.io/name: asterisk-vnf-mariadb
-        mariadb:
+        db:
           properties:
             database: asterisk
             username: asterisk
@@ -170,15 +175,15 @@ topology_template:
   outputs:
 
     tcp-ip:
-      value: { get_attribute: [ vnf, tcp, ingress, 0, ip ] }
+      value: { get_attribute: [ asterisk, tcp, ingress, 0, ip ] }
     udp-ip:
-      value: { get_attribute: [ vnf, udp, ingress, 0, ip ] }
+      value: { get_attribute: [ asterisk, udp, ingress, 0, ip ] }
 
   substitution_mappings:
 
     node_type: telephony:PBX
     capabilities:
-      connection: [ vnf, connection ]
+      connection: [ asterisk, connection ]
 
   policies:
 

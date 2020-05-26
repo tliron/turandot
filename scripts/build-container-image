@@ -14,12 +14,18 @@ function build () {
 	local IMAGE=$EXECUTABLE
 	local LOCAL=localhost/$IMAGE
 	local BASE_IMAGE=registry.access.redhat.com/ubi8/ubi
-	# ubi-minimal does not have "tar" which is needed for kubectl cp
+	# note: ubi-minimal does not have "tar" which is needed for kubectl cp
 
 	local CONTAINER_ID=$(buildah from "$BASE_IMAGE")
+	#buildah run "$CONTAINER_ID" -- dnf --assumeyes install ansible
+	#buildah run "$CONTAINER_ID" -- dnf --assumeyes clean all
 	buildah add "$CONTAINER_ID" "$GOPATH/bin/$EXECUTABLE" /usr/bin/
 	buildah add "$CONTAINER_ID" /usr/bin/helm /usr/bin/
-	buildah config --entrypoint "/usr/bin/$EXECUTABLE" "$CONTAINER_ID"
+	buildah config \
+		--entrypoint "/usr/bin/$EXECUTABLE" \
+		--author Turandot \
+		--created-by buildah \
+		"$CONTAINER_ID"
 	buildah commit "$CONTAINER_ID" "$LOCAL"
 }
 

@@ -8,38 +8,12 @@ fi
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/../scripts/_env"
+. "$HERE/_env"
 
-KUBERNETES_VERSION=v1.18.3
-MINIKUBE_VERSION=v1.10.1
-KUBEVIRT_VERSION=v0.29.0
-HELM_VERSION=3.2.1
-
-OVERWRITE=false
-
-function github_version () {
-	local REPO=$1
-	curl --silent "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'	
-}
-
-for ARG in "$@"; do
-	case "$ARG" in
-		-f)
-			OVERWRITE=true
-			;;
-		-u)
-			m "checking for latest versions..."
-			KUBERNETES_VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-			MINIKUBE_VERSION=$(github_version kubernetes/minikube)
-			KUBEVIRT_VERSION=$(github_version kubevirt/kubevirt)
-			HELM_VERSION=$(github_version helm/helm)
-			;;
-	esac
-done
-
-m "KUBERNETES_VERSION=$KUBERNETES_VERSION"
-m "MINIKUBE_VERSION=$MINIKUBE_VERSION"
-m "KUBEVIRT_VERSION=$KUBEVIRT_VERSION"
-m "HELM_VERSION=$HELM_VERSION"
+FORCE=false
+if [ "$1" == -f ]; then
+	FORCE=true
+fi
 
 function fetch () {
 	local NAME=$1
@@ -48,7 +22,7 @@ function fetch () {
 	local ARCHIVE_PREFIX=$4
 	local EXEC=/usr/bin/$NAME
 	if [ -f "$EXEC" ]; then
-		if [ "$OVERWRITE" == true ]; then
+		if [ "$FORCE" == true ]; then
 			m "overriding existing \"$EXEC\"..."
 		else
 			m "\"$EXEC\" already exists (use -f to overwrite)"

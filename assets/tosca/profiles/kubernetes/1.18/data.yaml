@@ -37,8 +37,9 @@ data_types:
     constraints:
     - pattern: ^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)$
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#labelselector-v1-meta
   LabelSelector:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#labelselector-v1-meta' 
     description: >-
       A label selector is a label query over a set of resources. The result of matchLabels and
       matchExpressions are ANDed. An empty label selector matches all objects. A null label selector
@@ -59,8 +60,9 @@ data_types:
         entry_schema: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#labelselectorrequirement-v1-meta
   LabelSelectorRequirement:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#labelselectorrequirement-v1-meta' 
     description: >-
       A label selector requirement is a selector that contains values, a key, and an operator that
       relates the key and values.
@@ -84,8 +86,9 @@ data_types:
         type: list
         entry_schema: string
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#serviceport-v1-core
   ServicePort:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#serviceport-v1-core' 
     description: >-
       ServicePort contains information on service's port.
     properties:
@@ -130,8 +133,9 @@ data_types:
         constraints:
         - valid_values: [ TCP, UDP ]
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core
   ContainerPort:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core' 
     description: >-
       ContainerPort represents a network port in a single container.
     properties:
@@ -166,8 +170,9 @@ data_types:
         constraints:
         - valid_values: [ TCP, UDP ]
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#loadbalanceringress-v1-core
   LoadBalancerIngress:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#loadbalanceringress-v1-core' 
     description: >-
       LoadBalancerIngress represents the status of a load-balancer ingress point: traffic intended
       for the service should be sent to an ingress point.
@@ -185,8 +190,9 @@ data_types:
         type: IP
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#deploymentstrategy-v1-apps
   DeploymentStrategy:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#deploymentstrategy-v1-apps' 
     description: >-
       The deployment strategy to use to replace existing pods with new ones.
     properties:
@@ -223,8 +229,9 @@ data_types:
         default:
           factor: .25
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podspec-v1-core
   Pod:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podspec-v1-core' 
     description: >-
       Pod is a collection of containers that can run on a host. This resource is created by clients
       and scheduled onto hosts.
@@ -430,8 +437,9 @@ data_types:
         type: string # TODO
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
   Container:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core' 
     description: >-
       A single application container that you want to run within a pod.
     properties:
@@ -605,9 +613,9 @@ data_types:
         type: string # TODO
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core
-  # https://kubevirt.io/api-reference/v0.27.0/definitions.html#_v1_affinity
   Affinity:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core' 
     description: >-
       Affinity is a group of affinity scheduling rules.
     properties:
@@ -629,9 +637,9 @@ data_types:
         type: PodAntiAffinity
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core
-  # https://kubevirt.io/api-reference/v0.27.0/definitions.html#_v1_nodeaffinity
   NodeAffinity:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core' 
     description: >-
       Node affinity is a group of node affinity scheduling rules.
     properties:
@@ -656,9 +664,9 @@ data_types:
         type: string # TODO: NodeSelector
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podaffinity-v1-core
-  # https://kubevirt.io/api-reference/v0.27.0/definitions.html#_v1_podaffinity
   PodAffinity:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podaffinity-v1-core' 
     description: >-
       Pod affinity is a group of inter pod affinity scheduling rules.
     properties:
@@ -687,9 +695,9 @@ data_types:
         entry_schema: string # TODO: PodAffinityTerm
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podantiaffinity-v1-core
-  # https://kubevirt.io/api-reference/v0.27.0/definitions.html#_v1_podantiaffinity
   PodAntiAffinity:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podantiaffinity-v1-core' 
     description: >-
       Pod anti affinity is a group of inter pod anti affinity scheduling rules.
     properties:
@@ -718,9 +726,9 @@ data_types:
         entry_schema: string # TODO: PodAffinityTerm
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#persistentvolumeclaimspec-v1-core
-  # https://kubevirt.io/api-reference/v0.27.0/definitions.html#_v1_persistentvolumeclaimspec
   PersistentVolumeClaim:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#persistentvolumeclaimspec-v1-core' 
     description: >-
       PersistentVolumeClaimSpec describes the common attributes of storage devices and allows a
       Source for provider-specific attributes.
@@ -767,9 +775,9 @@ data_types:
         type: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core
-  # https://kubevirt.io/api-reference/v0.27.0/definitions.html#_v1_resourcerequirements
   ResourceRequirements:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core' 
     properties:
       limits:
         description: >-
@@ -885,9 +893,9 @@ data_types:
       dst:
         type: string
 
-  # https://github.com/containernetworking/plugins/tree/master/plugins/main/bridge
   BridgeCNIConfig:
     metadata:
+      specification.guide.url: 'https://github.com/containernetworking/plugins/tree/master/plugins/main/bridge' 
       puccini.information:turandot.format: json 
     derived_from: CNIConfig
     properties:
@@ -906,8 +914,9 @@ data_types:
         type: boolean
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourceconversion-v1-apiextensions-k8s-io
   CustomResourceConversion:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourceconversion-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceConversion describes how to convert different versions of a CR.
     properties:
@@ -933,8 +942,9 @@ data_types:
         type: WebhookConversion
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#webhookconversion-v1-apiextensions-k8s-io
   WebhookConversion:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#webhookconversion-v1-apiextensions-k8s-io' 
     description: >-
       WebhookConversion describes how to call a conversion webhook.
     properties:
@@ -955,8 +965,9 @@ data_types:
         entry_schema: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#webhookclientconfig-v1-apiextensions-k8s-io
   WebhookClientConfig:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#webhookclientconfig-v1-apiextensions-k8s-io' 
     properties:
       caBundle:
         description: >-
@@ -988,8 +999,9 @@ data_types:
         type: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#servicereference-v1-apiextensions-k8s-io
   ServiceReference:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#servicereference-v1-apiextensions-k8s-io' 
     properties:
       name:
         description: >-
@@ -1012,8 +1024,9 @@ data_types:
         default: 443
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcedefinitionnames-v1-apiextensions-k8s-io
   CustomResourceDefinitionNames:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcedefinitionnames-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceDefinitionNames indicates the names to serve this CustomResourceDefinition.
     properties:
@@ -1058,8 +1071,9 @@ data_types:
         type: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcedefinitionversion-v1-apiextensions-k8s-io
   CustomResourceDefinitionVersion:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcedefinitionversion-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceDefinitionVersion describes a version for CRD.
     properties:
@@ -1099,8 +1113,9 @@ data_types:
         type: CustomResourceSubresources
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcecolumndefinition-v1-apiextensions-k8s-io
   CustomResourceColumnDefinition:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcecolumndefinition-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceColumnDefinition specifies a column for server side printing.
     properties:
@@ -1140,8 +1155,9 @@ data_types:
         type: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcevalidation-v1-apiextensions-k8s-io
   CustomResourceValidation:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcevalidation-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceValidation is a list of validation methods for CustomResources.
     properties:
@@ -1151,8 +1167,9 @@ data_types:
         type: JSONSchemaProps
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#jsonschemaprops-v1-apiextensions-k8s-io
   JSONSchemaProps:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#jsonschemaprops-v1-apiextensions-k8s-io' 
     description: >-
       JSONSchemaProps is a JSON-Schema following Specification Draft 4 (http://json-schema.org/).
     properties:
@@ -1414,8 +1431,9 @@ data_types:
         - valid_values: [ true ]
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#jsonschemapropsorbool-v1-apiextensions-k8s-io
   JSONSchemaPropsOrBool:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#jsonschemapropsorbool-v1-apiextensions-k8s-io' 
     description: >-
       JSONSchemaPropsOrBool represents JSONSchemaProps or a boolean value. Defaults to true for the
       boolean property.
@@ -1427,8 +1445,9 @@ data_types:
         type: boolean
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#jsonschemapropsorarray-v1-apiextensions-k8s-io
   JSONSchemaPropsOrArray:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#jsonschemapropsorarray-v1-apiextensions-k8s-io' 
     description: >-
       JSONSchemaPropsOrArray represents a value that can either be a JSONSchemaProps or an array of
       JSONSchemaProps. Mainly here for serialization purposes.
@@ -1441,8 +1460,9 @@ data_types:
         entry_schema: JSONSchemaProps
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#externaldocumentation-v1-apiextensions-k8s-io
   ExternalDocumentation:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#externaldocumentation-v1-apiextensions-k8s-io' 
     description: >-
       ExternalDocumentation allows referencing an external resource for extended documentation.
     properties:
@@ -1453,8 +1473,9 @@ data_types:
         type: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#json-v1-apiextensions-k8s-io
   JSON:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#json-v1-apiextensions-k8s-io' 
     description: >-
       JSON represents any valid JSON value. These types are supported: bool, int64, float64, string,
       []interface{}, map[string]interface{} and nil.
@@ -1483,8 +1504,9 @@ data_types:
         type: 'null'
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcesubresources-v1-apiextensions-k8s-io
   CustomResourceSubresources:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcesubresources-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceSubresources defines the status and scale subresources for CustomResources.
     properties:
@@ -1506,8 +1528,9 @@ data_types:
         type: CustomResourceSubresourceStatus
         required: false 
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcesubresourcescale-v1-apiextensions-k8s-io
   CustomResourceSubresourceScale:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcesubresourcescale-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceSubresourceScale defines how to serve the scale subresource for CustomResources.
     properties:
@@ -1539,8 +1562,9 @@ data_types:
         type: string
         required: false
 
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcesubresourcestatus-v1-apiextensions-k8s-io
   CustomResourceSubresourceStatus:
+    metadata:
+      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcesubresourcestatus-v1-apiextensions-k8s-io' 
     description: >-
       CustomResourceSubresourceStatus defines how to serve the status subresource for
       CustomResources. Status is represented by the `.status` JSON path inside of a CustomResource.
