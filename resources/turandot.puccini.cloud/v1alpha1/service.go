@@ -8,12 +8,20 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const ServiceKind = "Service"
-const ServiceListKind = "ServiceList"
+type ServiceStatusString string
 
-const ServiceSingular = "service"
-const ServicePlural = "services"
-const ServiceShortName = "si" // = ServIce? Service Instance?
+const (
+	ServiceKind     = "Service"
+	ServiceListKind = "ServiceList"
+
+	ServiceSingular  = "service"
+	ServicePlural    = "services"
+	ServiceShortName = "si" // = ServIce? Service Instance?
+
+	ServiceStatusNotInstantiated ServiceStatusString = "NotInstantiated"
+	ServiceStatusInstantiating   ServiceStatusString = "Instantiating"
+	ServiceStatusInstantiated    ServiceStatusString = "Instantiated"
+)
 
 var ServiceGVK = SchemeGroupVersion.WithKind(ServiceKind)
 
@@ -37,12 +45,12 @@ type ServiceSpec struct {
 }
 
 type ServiceStatus struct {
-	Status             string            `json:"status"`
-	ServiceTemplateURL string            `json:"serviceTemplateUrl"`
-	Inputs             map[string]string `json:"inputs"`
-	Outputs            map[string]string `json:"outputs"`
-	CloutPath          string            `json:"cloutPath"`
-	CloutHash          string            `json:"cloutHash"`
+	Status             ServiceStatusString `json:"status"`
+	ServiceTemplateURL string              `json:"serviceTemplateUrl"`
+	Inputs             map[string]string   `json:"inputs"`
+	Outputs            map[string]string   `json:"outputs"`
+	CloutPath          string              `json:"cloutPath"`
+	CloutHash          string              `json:"cloutHash"`
 }
 
 //
@@ -120,6 +128,11 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 								Properties: map[string]apiextensions.JSONSchemaProps{
 									"status": {
 										Type: "string",
+										Enum: []apiextensions.JSON{
+											{Raw: []byte(fmt.Sprintf("\"%s\"", ServiceStatusNotInstantiated))},
+											{Raw: []byte(fmt.Sprintf("\"%s\"", ServiceStatusInstantiating))},
+											{Raw: []byte(fmt.Sprintf("\"%s\"", ServiceStatusInstantiated))},
+										},
 									},
 									"serviceTemplateUrl": {
 										Type: "string",

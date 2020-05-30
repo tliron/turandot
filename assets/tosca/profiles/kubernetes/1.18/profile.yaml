@@ -2,8 +2,12 @@ tosca_definitions_version: tosca_simple_yaml_1_3
 
 metadata:
 
-  puccini.scriptlet.import:kubernetes.artifacts: js/artifacts.js
-  puccini.scriptlet.import:kubernetes.resources: js/resources.js
+  puccini.scriptlet.import:kubernetes.artifacts.get: js/artifacts/get.js
+  puccini.scriptlet.import:kubernetes.artifacts.update: js/artifacts/update.js
+  puccini.scriptlet.import:kubernetes.resources.get: js/resources/get.js
+  puccini.scriptlet.import:kubernetes.resources.get-mappings: js/resources/get-mappings.js
+  puccini.scriptlet.import:kubernetes.resources.update-attributes: js/resources/update-attributes.js
+  puccini.scriptlet.import:kubernetes.resources.update-mappings: js/resources/update-mappings.js
 
 namespace: cloud.puccini.kubernetes
 

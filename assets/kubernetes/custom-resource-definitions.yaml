@@ -43,6 +43,10 @@ spec:
             properties:
               status:
                 type: string
+                enum:
+                - NotInstantiated
+                - Instantiating
+                - Instantiated
               serviceTemplateUrl:
                 type: string
               inputs:

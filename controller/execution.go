@@ -17,7 +17,7 @@ func (self *Controller) processOperations(operations interface{}, clout *cloutpk
 	if operations, ok := parser.NewOrchestrationOperations(operations); ok {
 		for _, operation := range operations {
 			self.Log.Infof("executing scriptlet %s on vertex %s", operation.ScriptletName, operation.VertexID)
-			if _, err := common.ExecScriptlet(clout, operation.ScriptletName, urlContext); err != nil {
+			if _, err := common.ExecScriptlet(clout, operation.ScriptletName, nil, urlContext); err != nil {
 				return err
 			}
 		}

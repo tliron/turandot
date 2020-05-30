@@ -45,7 +45,7 @@ func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, url
 func ReadClout(reader io.Reader, urlContext *urlpkg.Context) (*cloutpkg.Clout, error) {
 	if clout, err := cloutpkg.Read(reader, "yaml"); err == nil {
 		var problems problemspkg.Problems
-		if compiler.Resolve(clout, &problems, urlContext, "yaml", false, true, false); problems.Empty() {
+		if compiler.Resolve(clout, &problems, urlContext, false, "yaml", false, true, false); problems.Empty() {
 			return clout, nil
 		} else {
 			return nil, errors.New(problems.ToString(true))
@@ -59,13 +59,13 @@ func WriteClout(clout *cloutpkg.Clout, writer io.Writer) error {
 	return format.Write(clout, "yaml", terminal.Indent, false, writer)
 }
 
-func ExecScriptlet(clout *cloutpkg.Clout, scriptletName string, urlContext *urlpkg.Context) (string, error) {
-	jsContext := js.NewContext(scriptletName, pucciniLog, false, "yaml", false, true, false, "", urlContext)
+func ExecScriptlet(clout *cloutpkg.Clout, scriptletName string, arguments map[string]string, urlContext *urlpkg.Context) (string, error) {
+	jsContext := js.NewContext(scriptletName, pucciniLog, arguments, false, "yaml", false, true, false, "", urlContext)
 	var builder strings.Builder
 	jsContext.Stdout = &builder
 	if err := jsContext.Exec(clout, scriptletName, nil); err == nil {
 		return builder.String(), nil
 	} else {
-		return "", nil
+		return "", err
 	}
 }

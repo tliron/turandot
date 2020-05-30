@@ -76,12 +76,10 @@ topology_template:
           inputs:
             phase: configure
             container: all-in-one
-            files:
-            - sourceUrl: { get_artifact: [ SELF, configure ] }
-              destinationPath: /configure
-              permissions: 0500
+            artifacts:
+            - configure
           operations:
-            execute: /configure
+            execute: /configure.sh
       artifacts:
         image:
           type: k8s:ContainerImage
@@ -91,6 +89,7 @@ topology_template:
         configure:
           type: o11n:ShellScript
           file: artifacts/scripts/asterisk/configure.sh
+          deploy_path: /configure.sh
 
     data-plane:
       type: ns:NetworkPlane

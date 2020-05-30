@@ -120,24 +120,16 @@ topology_template:
             host: TODO #{ get_attribute: [ SELF, ip ] }
             username: admin
             key: { get_artifact: [ SELF, privateKey ] }
-            files:
-            - sourceUrl: { get_artifact: [ SELF, configure ] }
-              destinationPath: /configure
-              permissions: 0500
+            artifacts:
+            - configure
           operations:
-            execute: /configure
+            execute: /configure.sh
       artifacts:
         image:
           type: k8s:ContainerImage
           file: artifacts/images/asterisk-vnf.tar.gz
           properties:
             tag: asterisk-vnf
-        privateKey:
-          type: o11n:Key
-          file: artifacts/keypairs/admin@asterisk-vnf
-        publicKey:
-          type: o11n:Key
-          file: artifacts/keypairs/admin@asterisk-vnf.pub
         cloudConfig:
           type: kubevirt:CloudConfig
           file: artifacts/cloud-config/asterisk-vnf.yaml
@@ -146,8 +138,15 @@ topology_template:
             variables:
               $KEY: { get_artifact: [ SELF, publicKey ] }
         configure:
-           type: o11n:ShellScript
-           file: artifacts/scripts/asterisk/configure.sh
+          type: o11n:ShellScript
+          file: artifacts/scripts/asterisk/configure.sh
+          deploy_path: /configure.sh
+        privateKey:
+          type: o11n:Key
+          file: artifacts/keypairs/admin@asterisk-vnf
+        publicKey:
+          type: o11n:Key
+          file: artifacts/keypairs/admin@asterisk-vnf.pub
 
     db:
       type: mariadb:DB

@@ -200,6 +200,8 @@ github.com/dop251/goja v0.0.0-20200409105836-0cd29d81c048 h1:IcoMa2nBHhE8UwH+dES
 github.com/dop251/goja v0.0.0-20200409105836-0cd29d81c048/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
 github.com/dop251/goja v0.0.0-20200414142002-77e84ffb8c65 h1:Nud597JuGCF/MScrb6NNVDRgmuk8X7w3pFc5GvSsm5E=
 github.com/dop251/goja v0.0.0-20200414142002-77e84ffb8c65/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
+github.com/dop251/goja v0.0.0-20200526165454-f1752421c432 h1:EIY1hqp9O08saJ41t7aQy0o1hhq3ByOy61AACthST5M=
+github.com/dop251/goja v0.0.0-20200526165454-f1752421c432/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
 github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/elazarl/goproxy v0.0.0-20170405201442-c4fc26588b6e h1:p1yVGRW3nmb85p1Sh1ZJSDm4A4iKLS5QNbvUHMgGu/M=

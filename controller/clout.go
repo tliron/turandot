@@ -3,10 +3,11 @@ package controller
 import (
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/tliron/puccini/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/puccini/clout/js"
 	"github.com/tliron/puccini/common/format"
 	problemspkg "github.com/tliron/puccini/common/problems"
 	"github.com/tliron/puccini/tosca/compiler"
@@ -24,13 +25,13 @@ func (self *Controller) ReadClout(cloutPath string, resolve bool, coerce bool, u
 				problems := &problemspkg.Problems{}
 
 				if resolve {
-					if compiler.Resolve(clout, problems, urlContext, "yaml", false, true, true); !problems.Empty() {
+					if compiler.Resolve(clout, problems, urlContext, false, "yaml", false, true, true); !problems.Empty() {
 						return nil, fmt.Errorf("could not resolve Clout\n%s", problems.ToString(true))
 					}
 				}
 
 				if coerce {
-					if compiler.Coerce(clout, problems, urlContext, "yaml", false, true, true); !problems.Empty() {
+					if compiler.Coerce(clout, problems, urlContext, false, "yaml", false, true, true); !problems.Empty() {
 						return nil, fmt.Errorf("could not coerce Clout\n%s", problems.ToString(true))
 					}
 				}
@@ -47,10 +48,10 @@ func (self *Controller) ReadClout(cloutPath string, resolve bool, coerce bool, u
 	}
 }
 
-func (self *Controller) WriteClout(clout *cloutpkg.Clout, cloutPath string) (string, error) {
+func (self *Controller) WriteClout(yaml string, cloutPath string) (string, error) {
 	if file, err := format.OpenFileForWrite(cloutPath); err == nil {
 		defer file.Close()
-		if err := common.WriteClout(clout, file); err == nil {
+		if _, err := file.WriteString(yaml); err == nil {
 			return common.GetFileHash(cloutPath)
 		} else {
 			return "", err
@@ -60,127 +61,187 @@ func (self *Controller) WriteClout(clout *cloutpkg.Clout, cloutPath string) (str
 	}
 }
 
-func (self *Controller) AddToCloutHistory(clout *cloutpkg.Clout, description string) {
-	history := ard.StringMap{
-		"description": description,
-		"timestamp":   puccinicommon.Timestamp(false),
+func (self *Controller) UpdateClout(yaml string, service *resources.Service) (*resources.Service, error) {
+	if cloutHash, err := self.WriteClout(yaml, service.Status.CloutPath); err == nil {
+		return self.UpdateServiceStatusClout(service, service.Status.CloutPath, cloutHash)
+	} else {
+		return nil, err
 	}
-	ard.NewNode(clout.Metadata).Get("history").Append(history)
 }
 
-func (self *Controller) UpdateClout(clout *cloutpkg.Clout, service *resources.Service) (*resources.Service, error) {
-	if cloutHash, err := self.WriteClout(clout, service.Status.CloutPath); err == nil {
-		return self.UpdateServiceClout(service, service.Status.CloutPath, cloutHash)
+func (self *Controller) executeCloutGet(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (ard.Value, error) {
+	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
+		if yaml, err := common.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+			if value, err := format.DecodeYAML(yaml); err == nil {
+				return value, nil
+			} else if err != io.EOF {
+				return nil, err
+			} else {
+				return nil, nil
+			}
+		} else if js.IsScriptletNotFoundError(err) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Controller) executeCloutGetAll(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) ([]ard.StringMap, error) {
+	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
+		if yaml, err := common.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+			if value, err := common.DecodeAllYAML(yaml); err == nil {
+				return value, nil
+			} else if err != io.EOF {
+				return nil, err
+			} else {
+				return nil, nil
+			}
+		} else if js.IsScriptletNotFoundError(err) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Controller) executeCloutUpdate(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (*resources.Service, error) {
+	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
+		if yaml, err := common.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+			if yaml != "" {
+				return self.UpdateClout(yaml, service)
+			} else {
+				return service, nil
+			}
+		} else if js.IsScriptletNotFoundError(err) {
+			return service, nil
+		} else {
+			return nil, err
+		}
 	} else {
 		return nil, err
 	}
 }
 
 func (self *Controller) instantiateClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
-	// Artifacts
-	artifactMappings := make(map[string]string)
-	self.Log.Infof("processing artifacts for Clout: %s", service.Status.CloutPath)
-	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, "kubernetes.artifacts", urlContext); err == nil {
-			if artifacts, err := format.DecodeYAML(yaml); err == nil {
-				if artifactMappings, err = self.pushArtifactsToInventory(artifacts, service, urlContext); err != nil {
-					return nil, err
-				}
-			} else if err != io.EOF {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	} else {
+	var err error
+
+	// Get artifacts
+	self.Log.Infof("getting artifacts from Clout: %s", service.Status.CloutPath)
+	var artifacts ard.Value
+	if artifacts, err = self.executeCloutGet(service, urlContext, "kubernetes.artifacts.get", nil); err != nil {
 		return nil, err
 	}
 
-	if len(artifactMappings) > 0 {
-		self.Log.Infof("updating artifacts for Clout: %s", service.Status.CloutPath)
-		if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-			self.UpdateCloutArtifacts(clout, artifactMappings)
-			if service, err = self.UpdateClout(clout, service); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	// Policies
-	orchestrationPolicies := make(parser.OrchestrationPolicies)
-	self.Log.Infof("processing policies for Clout: %s", service.Status.CloutPath)
-	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, "orchestration.policies", urlContext); err == nil {
-			if policies, err := format.DecodeYAML(yaml); err == nil {
-				if orchestrationPolicies, err = self.processPolicies(policies); err != nil {
-					return nil, err
-				}
-			} else if err != io.EOF {
+	// Push artifacts
+	var artifactMappings map[string]string
+	if artifacts != nil {
+		if artifacts_, ok := parser.ParseKubernetesArtifacts(artifacts); ok {
+			if artifactMappings, err = self.pushArtifactsToInventory(artifacts_, service, urlContext); err != nil {
 				return nil, err
 			}
 		} else {
+			return nil, fmt.Errorf("could not parse artifacts: %s", artifacts)
+		}
+	}
+
+	// Update artifacts
+	if artifactMappings != nil {
+		self.Log.Infof("updating artifacts in Clout: %s", service.Status.CloutPath)
+		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.artifacts.update", artifactMappings); err != nil {
 			return nil, err
 		}
-	} else {
+	}
+
+	// Get policies
+	var policies ard.Value
+	self.Log.Infof("getting policies from Clout: %s", service.Status.CloutPath)
+	if policies, err = self.executeCloutGet(service, urlContext, "orchestration.policies", nil); err != nil {
 		return nil, err
 	}
 
-	// Substitution
-	for nodeTemplateName, policies := range orchestrationPolicies {
-		for _, policy := range policies {
-			if policy.Substitutable {
-				for _, site := range policy.Sites {
-					if err := self.Substitute(service.Namespace, nodeTemplateName, policy.SubstitutionInputs, site, urlContext); err != nil {
-						return nil, err
-					}
-				}
+	// Process policies
+	if policies != nil {
+		if orchestrationPolicies, ok := parser.ParseOrchestrationPolicies(policies); ok {
+			if err := self.processPolicies(orchestrationPolicies, service, urlContext); err != nil {
+				return nil, err
 			}
+		} else {
+			return nil, fmt.Errorf("could not parse policies: %v", policies)
 		}
 	}
 
-	// Kubernetes resources
+	// Get resources
 	// TODO: need to filter only non-substituted and instantiable node templates
-	self.Log.Infof("creating Kubernetes resources for Clout: %s", service.Status.CloutPath)
-	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, "kubernetes.resources", urlContext); err == nil {
-			if objects, err := common.DecodeAllYAML(yaml); err == nil {
-				if resources, err := self.createResources(objects, service); err == nil {
-					if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-						self.UpdateCloutResourcesMetadata(clout, resources)
-						if service, err = self.UpdateClout(clout, service); err != nil {
-							return nil, err
-						}
-					} else {
-						return nil, err
-					}
-				} else {
-					return nil, err
-				}
-			} else if err != io.EOF {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	} else {
+	self.Log.Infof("getting Kubernetes resources from Clout: %s", service.Status.CloutPath)
+	var objects []ard.StringMap
+	if objects, err = self.executeCloutGetAll(service, urlContext, "kubernetes.resources.get", nil); err != nil {
 		return nil, err
 	}
 
-	// Operations
-	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, "orchestration.operations", urlContext); err == nil {
-			if operations, err := format.DecodeYAML(yaml); err == nil {
-				if err = self.processOperations(operations, clout, urlContext); err != nil {
-					return nil, err
-				}
-			} else if err != io.EOF {
+	// Create resources
+	var resourceMappings parser.KubernetesResourceMappings
+	if objects != nil {
+		if resourceMappings, err = self.createResources(objects, service); err != nil {
+			return nil, err
+		}
+	}
+
+	// Update resource mappings
+	if resourceMappings != nil {
+		self.Log.Infof("updating resource mappings in Clout: %s", service.Status.CloutPath)
+		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-mappings", resourceMappings.StringMap()); err != nil {
+			return nil, err
+		}
+	}
+
+	// Get executions
+	var executions ard.Value
+	self.Log.Infof("getting executions for Clout: %s", service.Status.CloutPath)
+	if executions, err = self.executeCloutGet(service, urlContext, "orchestration.executions", nil); err != nil {
+		return nil, err
+	}
+
+	// Process executions
+	if executions != nil {
+		/*if err = self.processOperations(executions, clout, urlContext); err != nil {
+			return nil, err
+		}*/
+	}
+
+	return self.updateCloutOutputs(service, urlContext)
+}
+
+func (self *Controller) updateCloutFromResources(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+	var err error
+
+	self.Log.Infof("get resource mappings from Clout: %s", service.Status.CloutPath)
+
+	var mappings ard.Value
+	if mappings, err = self.executeCloutGet(service, urlContext, "kubernetes.resources.get-mappings", nil); err != nil {
+		return nil, err
+	}
+
+	var attributeValues parser.CloutAttributeValues
+	if mappings != nil {
+		if resourceMappings, ok := parser.ParseKubernetesResourceMappings(mappings); ok {
+			if attributeValues, err = self.GetAttributesFromResources(resourceMappings); err != nil {
 				return nil, err
 			}
 		} else {
+			return nil, fmt.Errorf("could not parse resource mappings: %v", mappings)
+		}
+	}
+
+	if attributeValues != nil {
+		self.Log.Infof("updating attributes in Clout: %s", service.Status.CloutPath)
+		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-attributes", attributeValues.StringMap()); err != nil {
 			return nil, err
 		}
-	} else {
-		return nil, err
 	}
 
 	return self.updateCloutOutputs(service, urlContext)
@@ -190,8 +251,10 @@ func (self *Controller) updateCloutOutputs(service *resources.Service, urlContex
 	self.Log.Infof("processing outputs for Clout: %s", service.Status.CloutPath)
 	if clout, err := self.ReadClout(service.Status.CloutPath, true, true, urlContext); err == nil {
 		if outputs, ok := parser.GetOutputs(clout); ok {
-			if service, err = self.UpdateServiceOutputs(service, outputs); err != nil {
-				return nil, err
+			if !reflect.DeepEqual(outputs, service.Status.Outputs) {
+				return self.UpdateServiceStatusOutputs(service, outputs)
+			} else {
+				return service, nil
 			}
 		} else {
 			return nil, fmt.Errorf("could not parse outputs for Clout: %s", service.Status.CloutPath)
@@ -199,6 +262,4 @@ func (self *Controller) updateCloutOutputs(service *resources.Service, urlContex
 	} else {
 		return nil, err
 	}
-
-	return service, nil
 }

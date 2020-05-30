@@ -10,7 +10,6 @@ import (
 	kuberneteserrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
@@ -74,7 +73,7 @@ func (self *Processor) EnqueueFor(object interface{}) {
 	if key, err := cache.MetaNamespaceKeyFunc(object); err == nil {
 		self.Workqueue.Add(key)
 	} else {
-		utilruntime.HandleError(err)
+		self.Log.Error(err.Error())
 	}
 }
 
@@ -97,31 +96,36 @@ func (self *Processor) processWorkItem(item interface{}) {
 	if key, ok := item.(string); ok {
 		if namespace, name, err := cache.SplitMetaNamespaceKey(key); err == nil {
 			if object, err := self.GetControllerObject(name, namespace); err == nil {
-				self.Log.Infof("processing work item: %s/%s", namespace, name)
+				self.Log.Infof("processing work item %s/%s", namespace, name)
 				if finished, err := self.Process(object); finished {
-					utilruntime.HandleError(err)
 					self.Workqueue.Forget(item)
-					self.Log.Infof("finished work item: %s/%s", namespace, name)
+					if err == nil {
+						self.Log.Infof("finished work item %s/%s", namespace, name)
+					} else {
+						self.Log.Errorf("finished work item %s/%s: %s", namespace, name, err.Error())
+					}
 				} else {
-					utilruntime.HandleError(err)
 					self.Workqueue.AddRateLimited(key)
-					self.Log.Infof("requeuing unfinished work item (%d time): %s/%s", self.Workqueue.NumRequeues(key), namespace, name)
+					if err == nil {
+						self.Log.Infof("requeuing unfinished work item (%d time) %s/%s", self.Workqueue.NumRequeues(key), namespace, name)
+					} else {
+						self.Log.Errorf("requeuing unfinished work item (%d time) %s/%s: %s", self.Workqueue.NumRequeues(key), namespace, name, err.Error())
+					}
 				}
 			} else if kuberneteserrors.IsNotFound(err) {
 				self.Workqueue.Forget(item)
-				self.Log.Infof("ignoring stale work item: %s/%s", namespace, name)
+				self.Log.Infof("ignoring stale work item %s/%s", namespace, name)
 			} else {
-				utilruntime.HandleError(err)
 				self.Workqueue.AddRateLimited(key)
-				self.Log.Infof("requeuing failed work item (%d time): %s/%s", self.Workqueue.NumRequeues(key), namespace, name)
+				self.Log.Errorf("requeuing failed work item (%d time) %s/%s: %s", self.Workqueue.NumRequeues(key), namespace, name, err.Error())
 			}
 		} else {
 			self.Workqueue.Forget(item)
-			utilruntime.HandleError(fmt.Errorf("work item in wrong format: %v", key))
+			self.Log.Errorf("work item in wrong format: %v", key)
 		}
 	} else {
 		self.Workqueue.Forget(item)
-		utilruntime.HandleError(fmt.Errorf("work item not a string: %v", item))
+		self.Log.Errorf("work item not a string: %v", item)
 	}
 }
 

@@ -1,5 +1,9 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
+imports:
+
+- data.yaml
+
 artifact_types:
 
   Key:
@@ -8,10 +12,29 @@ artifact_types:
         type: boolean
         default: false
 
-  LocalFile: {}
+  Deployable:
+    description: >-
+      A file intended to be deployed to a container or machine.
+
+      The artifact's "deploy_path" *must* be set.
+    properties:
+      permissions:
+        description: >-
+          The permissions to apply to the file after deploying it, e.g. via `chmod`. If not
+          specified then default permissions will be used.  
+
+          These permissions will also apply to created directories (in addition to the "executable"
+          flag).
+
+          Note that literal octals in YAML can be specified beginning with a '0', e.g. 0500.
+        type: FilePermissions
+        required: false
 
   Executable:
-    derived_from: LocalFile
+    derived_from: Deployable
+    properties:
+      permissions:
+        default: 0555
 
   ShellScript:
     derived_from: Executable

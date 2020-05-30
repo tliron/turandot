@@ -40,12 +40,17 @@ interface_types:
         type: list
         entry_schema: string
         required: false
-      files:
+      artifacts:
         description: >-
-          A list of files to copy to the target before execution. The source URLs can be the result
-          of a get_artifact function call. 
+          A list of artifact names to copy to the target before execution.
+
+          The artifact's "deploy_path" *must* be set. Directories will be created if they do not
+          exist (using `mkdir --parents`).
+
+          Note that there is special support for the "permissions" property of Deployable type
+          artifacts.
         type: list
-        entry_schema: File
+        entry_schema: string
         required: false
 
   ContainerExecution:

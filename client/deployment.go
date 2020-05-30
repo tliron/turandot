@@ -78,7 +78,7 @@ func (self *Client) createService(name string, url urlpkg.URL, inputs map[string
 			Inputs:             inputs_,
 		},
 		Status: resources.ServiceStatus{
-			Status: "Created",
+			Status: resources.ServiceStatusNotInstantiated,
 		},
 	}
 

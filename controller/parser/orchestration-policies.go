@@ -17,7 +17,7 @@ type OrchestrationProvisioningPolicy struct {
 	SubstitutionInputs map[string]interface{}
 }
 
-func NewOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvisioningPolicy, bool) {
+func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvisioningPolicy, bool) {
 	properties := ard.NewNode(value)
 	self := OrchestrationProvisioningPolicy{
 		SubstitutionInputs: make(map[string]interface{}),
@@ -67,7 +67,7 @@ func NewOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvisio
 
 type OrchestrationPolicies map[string][]*OrchestrationProvisioningPolicy
 
-func NewOrchestrationPolicies(value ard.Value) (OrchestrationPolicies, bool) {
+func ParseOrchestrationPolicies(value ard.Value) (OrchestrationPolicies, bool) {
 	if policies, ok := value.(ard.Map); ok {
 		self := make(OrchestrationPolicies)
 		for nodeTemplateName, nodePolicies := range policies {
@@ -80,7 +80,7 @@ func NewOrchestrationPolicies(value ard.Value) (OrchestrationPolicies, bool) {
 							if properties, ok := policy_.Get("properties").Map(true); ok {
 								switch type_ {
 								case "provisioning":
-									if policy__, ok := NewOrchestrationProvisioningPolicy(properties); ok {
+									if policy__, ok := ParseOrchestrationProvisioningPolicy(properties); ok {
 										policies = append(policies, policy__)
 									} else {
 										return nil, false

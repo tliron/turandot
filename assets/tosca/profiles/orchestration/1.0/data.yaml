@@ -19,6 +19,8 @@ data_types:
         entry_schema: string
         required: false
 
+  # Execution
+
   ExecutionRequirements:
     description: >-
       Base type for execution requirements.
@@ -30,24 +32,7 @@ data_types:
     constraints:
     - valid_values: [ All, Any ]
 
-  File:
-    properties:
-      sourceUrl:
-        description: >-
-          Can be the result of a get_artifact function call. 
-        type: string
-      destinationPath:
-        description: >-
-          Must be an absolute path. Directories will be created if they do not exist (using
-          `mkdir --parents`).
-        type: string
-      permissions:
-        description: >-
-          The permissions to apply to the file after copying it, via `chmod`. Note that literal
-          octals in YAML can be specified beginning with a '0', e.g. 0500. If not specified default
-          permissions will be used.  
-        type: FilePermissions
-        required: false
+  # Artifacts
 
   FilePermissions:
     derived_from: integer

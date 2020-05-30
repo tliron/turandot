@@ -2,7 +2,7 @@ tosca_definitions_version: tosca_simple_yaml_1_3
 
 metadata:
 
-  puccini.scriptlet.import:kubernetes.pre-resources-plugins.kubevirt: js/plugins/pre-resources.js
+  puccini.scriptlet.import:kubernetes.plugins.resources.pre-get.kubevirt: js/kubernetes-resources-pre-get.js
 
 namespace: cloud.puccini.kubevirt
 
