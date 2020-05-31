@@ -24,7 +24,7 @@ node_types:
         capability: ns:Connectable
         node: ns:NetworkPlane
     interfaces:
-      execution:
+      configure:
         type: o11n:ContainerExecution
 
 topology_template:
@@ -59,7 +59,7 @@ topology_template:
         udp:
           properties:
             ports:
-            - { name: sip, protocol: UDP, targetPort: 5060, port: 5060 }
+            - { name: sip,  protocol: UDP, targetPort: 5060,  port: 5060  }
             - { name: rtp0, protocol: UDP, targetPort: 10000, port: 10000 }
             - { name: rtp1, protocol: UDP, targetPort: 10001, port: 10001 }
             - { name: rtp2, protocol: UDP, targetPort: 10002, port: 10002 }
@@ -72,14 +72,14 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        execution:
-          inputs:
-            phase: configure
-            container: all-in-one
-            artifacts:
-            - configure
+        configure:
           operations:
-            execute: /configure.sh
+            execute:
+              implementation: /configure.sh
+              inputs:
+                container: all-in-one
+                artifacts:
+                - configure
       artifacts:
         image:
           type: k8s:ContainerImage
@@ -101,6 +101,7 @@ topology_template:
   outputs:
 
     udp-ip:
+      type: string
       value: { get_attribute: [ asterisk, udp, ingress, 0, ip ] }
 
   substitution_mappings:

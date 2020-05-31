@@ -16,7 +16,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/tebeka/atexit v0.3.0
-	github.com/tliron/kubernetes-registry-spooler v1.0.2
+	github.com/tliron/kubernetes-registry-spooler v1.0.4
 	github.com/tliron/puccini v0.14.0
 	github.com/tliron/yamlkeys v1.3.3
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975

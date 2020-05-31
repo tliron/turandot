@@ -185,9 +185,9 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 	}
 
 	// Instantiate
-	if service_, err := self.instantiateClout(service, urlContext); err == nil {
-		self.EventInstantiated(service_)
-		_, err := self.UpdateServiceStatusString(service_, resources.ServiceStatusInstantiated)
+	if service, err = self.instantiateClout(service, urlContext); err == nil {
+		self.EventInstantiated(service)
+		_, err := self.UpdateServiceStatusString(service, resources.ServiceStatusInstantiated)
 		return true, err
 	} else {
 		self.EventInstantiationError(service, err)

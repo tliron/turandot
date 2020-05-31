@@ -1,9 +1,16 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
+metadata:
+
+  # This scriptlet is used by the "configure" interface
+  puccini.scriptlet.import:hello-world.set-output: artifacts/scriptlets/set-output.js
+
 imports:
 
 - namespace_prefix: k8s
   file: profiles/kubernetes/1.18/profile.yaml
+- namespace_prefix: o11n
+  file: profiles/orchestration/1.0/profile.yaml
 
 node_types:
 
@@ -19,6 +26,11 @@ node_types:
       # (The same capability type can be used multiple times, e.g. two Services)
       deployment: k8s:Deployment
       web: k8s:LoadBalancer
+    interfaces:
+      configure:
+        # Here we will execute a Clout scriptlet, but Turandot also supports container execution
+        # and SSH execution types
+        type: o11n:CloutExecution
 
 topology_template:
 
@@ -62,20 +74,33 @@ topology_template:
             # won't fail before a real value arrives
             ingress:
             - ip: <unknown>
+      interfaces:
+        configure:
+          operations:
+            execute:
+              implementation: hello-world.set-output
+              inputs:
+                arguments:
+                  name: 'configured'
+                  value: 'true'
       artifacts:
         image:
           # Container images can be placed in the CSAR (or any other repository)
-          # They will all be pushed to the Turandot inventory 
+          # They will all be published by Turandot on the inventory 
           type: k8s:ContainerImage
           # Note that the container image tarball must be "portable"
           # (You can use the included "save-portable-container-image" script to create it)
           file: artifacts/images/hello-world.tar.gz
           properties:
-            # The tag is required
+            # The tag is required for publishing the image
             tag: hello-world
 
   outputs:
 
     url:
       # Before a real attribute value arrives this will evaluate to "http://<unknown>:80"
+      type: string
       value: { concat: [ http://, { get_attribute: [ hello-world, web, ingress, 0, ip ] }, ':80' ] }
+    configured:
+      type: boolean
+      value: false

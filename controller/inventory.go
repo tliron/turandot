@@ -28,7 +28,7 @@ func (self *Controller) GetInventoryServiceTemplateURL(namespace string, service
 	}
 }
 
-func (self *Controller) PushToInventory(imageName string, url string, ips []string, urlContext *urlpkg.Context) (string, error) {
+func (self *Controller) PublishOnInventory(imageName string, url string, ips []string, urlContext *urlpkg.Context) (string, error) {
 	if url, err := urlpkg.NewURL(url, urlContext); err == nil {
 		opener := func() (io.ReadCloser, error) {
 			if reader, err := url.Open(); err == nil {
@@ -39,7 +39,7 @@ func (self *Controller) PushToInventory(imageName string, url string, ips []stri
 		}
 
 		for _, ip := range ips {
-			self.Log.Infof("pushing image \"%s\" from \"%s\" to \"%s\"", imageName, url, ip)
+			self.Log.Infof("publishing image \"%s\" at \"%s\" on \"%s\"", imageName, url, ip)
 
 			name := fmt.Sprintf("%s:5000/%s", ip, imageName)
 
@@ -47,7 +47,7 @@ func (self *Controller) PushToInventory(imageName string, url string, ips []stri
 				if tag, err := namepkg.NewTag(name); err == nil {
 					if image, err := tarball.Image(opener, &contentTag); err == nil {
 						if err := remote.Write(tag, image); err == nil {
-							self.Log.Infof("pushed image \"%s\" from \"%s\" to \"%s\"", imageName, url, ip)
+							self.Log.Infof("published image \"%s\" at \"%s\" on \"%s\"", imageName, url, ip)
 							return name, nil
 						} else {
 							return "", err
@@ -63,7 +63,7 @@ func (self *Controller) PushToInventory(imageName string, url string, ips []stri
 			}
 		}
 
-		return "", fmt.Errorf("did not push image: %s", imageName)
+		return "", fmt.Errorf("did not publish image: %s", imageName)
 	} else {
 		return "", err
 	}

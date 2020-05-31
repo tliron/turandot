@@ -28,13 +28,6 @@ func Controller() {
 
 	log.Infof("%s version=%s revision=%s site=%s", toolName, versionpkg.GitVersion, versionpkg.GitRevision, site)
 
-	health := healthcheck.NewHandler()
-	log.Info("starting health monitor")
-	go func() {
-		err := http.ListenAndServe(fmt.Sprintf(":%d", healthPort), health)
-		puccinicommon.FailOnError(err)
-	}()
-
 	// Config
 
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
@@ -83,6 +76,11 @@ func Controller() {
 
 	// Run
 
-	err = controller.Run(concurrency)
+	err = controller.Run(concurrency, func() {
+		log.Info("starting health monitor")
+		health := healthcheck.NewHandler()
+		err := http.ListenAndServe(fmt.Sprintf(":%d", healthPort), health)
+		puccinicommon.FailOnError(err)
+	})
 	puccinicommon.FailOnError(err)
 }

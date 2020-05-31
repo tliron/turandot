@@ -34,7 +34,7 @@ func (self *Client) DeployServiceFromURL(serviceName string, url string, inputs 
 func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, urlContext *urlpkg.Context) error {
 	serviceTemplateName := uuid.New().String()
 	imageName := GetInventoryImageName(serviceTemplateName)
-	if err := common.PushToRegistry(imageName, url, spooler); err == nil {
+	if err := common.PublishOnRegistry(imageName, url, spooler); err == nil {
 		return self.DeployServiceFromTemplate(serviceName, serviceTemplateName, inputs, urlContext)
 	} else {
 		return err

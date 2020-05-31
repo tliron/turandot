@@ -14,34 +14,41 @@ for (var vertexId in clout.vertexes) {
 	for (var interfaceName in nodeTemplate.interfaces) {
 		var interface_ = nodeTemplate.interfaces[interfaceName];
 		if ('cloud.puccini.turandot.orchestration::Execution' in interface_.types) {
-			var operation = interface_.operations['execute'];
+			var operation = interface_.operations.execute;
 			if (operation && operation.implementation) {
 				var execution = {
 					nodeTemplate: nodeTemplate.name,
-					phase: interface_.inputs.phase,
-					requirements: interface_.inputs.requirements || {},
-					pods: interface_.inputs.pods
+					phase: operation.inputs.phase || interfaceName,
+					pods: operation.inputs.pods
 				};
+
+				if (operation.inputs.requirements)
+					execution.requirements = operation.inputs.requirements;
 
 				if ('cloud.puccini.turandot.orchestration::CloutExecution' in interface_.types) {
 					execution.type = 'clout';
 					execution.scriptlet = operation.implementation;
+					// TODO: verify that the scriptlet exists
+					if (operation.inputs.arguments)
+						execution.arguments = operation.inputs.arguments;
 				} else if ('cloud.puccini.turandot.orchestration::CommandExecution' in interface_.types) {
 					execution.command = [operation.implementation];
-					if (interface_.inputs.arguments)
-						execution.command = execution.command.concat(interface_.inputs.arguments);
-					execution.artifacts = getArtifacts(nodeTemplate, interface_.inputs.artifacts);
+					if (operation.inputs.arguments)
+						execution.command = execution.command.concat(operation.inputs.arguments);
+					var artifacts = getArtifacts(nodeTemplate, operation.inputs.artifacts);
+					if (artifacts)
+						execution.artifacts = artifacts;
 					if ('cloud.puccini.turandot.orchestration::ContainerExecution' in interface_.types) {
 						execution.type = 'container';
 						execution.container = interface_.inputs.container;
 					} else if ('cloud.puccini.turandot.orchestration::SSHExecution' in interface_.types) {
 						execution.type = 'ssh';
-						execution.host = interface_.inputs.host;
-						execution.username = interface_.inputs.username;
-						execution.key = interface_.inputs.key;
+						execution.host = operation.inputs.host;
+						execution.username = operation.inputs.username;
+						execution.key = operation.inputs.key;
 					}
 				}
-				
+
 				executions.push(execution);
 			}
 		}
@@ -62,7 +69,7 @@ function getArtifacts(nodeTemplate, artifactNames) {
 					targetPath: artifact.targetPath,
 				};
 				if (('cloud.puccini.turandot.orchestration::Deployable' in artifact.types) && (artifact.properties.permissions !== undefined))
-					info.permissions = artifact.properties.permissions; 
+					info.permissions = artifact.properties.permissions;
 				artifacts.push(info);
 		}
 	return artifacts;

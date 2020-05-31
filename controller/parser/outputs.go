@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/tliron/puccini/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
 )
@@ -10,11 +12,7 @@ func GetOutputs(clout *cloutpkg.Clout) (map[string]string, bool) {
 		if outputs, ok := ard.NewNode(tosca).Get("outputs").StringMap(true); ok {
 			outputs_ := make(map[string]string)
 			for name, output := range outputs {
-				if output_, ok := output.(string); ok {
-					outputs_[name] = output_
-				} else {
-					return nil, false
-				}
+				outputs_[name] = fmt.Sprintf("%v", output)
 			}
 			return outputs_, true
 		} else {

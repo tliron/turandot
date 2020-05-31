@@ -40,7 +40,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		puccinicommon.FailOnError(err)
 
 		imageName := delegate.GetInventoryImageName(serviceTemplateName)
-		err = common.PushToRegistry(imageName, url, NewClient().Spooler())
+		err = common.PublishOnRegistry(imageName, url, NewClient().Spooler())
 		puccinicommon.FailOnError(err)
 	} else if directoryPath != "" {
 		if (filePath != "") || (url != "") {

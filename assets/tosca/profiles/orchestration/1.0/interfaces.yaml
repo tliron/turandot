@@ -9,22 +9,40 @@ interface_types:
   # Execution
 
   Execution:
-    inputs:
-      phase:
-        type: string
-      requirements:
-        type: ExecutionRequirements
-        required: false
-      pods:
-        type: ExecutionPods
-        default: All
+    description: >-
+      Base type for executions.
     operations:
-      execute: {}
+      execute:
+        inputs:
+          phase:
+            description: >-
+              If not specified then the interface name will be used. Specifying this can be useful
+              if you have multiple executions on the same phase.
+            type: ExecutionPhase
+            required: false
+          requirements:
+            type: ExecutionRequirements
+            required: false
+          pods:
+            type: ExecutionPods
+            default: all
 
   CloutExecution:
     description: >-
       Implementations are names of scriptlets within the Clout.
     derived_from: Execution
+    operations:
+      execute:
+        inputs:
+          arguments:
+            description: >-
+              Scriptlet arguments.
+
+              A "nodeTemplate" argument will be implicitly set with the name of the node template.
+              In this case of interfaces on relationships, [TODO]
+            type: map
+            entry_schema: string
+            required: false
 
   CommandExecution:
     derived_from: Execution
@@ -33,44 +51,50 @@ interface_types:
 
       The implementation is the command to execute. Additional arguments can be added via the
       "arguments" input.
-    inputs:
-      arguments:
-        description: >-
-          Arguments to add to the command.
-        type: list
-        entry_schema: string
-        required: false
-      artifacts:
-        description: >-
-          A list of artifact names to copy to the target before execution.
-
-          The artifact's "deploy_path" *must* be set. Directories will be created if they do not
-          exist (using `mkdir --parents`).
-
-          Note that there is special support for the "permissions" property of Deployable type
-          artifacts.
-        type: list
-        entry_schema: string
-        required: false
+    operations:
+      execute:
+        inputs:
+          arguments:
+            description: >-
+              Arguments to add to the command.
+            type: list
+            entry_schema: string
+            required: false
+          artifacts:
+            description: >-
+              A list of artifact names to copy to the target before execution.
+    
+              The artifact's "deploy_path" *must* be set. Directories will be created if they do not
+              exist (using `mkdir --parents`).
+    
+              Note that there is special support for the "permissions" property of Deployable type
+              artifacts.
+            type: list
+            entry_schema: string
+            required: false
 
   ContainerExecution:
     description: >-
       Uses the SPDY executor on the "exec" subresource of the pods.
     derived_from: CommandExecution
-    inputs:
-      container:
-        description: >-
-          The name of the container in the pods in which to execute.
-        type: string
+    operations:
+      execute:
+        inputs:
+          container:
+            description: >-
+              The name of the container in the pods in which to execute.
+            type: string
 
   SSHExecution:
     description: >-
       Uses SSH to execute commands.
     derived_from: CommandExecution
-    inputs:
-      host:
-        type: string
-      username:
-        type: string
-      key:
-        type: string
+    operations:
+      execute:
+        inputs:
+          host:
+            type: string
+          username:
+            type: string
+          key:
+            type: string

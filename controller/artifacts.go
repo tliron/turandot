@@ -12,7 +12,7 @@ func (self *Controller) pushArtifactsToInventory(artifacts parser.KubernetesArti
 		artifactMappings := make(map[string]string)
 		if ips, err := common.GetServiceIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-inventory"); err == nil {
 			for _, artifact := range artifacts {
-				if name, err := self.PushToInventory(artifact.Name, artifact.SourcePath, ips, urlContext); err == nil {
+				if name, err := self.PublishOnInventory(artifact.Name, artifact.SourcePath, ips, urlContext); err == nil {
 					artifactMappings[artifact.SourcePath] = name
 				} else {
 					return nil, err

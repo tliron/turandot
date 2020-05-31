@@ -1,28 +1,32 @@
 package controller
 
 import (
-	"fmt"
-
-	cloutpkg "github.com/tliron/puccini/clout"
 	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/controller/parser"
+	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
 // See:
 //   https://github.com/cosiner/socker
 //   https://github.com/pressly/sup
 
-func (self *Controller) processOperations(operations interface{}, clout *cloutpkg.Clout, urlContext *urlpkg.Context) error {
-	if operations, ok := parser.NewOrchestrationOperations(operations); ok {
-		for _, operation := range operations {
-			self.Log.Infof("executing scriptlet %s on vertex %s", operation.ScriptletName, operation.VertexID)
-			if _, err := common.ExecScriptlet(clout, operation.ScriptletName, nil, urlContext); err != nil {
-				return err
+func (self *Controller) processExecutions(executions parser.OrchestrationExecutions, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+	for _, execution := range executions {
+		self.Log.Infof("executing scriptlet %s on node template %s", execution.ScriptletName, execution.NodeTemplateName)
+
+		arguments := make(map[string]string)
+		if execution.Arguments != nil {
+			for key, value := range execution.Arguments {
+				arguments[key] = value
 			}
 		}
-		return nil
-	} else {
-		return fmt.Errorf("could not parse operations: %v", operations)
+		arguments["nodeTemplate"] = execution.NodeTemplateName
+
+		var err error
+		if service, err = self.executeCloutUpdate(service, urlContext, execution.ScriptletName, arguments); err != nil {
+			return service, err
+		}
 	}
+
+	return service, nil
 }

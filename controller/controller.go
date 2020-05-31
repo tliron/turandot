@@ -99,7 +99,7 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 	return &self
 }
 
-func (self *Controller) Run(concurrency uint) error {
+func (self *Controller) Run(concurrency uint, startup func()) error {
 	defer utilruntime.HandleCrash()
 
 	self.Log.Info("starting informer factories")
@@ -112,6 +112,10 @@ func (self *Controller) Run(concurrency uint) error {
 	self.Log.Infof("starting processors (concurrency=%d)", concurrency)
 	self.Processors.Start(concurrency, self.StopChannel)
 	defer self.Processors.ShutDown()
+
+	if startup != nil {
+		go startup()
+	}
 
 	<-self.StopChannel
 

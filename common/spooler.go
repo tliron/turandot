@@ -8,7 +8,7 @@ import (
 	urlpkg "github.com/tliron/puccini/url"
 )
 
-func PushToRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
+func PublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
 	reader, err := url.Open()
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func PushToRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client
 		defer readCloser.Close()
 	}
 
-	if err = spooler.Push(imageName, reader); err == nil {
+	if err = spooler.Publish(imageName, reader); err == nil {
 		return nil
 	} else {
 		return err
@@ -50,7 +50,7 @@ func PullLayerFromRegistry(imageName string, writer io.Writer, spooler *spoolerp
 }
 
 // TODO: unused. unnecessary?
-func TarAndPushToRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
+func TarAndPublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
 	reader, err := url.Open()
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func TarAndPushToRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.
 	}
 
 	encoder := NewTarEncoder(reader, size)
-	if err = spooler.Push(imageName, encoder.Encode()); err == nil {
+	if err = spooler.Publish(imageName, encoder.Encode()); err == nil {
 		return nil
 	} else {
 		return err
