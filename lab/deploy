@@ -6,28 +6,26 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$ROOT/scripts/_trap"
 
 minikube profile edge
-turandot uninstall -n workspace
+turandot uninstall -n workspace -w -v
 kubectl delete events --all --namespace=workspace
+
 minikube profile central
-turandot uninstall -n workspace
+turandot uninstall -n workspace -w -v
 kubectl delete events --all --namespace=workspace
 
 if [ "$1" == -b ]; then
 	"$ROOT/scripts/build-container-image"
 	"$ROOT/scripts/publish-container-image"
-else
-	sleep 10
 fi
 
 turandot install -s central -n workspace -w -v
-kubectl config set-context --current --namespace=workspace
 
-sleep 10
+kubectl config set-context --current --namespace=workspace
 
 turandot service deploy hello-world -f dist/hello-world.csar -v
 turandot service deploy helm-hello-world -f dist/helm-hello-world.csar -v
 
-turandot delegate set edge --delegate-context=edge
+turandot delegate set edge --delegate-context=edge -v
 
 turandot template register telephony-network-service -f dist/telephony-network-service.csar -v
 turandot template register simple-data-plane -f dist/simple-data-plane.csar -v
@@ -36,6 +34,6 @@ turandot template register asterisk-vnf -f dist/asterisk-vnf.csar -v
 
 turandot service deploy telephony-network-service -t telephony-network-service -i namespace=workspace -v
 
-echo Done!
+turandot operator logs -f
 
 # Clean ~/.local/share/containers/ occassionally!

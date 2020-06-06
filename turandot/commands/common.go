@@ -21,6 +21,7 @@ var tail int
 var follow bool
 var bare bool
 var all bool
+var wait bool
 
 func Logs(appNameSuffix string, containerName string) {
 	// TODO: what happens if we follow more than one log?

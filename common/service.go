@@ -20,7 +20,7 @@ func GetServices(context contextpkg.Context, kubernetes kubernetespkg.Interface,
 		if len(services.Items) > 0 {
 			return services, nil
 		} else {
-			return nil, fmt.Errorf("no services for app.kubernetes.io/name=\"%s\" in namespace \"%s\"", appName, namespace)
+			return nil, fmt.Errorf("no services for app.kubernetes.io/name=%q in namespace %q", appName, namespace)
 		}
 	} else {
 		return nil, err
@@ -36,7 +36,7 @@ func GetServiceIPs(context contextpkg.Context, kubernetes kubernetespkg.Interfac
 		if len(ips) > 0 {
 			return ips, nil
 		} else {
-			return nil, fmt.Errorf("no IPs for services for app.kubernetes.io/name=\"%s\" in namespace \"%s\"", appName, namespace)
+			return nil, fmt.Errorf("no IPs for services for app.kubernetes.io/name=%q in namespace %q", appName, namespace)
 		}
 	} else {
 		return nil, err

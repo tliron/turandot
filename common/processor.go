@@ -121,11 +121,11 @@ func (self *Processor) processWorkItem(item interface{}) {
 			}
 		} else {
 			self.Workqueue.Forget(item)
-			self.Log.Errorf("work item in wrong format: %v", key)
+			self.Log.Errorf("work item in wrong format: %+v", key)
 		}
 	} else {
 		self.Workqueue.Forget(item)
-		self.Log.Errorf("work item not a string: %v", item)
+		self.Log.Errorf("work item not a string: %+v", item)
 	}
 }
 
@@ -214,7 +214,7 @@ func (self *Processors) onObjectChanged(object *unstructured.Unstructured) error
 						processor.EnqueueFor(controllerObject)
 					} else {
 						// Could happen if controller object was deleted but controlled object was not yet garbage collected
-						self.log.Infof("\"%s\" %s controller does not exist for object: %s", name, gvk.Kind, metaObject.GetSelfLink())
+						self.log.Infof("%q %s controller does not exist for object: %s", name, gvk.Kind, metaObject.GetSelfLink())
 					}
 				}
 			}

@@ -7,7 +7,6 @@ import (
 
 var site string
 var registry string
-var wait bool
 
 func init() {
 	rootCommand.AddCommand(installCommand)

@@ -91,7 +91,7 @@ func DeployService(serviceName string) {
 
 func ParseInputs() {
 	if inputsUrl != "" {
-		log.Infof("load inputs from \"%s\"", inputsUrl)
+		log.Infof("load inputs from %q", inputsUrl)
 
 		urlContext := urlpkg.NewContext()
 		defer urlContext.Release()
@@ -111,7 +111,7 @@ func ParseInputs() {
 					inputValues[yamlkeys.KeyString(key)] = value
 				}
 			} else {
-				puccinicommon.Failf("malformed inputs in \"%s\"", inputsUrl)
+				puccinicommon.Failf("malformed inputs in %q", inputsUrl)
 			}
 		}
 	}

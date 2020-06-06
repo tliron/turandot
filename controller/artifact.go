@@ -7,7 +7,7 @@ import (
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) pushArtifactsToInventory(artifacts parser.KubernetesArtifacts, service *resources.Service, urlContext *urlpkg.Context) (map[string]string, error) {
+func (self *Controller) publishArtifactsToInventory(artifacts parser.KubernetesArtifacts, service *resources.Service, urlContext *urlpkg.Context) (map[string]string, error) {
 	if len(artifacts) > 0 {
 		artifactMappings := make(map[string]string)
 		if ips, err := common.GetServiceIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-inventory"); err == nil {

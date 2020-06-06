@@ -69,7 +69,7 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 }
 
 func (self *Controller) UpdateServiceStatusString(service *resources.Service, statusString resources.ServiceStatusString) (*resources.Service, error) {
-	self.Log.Infof("updating status string to \"%s\" for service: %s/%s", statusString, service.Namespace, service.Name)
+	self.Log.Infof("updating status string to %q for service: %s/%s", statusString, service.Namespace, service.Name)
 
 	service = service.DeepCopy()
 	service.Status.Status = statusString
@@ -103,7 +103,7 @@ func (self *Controller) UpdateServiceStatusClout(service *resources.Service, clo
 		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
 		return service, nil
 	} else {
-		return nil, err
+		return service, err
 	}
 }
 
@@ -118,7 +118,7 @@ func (self *Controller) UpdateServiceStatusOutputs(service *resources.Service, o
 		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
 		return service, nil
 	} else {
-		return nil, err
+		return service, err
 	}
 }
 
@@ -128,7 +128,7 @@ func (self *Controller) processService(service *resources.Service) (bool, error)
 		return true, nil
 	}
 
-	if instantiated, err := self.isServiceInstanceOfClout(service); err == nil {
+	if instantiated, err := self.isServiceInstanceOfCurrentClout(service); err == nil {
 		if instantiated {
 			if err := self.updateService(service); err == nil {
 				return true, nil
@@ -209,7 +209,7 @@ func (self *Controller) updateService(service *resources.Service) error {
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
-	if _, err := self.updateCloutFromResources(service, urlContext); err == nil {
+	if _, err := self.composeClout(service, urlContext); err == nil {
 		return nil
 	} else {
 		self.EventCloutUpdateError(service, err)
@@ -217,14 +217,14 @@ func (self *Controller) updateService(service *resources.Service) error {
 	}
 }
 
-func (self *Controller) isServiceInstanceOfClout(service *resources.Service) (bool, error) {
+func (self *Controller) isServiceInstanceOfCurrentClout(service *resources.Service) (bool, error) {
 	if service.Status.Status != resources.ServiceStatusInstantiated {
 		return false, nil
 	} else if service.Status.CloutPath == "" {
 		self.Log.Infof("no Clout for service %s/%s", service.Namespace, service.Name)
 		return false, nil
 	} else if service.Spec.ServiceTemplateURL != service.Status.ServiceTemplateURL {
-		self.Log.Infof("service template URL has changed for service %s/%s: from \"%s\" to \"%s\"", service.Namespace, service.Name, service.Status.ServiceTemplateURL, service.Spec.ServiceTemplateURL)
+		self.Log.Infof("service template URL has changed for service %s/%s: from %q to %q", service.Namespace, service.Name, service.Status.ServiceTemplateURL, service.Spec.ServiceTemplateURL)
 		return false, nil
 	} else if !reflect.DeepEqual(service.Spec.Inputs, service.Status.Inputs) {
 		self.Log.Infof("inputs have changed for service %s/%s", service.Namespace, service.Name)

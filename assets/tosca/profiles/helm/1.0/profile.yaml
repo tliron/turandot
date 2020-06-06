@@ -10,4 +10,4 @@ imports:
 
 - nodes.yaml
 - artifacts.yaml
-- ../../kubernetes/1.18/profile.yaml
+- ../../kubernetes/1.0/profile.yaml

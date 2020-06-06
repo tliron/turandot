@@ -7,7 +7,7 @@ imports:
 - namespace_prefix: telephony
   file: profiles/telephony/profile.yaml
 - namespace_prefix: k8s
-  file: profiles/kubernetes/1.18/profile.yaml
+  file: profiles/kubernetes/1.0/profile.yaml
 - namespace_prefix: o11n
   file: profiles/orchestration/1.0/profile.yaml
 
@@ -24,8 +24,8 @@ node_types:
         capability: ns:Connectable
         node: ns:NetworkPlane
     interfaces:
-      configure:
-        type: o11n:ContainerExecution
+      normal:
+        type: k8s:ContainerExecution
 
 topology_template:
 
@@ -72,12 +72,11 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        configure:
+        normal:
           operations:
             execute:
               implementation: /configure.sh
               inputs:
-                container: all-in-one
                 artifacts:
                 - configure
       artifacts:

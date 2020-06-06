@@ -17,10 +17,19 @@ func GetPods(context contextpkg.Context, kubernetes kubernetespkg.Interface, nam
 	selector := labels_.AsSelector().String()
 
 	if pods, err := kubernetes.CoreV1().Pods(namespace).List(context, meta.ListOptions{LabelSelector: selector}); err == nil {
+		// Don't include deleted pods
+		pods_ := make([]core.Pod, 0, len(pods.Items))
+		for _, pod := range pods.Items {
+			if pod.GetDeletionTimestamp() == nil {
+				pods_ = append(pods_, pod)
+			}
+		}
+		pods.Items = pods_
+
 		if len(pods.Items) > 0 {
 			return pods, nil
 		} else {
-			return nil, fmt.Errorf("no pods for app.kubernetes.io/name=\"%s\" in namespace \"%s\"", appName, namespace)
+			return nil, fmt.Errorf("no pods for app.kubernetes.io/name=%q in namespace %q", appName, namespace)
 		}
 	} else {
 		return nil, err
@@ -58,7 +67,7 @@ func GetPodIPs(context contextpkg.Context, kubernetes kubernetespkg.Interface, n
 		if len(ips) > 0 {
 			return ips, nil
 		} else {
-			return nil, fmt.Errorf("no IPs for pods for app.kubernetes.io/name=\"%s\" in namespace \"%s\"", appName, namespace)
+			return nil, fmt.Errorf("no IPs for pods for app.kubernetes.io/name=%q in namespace %q", appName, namespace)
 		}
 	} else {
 		return nil, err

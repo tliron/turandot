@@ -29,4 +29,5 @@ function build () {
 build hello-world \
 	hello-world.yaml \
 	artifacts/images \
-	artifacts/scriptlets
+	artifacts/scriptlets \
+	artifacts/scripts

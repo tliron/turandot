@@ -65,7 +65,7 @@ func (self *Controller) UpdateClout(yaml string, service *resources.Service) (*r
 	if cloutHash, err := self.WriteClout(yaml, service.Status.CloutPath); err == nil {
 		return self.UpdateServiceStatusClout(service, service.Status.CloutPath, cloutHash)
 	} else {
-		return nil, err
+		return service, err
 	}
 }
 
@@ -137,11 +137,11 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 		return service, err
 	}
 
-	// Push artifacts
+	// Publish artifacts
 	var artifactMappings map[string]string
 	if artifacts != nil {
 		if artifacts_, ok := parser.ParseKubernetesArtifacts(artifacts); ok {
-			if artifactMappings, err = self.pushArtifactsToInventory(artifacts_, service, urlContext); err != nil {
+			if artifactMappings, err = self.publishArtifactsToInventory(artifacts_, service, urlContext); err != nil {
 				return service, err
 			}
 		} else {
@@ -171,11 +171,11 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 				return service, err
 			}
 		} else {
-			return service, fmt.Errorf("could not parse policies: %v", policies)
+			return service, fmt.Errorf("could not parse policies: %+v", policies)
 		}
 	}
 
-	// Get resources
+	// Get Kubernetes resources
 	// TODO: need to filter only non-substituted and instantiable node templates
 	self.Log.Infof("getting Kubernetes resources from Clout: %s", service.Status.CloutPath)
 	var objects []ard.StringMap
@@ -183,7 +183,7 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 		return service, err
 	}
 
-	// Create resources
+	// Create Kubernetes resources
 	var resourceMappings parser.KubernetesResourceMappings
 	if objects != nil {
 		if resourceMappings, err = self.createResources(objects, service); err != nil {
@@ -191,7 +191,7 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 		}
 	}
 
-	// Update resource mappings
+	// Update Kubernetes resource mappings
 	if resourceMappings != nil {
 		self.Log.Infof("updating resource mappings in Clout: %s", service.Status.CloutPath)
 		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-mappings", resourceMappings.StringMap()); err != nil {
@@ -199,38 +199,42 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 		}
 	}
 
+	// TODO: debug weird recompilation namespace errors
+
+	return self.updateCloutOutputs(service, urlContext)
+}
+
+func (self *Controller) composeClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+	var err error
+
 	// Get executions
-	// TODO: recompilation error if this fails???
 	var executions ard.Value
 	self.Log.Infof("getting executions for Clout: %s", service.Status.CloutPath)
-	if executions, err = self.executeCloutGet(service, urlContext, "orchestration.executions", nil); err != nil {
+	if executions, err = self.executeCloutGet(service, urlContext, "kubernetes.executions", nil); err != nil {
 		return service, err
 	}
 
 	// Process executions
 	if executions != nil {
 		if orchestrationExecutions, ok := parser.ParseOrchestrationExecutions(executions); ok {
-			if service, err = self.processExecutions(orchestrationExecutions, service, urlContext); err != nil {
-				return service, err
+			if orchestrationExecutions != nil {
+				if service, err = self.processExecutions(orchestrationExecutions, service, urlContext); err != nil {
+					self.Log.Errorf("execution error: %s", err.Error())
+				}
 			}
 		} else {
-			return service, fmt.Errorf("could not parse executions: %v", executions)
+			return service, fmt.Errorf("could not parse executions: %+v", executions)
 		}
 	}
 
-	return self.updateCloutOutputs(service, urlContext)
-}
-
-func (self *Controller) updateCloutFromResources(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
-	var err error
-
+	// Get Kubernetes resource mappings
 	self.Log.Infof("get resource mappings from Clout: %s", service.Status.CloutPath)
-
 	var mappings ard.Value
 	if mappings, err = self.executeCloutGet(service, urlContext, "kubernetes.resources.get-mappings", nil); err != nil {
 		return service, err
 	}
 
+	// Get Clout attribute values from Kubernetes resources
 	var attributeValues parser.CloutAttributeValues
 	if mappings != nil {
 		if resourceMappings, ok := parser.ParseKubernetesResourceMappings(mappings); ok {
@@ -238,10 +242,11 @@ func (self *Controller) updateCloutFromResources(service *resources.Service, url
 				return service, err
 			}
 		} else {
-			return service, fmt.Errorf("could not parse resource mappings: %v", mappings)
+			return service, fmt.Errorf("could not parse resource mappings: %+v", mappings)
 		}
 	}
 
+	// Update attributes in Clout
 	if attributeValues != nil {
 		self.Log.Infof("updating attributes in Clout: %s", service.Status.CloutPath)
 		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-attributes", attributeValues.StringMap()); err != nil {

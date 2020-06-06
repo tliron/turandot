@@ -3,13 +3,13 @@ tosca_definitions_version: tosca_simple_yaml_1_3
 imports:
 
 - namespace_prefix: k8s
-  file: ../../kubernetes/1.18/profile.yaml
+  file: ../../kubernetes/1.0/profile.yaml
 
 data_types:
 
   VirtualMachineInstanceTemplate:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_virtualmachineinstancespec' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_virtualmachineinstancespec' 
     description: >-
       VirtualMachineInstanceSpec is a description of a VirtualMachineInstance.
     properties:
@@ -108,7 +108,7 @@ data_types:
 
   Domain:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_domainspec' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_domainspec' 
     properties:
       chassis:
         description: >-
@@ -164,7 +164,7 @@ data_types:
 
   Chassis:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_chassis' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_chassis' 
     properties:
       asset:
         type: string
@@ -184,7 +184,7 @@ data_types:
 
   Clock:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_clock' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_clock' 
     description: >-
       Represents the clock and timers of a vmi.
     properties:
@@ -207,7 +207,7 @@ data_types:
 
   HPETimer:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_hpettimer' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_hpettimer' 
     properties:
       present:
         description: >-
@@ -227,7 +227,7 @@ data_types:
 
   ClockOffsetUTC:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_clockoffsetutc' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_clockoffsetutc' 
     description: >-
       UTC sets the guest clock to UTC on each boot.
     properties:
@@ -240,7 +240,7 @@ data_types:
 
   CPU:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cpu' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_cpu' 
     description: >-
       CPU allows specifying the CPU topology.
     properties:
@@ -293,7 +293,7 @@ data_types:
 
   CPUFeature:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cpufeature' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_cpufeature' 
     description: >-
       CPUFeature allows specifying a CPU feature.
     properties:
@@ -327,7 +327,7 @@ data_types:
 
   Devices:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_devices' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_devices' 
     properties:
       autoattachGraphicsDevice:
         description: >-
@@ -397,7 +397,7 @@ data_types:
 
   Disk:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_disk' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_disk' 
     properties:
       bootOrder:
         description: >-
@@ -452,7 +452,7 @@ data_types:
 
   CDRomTarget:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cdromtarget' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_cdromtarget' 
     properties:
       bus:
         description: >-
@@ -479,7 +479,7 @@ data_types:
 
   DiskTarget:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_disktarget' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_disktarget' 
     properties:
       bus:
         description: >-
@@ -503,7 +503,7 @@ data_types:
 
   FloppyTarget:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_floppytarget' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_floppytarget' 
     properties:
       readonly:
         description: >-
@@ -523,7 +523,7 @@ data_types:
 
   LunTarget:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_luntarget' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_luntarget' 
     properties:
       bus:
         description: >-
@@ -541,7 +541,7 @@ data_types:
 
   GPU:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_gpu' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_gpu' 
     properties:
       deviceName:
         type: string
@@ -552,7 +552,7 @@ data_types:
 
   Input:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_input' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_input' 
     properties:
       bus:
         description: >-
@@ -575,7 +575,7 @@ data_types:
 
   Interface:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_interface' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_interface' 
     properties:
       bootOrder:
         description: >-
@@ -638,7 +638,7 @@ data_types:
 
   DHCPOptions:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_dhcpoptions' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_dhcpoptions' 
     description: >-
       Extra DHCP options to use in the interface.
     properties:
@@ -667,7 +667,7 @@ data_types:
 
   DHCPPrivateOption:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_dhcpprivateoptions' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_dhcpprivateoptions' 
     description: >-
       DHCPExtraOption defines Extra DHCP options for a VM.
     properties:
@@ -684,7 +684,7 @@ data_types:
 
   Port:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_port' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_port' 
     description: >-
       Port repesents a port to expose from the virtual machine. Default protocol TCP. The port field
       is mandatory.
@@ -713,7 +713,7 @@ data_types:
 
   Watchdog:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_watchdog' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_watchdog' 
     description: >-
       Named watchdog device.
     properties:
@@ -729,7 +729,7 @@ data_types:
 
   I6300ESBWatchdog:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_i6300esbwatchdog' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_i6300esbwatchdog' 
     description: >-
       i6300esb watchdog device.
     properties:
@@ -744,7 +744,7 @@ data_types:
 
   Features:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_features' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_features' 
     properties:
       acpi:
         description: >-
@@ -769,7 +769,7 @@ data_types:
 
   FeatureState:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurestate' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_featurestate' 
     description: >-
       Represents if a feature is enabled or disabled.
     properties:
@@ -783,7 +783,7 @@ data_types:
 
   FeatureAPIC:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featureapic' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_featureapic' 
     properties:
       enabled:
         description: >-
@@ -801,7 +801,7 @@ data_types:
 
   FeatureHyperv:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurehyperv' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_featurehyperv' 
     description: >-
       Hyperv specific features.
     properties:
@@ -888,7 +888,7 @@ data_types:
 
   FeatureSpinlocks:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurespinlocks' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_featurespinlocks' 
     properties:
       enabled:
         description: >-
@@ -909,7 +909,7 @@ data_types:
 
   FeatureVendorID:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_featurevendorid' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_featurevendorid' 
     properties:
       enabled:
         description: >-
@@ -929,7 +929,7 @@ data_types:
 
   Firmware:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_firmware' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_firmware' 
     properties:
       bootloader:
         description: >-
@@ -949,7 +949,7 @@ data_types:
 
   Bootloader:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_bootloader' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_bootloader' 
     description: >-
       Represents the firmware blob used to assist in the domain creation process. Used for setting
       the QEMU BIOS file path for the libvirt domain.
@@ -967,7 +967,7 @@ data_types:
 
   Machine:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_machine' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_machine' 
     properties:
       type:
         description: >-
@@ -976,7 +976,7 @@ data_types:
 
   Memory:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_memory' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_memory' 
     description: >-
       Memory allows specifying the VirtualMachineInstance memory features.
     properties:
@@ -995,7 +995,7 @@ data_types:
 
   Hugepages:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_hugepages' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_hugepages' 
     description: >-
       Hugepages allow to use hugepages for the VirtualMachineInstance instead of regular memory.
     properties:
@@ -1008,7 +1008,7 @@ data_types:
 
   ResourceRequirements:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_resourcerequirements' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_resourcerequirements' 
     properties:
       limits:
         description: >-
@@ -1035,7 +1035,7 @@ data_types:
 
   DataVolume:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1alpha1_datavolumespec' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1alpha1_datavolumespec' 
     description: >-
       DataVolumeSpec defines our specification for a DataVolume type.
     properties:
@@ -1057,7 +1057,7 @@ data_types:
 
   KubeVirtNetwork:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_network' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_network' 
     description: >-
       Network represents a network type and a resource that should be connected to the vm.
     properties:
@@ -1077,7 +1077,7 @@ data_types:
 
   GenieNetwork:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_genienetwork' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_genienetwork' 
     description: >-
       Represents the genie cni network.
     properties:
@@ -1088,7 +1088,7 @@ data_types:
 
   MultusNetwork:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_multusnetwork' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_multusnetwork' 
     description: >-
       Represents the multus cni network.
     properties:
@@ -1105,7 +1105,7 @@ data_types:
 
   PodNetwork:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_podnetwork' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_podnetwork' 
     description: >-
       Represents the stock pod network interface.
     properties:
@@ -1117,7 +1117,7 @@ data_types:
 
   Volume:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_volume' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_volume' 
     description: >-
       Volume represents a named volume in a vmi.
     properties:
@@ -1191,7 +1191,7 @@ data_types:
 
   CloudInitConfigDriveSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cloudinitconfigdrivesource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_cloudinitconfigdrivesource' 
     description: >-
       Represents a cloud-init config drive user data source.
     properties:
@@ -1228,7 +1228,7 @@ data_types:
 
   CloudInitNoCloudSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_cloudinitnocloudsource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_cloudinitnocloudsource' 
     description: >-
       Represents a cloud-init nocloud user data source.
     properties:
@@ -1265,7 +1265,7 @@ data_types:
 
   LocalObjectReference:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_localobjectreference' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_localobjectreference' 
     description: >-
       LocalObjectReference contains enough information to let you locate the referenced object
       inside the same namespace.
@@ -1278,7 +1278,7 @@ data_types:
 
   ConfigMapVolumeSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_configmapvolumesource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_configmapvolumesource' 
     description: >-
       ConfigMapVolumeSource adapts a ConfigMap into a volume.
     properties:
@@ -1295,7 +1295,7 @@ data_types:
 
   ContainerDiskSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_containerdisksource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_containerdisksource' 
     description: >-
       Represents a docker image with an embedded disk.
     properties:
@@ -1325,7 +1325,7 @@ data_types:
 
   DataVolumeSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_datavolumesource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_datavolumesource' 
     properties:
       name:
         description: >-
@@ -1334,7 +1334,7 @@ data_types:
 
   EmptyDiskSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_emptydisksource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_emptydisksource' 
     description: >-
       EmptyDisk represents a temporary disk which shares the vmi's lifecycle.
     properties:
@@ -1345,7 +1345,7 @@ data_types:
 
   EphemeralVolumeSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_ephemeralvolumesource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_ephemeralvolumesource' 
     properties:
       persistentVolumeClaim:
         description: >-
@@ -1356,7 +1356,7 @@ data_types:
 
   HostDisk:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_hostdisk' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_hostdisk' 
     description: >-
       Represents a disk created on the cluster level.
     properties:
@@ -1384,7 +1384,7 @@ data_types:
 
   PersistentVolumeClaimVolumeSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_persistentvolumeclaimvolumesource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_persistentvolumeclaimvolumesource' 
     description: >-
       PersistentVolumeClaimVolumeSource references the user's PVC in the same namespace. This volume
       finds the bound PV and mounts that volume for the pod. A PersistentVolumeClaimVolumeSource is,
@@ -1405,7 +1405,7 @@ data_types:
 
   SecretVolumeSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_secretvolumesource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_secretvolumesource' 
     description: >-
       SecretVolumeSource adapts a Secret into a volume.
     properties:
@@ -1422,7 +1422,7 @@ data_types:
 
   ServiceAccountVolumeSource:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_serviceaccountvolumesource' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_serviceaccountvolumesource' 
     description: >-
       ServiceAccountVolumeSource adapts a ServiceAccount into a volume.
     properties:

@@ -4,13 +4,13 @@ imports:
 
 - data.yaml
 - namespace_prefix: k8s
-  file: ../../kubernetes/1.18/profile.yaml
+  file: ../../kubernetes/1.0/profile.yaml
 
 capability_types:
 
   VirtualMachine:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.29.0/definitions.html#_v1_virtualmachine' 
+      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_virtualmachine' 
       turandot.apiVersion: kubevirt.io/v1alpha3
       turandot.move: spec.template->spec.template.spec
       turandot.copy: metadata->spec.template.metadata

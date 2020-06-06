@@ -11,7 +11,7 @@ import (
 
 var logTo string
 var verbose int
-var colorize bool
+var colorize string
 
 var masterUrl string
 var kubeconfigPath string
@@ -28,7 +28,7 @@ var healthPort uint
 func init() {
 	command.PersistentFlags().StringVarP(&logTo, "log", "l", "", "log to file (defaults to stderr)")
 	command.PersistentFlags().CountVarP(&verbose, "verbose", "v", "add a log verbosity level (can be used twice)")
-	command.PersistentFlags().BoolVarP(&colorize, "colorize", "z", true, "colorize output")
+	command.PersistentFlags().StringVarP(&colorize, "colorize", "z", "true", "colorize output (boolean or \"force\"")
 
 	// Conventional flags for Kubernetes controllers
 	command.PersistentFlags().StringVar(&masterUrl, "master", "", "address of Kubernetes API server")
@@ -51,9 +51,8 @@ var command = &cobra.Command{
 	Use:   toolName,
 	Short: "Start the Turandot operator",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if colorize {
-			terminal.EnableColor()
-		}
+		err := terminal.ProcessColorizeFlag(colorize)
+		puccinicommon.FailOnError(err)
 		if logTo == "" {
 			puccinicommon.ConfigureLogging(verbose, nil)
 		} else {

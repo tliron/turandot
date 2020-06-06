@@ -9,9 +9,9 @@ imports:
 - namespace_prefix: mariadb
   file: profiles/mariadb/profile.yaml
 - namespace_prefix: k8s
-  file: profiles/kubernetes/1.18/profile.yaml
+  file: profiles/kubernetes/1.0/profile.yaml
 - namespace_prefix: kubevirt
-  file: profiles/kubevirt/0.29.0/profile.yaml
+  file: profiles/kubevirt/1.0/profile.yaml
 - namespace_prefix: o11n
   file: profiles/orchestration/1.0/profile.yaml
 
@@ -31,8 +31,8 @@ node_types:
         capability: ns:Connectable
         node: ns:NetworkPlane
     interfaces:
-      configure:
-        type: o11n:SSHExecution
+      normal:
+        type: k8s:SSHExecution
 
 topology_template:
 
@@ -114,7 +114,7 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        configure:
+        normal:
           operations:
             execute:
               implementation: /configure.sh
@@ -176,6 +176,7 @@ topology_template:
     tcp-ip:
       type: string
       value: { get_attribute: [ asterisk, tcp, ingress, 0, ip ] }
+
     udp-ip:
       type: string
       value: { get_attribute: [ asterisk, udp, ingress, 0, ip ] }

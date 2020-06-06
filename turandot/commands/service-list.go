@@ -35,7 +35,7 @@ func ListServices() {
 			fmt.Fprintln(terminal.Stdout, service.Name)
 		}
 	} else {
-		table := common.NewTable(maxWidth, "Name", "ServiceTemplateURL", "Inputs", "Outputs")
+		table := common.NewTable(maxWidth, "Name", "Status", "ServiceTemplateURL", "Inputs", "Outputs")
 		for _, service := range services.Items {
 			var inputs string
 			if service.Spec.Inputs != nil {
@@ -53,7 +53,7 @@ func ListServices() {
 				}
 			}
 
-			table.Add(service.Name, service.Spec.ServiceTemplateURL, inputs, outputs)
+			table.Add(service.Name, string(service.Status.Status), service.Spec.ServiceTemplateURL, inputs, outputs)
 		}
 		table.Print()
 	}

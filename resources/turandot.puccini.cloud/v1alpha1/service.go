@@ -129,9 +129,9 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 									"status": {
 										Type: "string",
 										Enum: []apiextensions.JSON{
-											{Raw: []byte(fmt.Sprintf("\"%s\"", ServiceStatusNotInstantiated))},
-											{Raw: []byte(fmt.Sprintf("\"%s\"", ServiceStatusInstantiating))},
-											{Raw: []byte(fmt.Sprintf("\"%s\"", ServiceStatusInstantiated))},
+											{Raw: []byte(fmt.Sprintf("%q", ServiceStatusNotInstantiated))},
+											{Raw: []byte(fmt.Sprintf("%q", ServiceStatusInstantiating))},
+											{Raw: []byte(fmt.Sprintf("%q", ServiceStatusInstantiated))},
 										},
 									},
 									"serviceTemplateUrl": {

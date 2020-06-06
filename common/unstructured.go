@@ -26,7 +26,7 @@ func SetControllerOfUnstructured(object *unstructured.Unstructured, controllerOb
 		object.SetOwnerReferences(ownerReferences)
 		return nil
 	} else {
-		return fmt.Errorf("controller object does not support schema.ObjectKind interface: %v", controllerObject)
+		return fmt.Errorf("controller object does not support schema.ObjectKind interface: %+v", controllerObject)
 	}
 }
 

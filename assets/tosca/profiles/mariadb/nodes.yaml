@@ -4,7 +4,7 @@ imports:
 
 - capabilities.yaml
 - namespace_prefix: k8s
-  file: ../kubernetes/1.18/profile.yaml
+  file: ../kubernetes/1.0/profile.yaml
 
 node_types:
 

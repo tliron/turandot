@@ -5,7 +5,7 @@ imports:
 - namespace_prefix: ns
   file: profiles/network-service/profile.yaml
 - namespace_prefix: k8s
-  file: profiles/kubernetes/1.18/profile.yaml
+  file: profiles/kubernetes/1.0/profile.yaml
 - namespace_prefix: o11n
   file: profiles/orchestration/1.0/profile.yaml
 

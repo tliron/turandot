@@ -37,9 +37,9 @@ func ServiceOutput(serviceName string, outputName string) {
 					return
 				}
 			}
-			puccinicommon.Failf("output \"%s\" not found in service \"%s\"", outputName, serviceName)
+			puccinicommon.Failf("output %q not found in service %q", outputName, serviceName)
 		}
 	}
 
-	puccinicommon.Failf("service \"%s\" not found", serviceName)
+	puccinicommon.Failf("service %q not found", serviceName)
 }

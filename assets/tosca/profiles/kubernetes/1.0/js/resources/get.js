@@ -22,16 +22,20 @@ for (var vertexId in clout.vertexes) {
 	};
 
 	// Find shared metadata
+	var hasMetadataCapability = false;
 	for (var capabilityName in nodeTemplate.capabilities) {
 		var capability = nodeTemplate.capabilities[capabilityName];
 		if ('cloud.puccini.kubernetes::Metadata' in capability.types) {
+			if (hasMetadataCapability)
+				throw puccini.sprintf('node template %s has more than one capability of type cloud.puccini.kubernetes::Metadata', nodeTemplate.name);
+			hasMetadataCapability = true;
+
 			kubernetesMetadata = puccini.deepCopy(capability.properties);
 			if (!kubernetesMetadata.name)
 				kubernetesMetadata.name = nodeTemplate.name;
 			if (!kubernetesMetadata.annotations)
 				kubernetesMetadata.annotations = {};
 			kubernetesMetadata.annotations['clout.puccini.cloud/vertex'] = vertexId;
-			break;
 		}
 	}
 

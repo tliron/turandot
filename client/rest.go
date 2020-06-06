@@ -10,18 +10,18 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
-func (self *Client) WriteToContainer(podName string, reader io.Reader, targetPath string) error {
+func (self *Client) WriteToContainer(podName string, containerName string, reader io.Reader, targetPath string) error {
 	dir := filepath.Dir(targetPath)
-	if err := self.Exec(podName, nil, nil, "mkdir", "--parents", dir); err == nil {
-		return self.Exec(podName, reader, nil, "cp", "/dev/stdin", targetPath)
+	if err := self.Exec(podName, containerName, nil, nil, "mkdir", "--parents", dir); err == nil {
+		return self.Exec(podName, containerName, reader, nil, "cp", "/dev/stdin", targetPath)
 	} else {
 		return err
 	}
 }
 
-func (self *Client) Exec(podName string, stdin io.Reader, stdout io.Writer, command ...string) error {
+func (self *Client) Exec(podName string, containerName string, stdin io.Reader, stdout io.Writer, command ...string) error {
 	execOptions := core.PodExecOptions{
-		Container: "operator",
+		Container: containerName,
 		Command:   command,
 		Stderr:    true,
 		TTY:       false,

@@ -8,7 +8,7 @@ metadata:
 imports:
 
 - namespace_prefix: k8s
-  file: profiles/kubernetes/1.18/profile.yaml
+  file: profiles/kubernetes/1.0/profile.yaml
 - namespace_prefix: o11n
   file: profiles/orchestration/1.0/profile.yaml
 
@@ -27,10 +27,10 @@ node_types:
       deployment: k8s:Deployment
       web: k8s:LoadBalancer
     interfaces:
-      configure:
-        # Here we will execute a Clout scriptlet, but Turandot also supports container execution
-        # and SSH execution types
+      normal.1:
         type: o11n:CloutExecution
+      normal.2:
+        type: k8s:ContainerExecution
 
 topology_template:
 
@@ -75,14 +75,29 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
-        configure:
+        normal.1:
           operations:
             execute:
               implementation: hello-world.set-output
               inputs:
                 arguments:
-                  name: 'configured'
+                  name: initialized
                   value: 'true'
+        normal.2:
+          operations:
+            execute:
+              implementation: cp
+              #implementation: /tmp/configure.sh
+              inputs:
+                #selector:
+                #  matchLabels:
+                #    app.kubernetes.io/name: hello-world
+                arguments:
+                - /dev/stdin
+                - /tmp/hello
+                #- this is an argument
+                artifacts:
+                - configure
       artifacts:
         image:
           # Container images can be placed in the CSAR (or any other repository)
@@ -94,6 +109,10 @@ topology_template:
           properties:
             # The tag is required for publishing the image
             tag: hello-world
+        configure:
+          type: o11n:ShellScript
+          file: artifacts/scripts/configure.sh
+          deploy_path: /tmp/configure.sh
 
   outputs:
 
@@ -101,6 +120,7 @@ topology_template:
       # Before a real attribute value arrives this will evaluate to "http://<unknown>:80"
       type: string
       value: { concat: [ http://, { get_attribute: [ hello-world, web, ingress, 0, ip ] }, ':80' ] }
-    configured:
+
+    initialized:
       type: boolean
       value: false

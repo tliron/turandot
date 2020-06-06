@@ -65,7 +65,7 @@ func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvis
 // OrchestrationPolicies
 //
 
-type OrchestrationPolicies map[string][]*OrchestrationProvisioningPolicy
+type OrchestrationPolicies map[string][]interface{}
 
 func ParseOrchestrationPolicies(value ard.Value) (OrchestrationPolicies, bool) {
 	if policies, ok := value.(ard.Map); ok {
@@ -73,7 +73,7 @@ func ParseOrchestrationPolicies(value ard.Value) (OrchestrationPolicies, bool) {
 		for nodeTemplateName, nodePolicies := range policies {
 			if nodeTemplateName_, ok := nodeTemplateName.(string); ok {
 				if nodePolicies_, ok := nodePolicies.(ard.List); ok {
-					var policies []*OrchestrationProvisioningPolicy
+					var policies []interface{}
 					for _, policy := range nodePolicies_ {
 						policy_ := ard.NewNode(policy)
 						if type_, ok := policy_.Get("type").String(false); ok {

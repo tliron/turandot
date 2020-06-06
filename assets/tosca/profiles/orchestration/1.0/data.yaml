@@ -25,18 +25,6 @@ data_types:
     description: >-
       Base type for execution requirements.
 
-  ExecutionPhase:
-    derived_from: string
-    constraints:
-    - valid_values: [ provision, configure ]
-
-  ExecutionPods:
-    description: >-
-      On which pods to execute.
-    derived_from: string
-    constraints:
-    - valid_values: [ all, any ]
-
   # Artifacts
 
   FilePermissions:

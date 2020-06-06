@@ -1576,3 +1576,12 @@ data_types:
       anything except the status stanza
 
       * PUT/POST/PATCH requests to the custom resource ignore changes to the status stanza.
+
+  # Execution
+
+  ExecutionPods:
+    description: >-
+      On which pods to execute.
+    derived_from: string
+    constraints:
+    - valid_values: [ all, any ]

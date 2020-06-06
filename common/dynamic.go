@@ -75,7 +75,7 @@ func (self *Dynamic) CreateResource(object *unstructured.Unstructured) (*unstruc
 // controllerObject must also support schema.ObjectKind interface
 func (self *Dynamic) CreateControlledResource(object *unstructured.Unstructured, controllerObject meta.Object, processors *Processors, stopChannel <-chan struct{}) (*unstructured.Unstructured, error) {
 	if _, ok := controllerObject.(schema.ObjectKind); !ok {
-		return nil, fmt.Errorf("controller object does not support schema.ObjectKind interface: %v", controllerObject)
+		return nil, fmt.Errorf("controller object does not support schema.ObjectKind interface: %+v", controllerObject)
 	}
 
 	if gvk, err := GetUnstructuredGVK(object); err == nil {
@@ -154,16 +154,16 @@ func (self *Dynamic) AddResourceEventHandler(gvk schema.GroupVersionKind, stopCh
 					hasSynced = append(hasSynced, informer.HasSynced)
 				}
 
-				self.Log.Infof("waiting for dynamic informer caches to sync for \"%s\"", gvk.String())
+				self.Log.Infof("waiting for dynamic informer caches to sync for %q", gvk.String())
 				if ok := cache.WaitForCacheSync(stopChannel, hasSynced...); !ok {
 					return errors.New("interrupted by shutdown while waiting for informer caches to sync")
 				}
-				self.Log.Infof("dynamic informer caches synced for \"%s\"", gvk.String())
+				self.Log.Infof("dynamic informer caches synced for %q", gvk.String())
 			}
 
 			return nil
 		} else {
-			return fmt.Errorf("informers not found for: \"%s\"", gvk.String())
+			return fmt.Errorf("informers not found for: %q", gvk.String())
 		}
 	} else {
 		return err

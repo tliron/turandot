@@ -39,7 +39,7 @@ func (self *Controller) PublishOnInventory(imageName string, url string, ips []s
 		}
 
 		for _, ip := range ips {
-			self.Log.Infof("publishing image \"%s\" at \"%s\" on \"%s\"", imageName, url, ip)
+			self.Log.Infof("publishing image %q at %q on %q", imageName, url, ip)
 
 			name := fmt.Sprintf("%s:5000/%s", ip, imageName)
 
@@ -47,7 +47,7 @@ func (self *Controller) PublishOnInventory(imageName string, url string, ips []s
 				if tag, err := namepkg.NewTag(name); err == nil {
 					if image, err := tarball.Image(opener, &contentTag); err == nil {
 						if err := remote.Write(tag, image); err == nil {
-							self.Log.Infof("published image \"%s\" at \"%s\" on \"%s\"", imageName, url, ip)
+							self.Log.Infof("published image %q at %q on %q", imageName, url, ip)
 							return name, nil
 						} else {
 							return "", err
