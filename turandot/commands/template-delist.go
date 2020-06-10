@@ -8,7 +8,7 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templateDelistCommand)
-	templateDelistCommand.PersistentFlags().BoolVarP(&all, "all", "a", false, "delist all templates")
+	templateDelistCommand.Flags().BoolVarP(&all, "all", "a", false, "delist all templates")
 }
 
 var templateDelistCommand = &cobra.Command{

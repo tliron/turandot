@@ -6,7 +6,7 @@ import (
 
 func init() {
 	rootCommand.AddCommand(uninstallCommand)
-	uninstallCommand.PersistentFlags().BoolVarP(&wait, "wait", "w", false, "wait for uninstallation to succeed")
+	uninstallCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for uninstallation to succeed")
 }
 
 var uninstallCommand = &cobra.Command{

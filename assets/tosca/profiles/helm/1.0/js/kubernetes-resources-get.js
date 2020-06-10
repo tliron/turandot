@@ -5,7 +5,7 @@ for (var vertexId in clout.vertexes) {
 		continue;
 	var nodeTemplate = vertex.properties;
 
-	var tmp = '/tmp/chart.tar.gz';
+	var tmp = puccini.temporaryFile('helm-chart-*.tar.gz');
 
 	try {
 		puccini.download(nodeTemplate.properties.chart, tmp);

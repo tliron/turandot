@@ -26,23 +26,23 @@ var cachePath string
 var healthPort uint
 
 func init() {
-	command.PersistentFlags().StringVarP(&logTo, "log", "l", "", "log to file (defaults to stderr)")
-	command.PersistentFlags().CountVarP(&verbose, "verbose", "v", "add a log verbosity level (can be used twice)")
-	command.PersistentFlags().StringVarP(&colorize, "colorize", "z", "true", "colorize output (boolean or \"force\"")
+	command.Flags().StringVarP(&logTo, "log", "l", "", "log to file (defaults to stderr)")
+	command.Flags().CountVarP(&verbose, "verbose", "v", "add a log verbosity level (can be used twice)")
+	command.Flags().StringVarP(&colorize, "colorize", "z", "true", "colorize output (boolean or \"force\")")
 
 	// Conventional flags for Kubernetes controllers
-	command.PersistentFlags().StringVar(&masterUrl, "master", "", "address of Kubernetes API server")
-	command.PersistentFlags().StringVar(&kubeconfigPath, "kubeconfig", "", "path to Kubernetes configuration")
+	command.Flags().StringVar(&masterUrl, "master", "", "address of Kubernetes API server")
+	command.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "path to Kubernetes configuration")
 
 	// Our additional flags
-	command.PersistentFlags().BoolVar(&version, "version", false, "print version")
-	command.PersistentFlags().StringVar(&site, "site", "default", "site name")
-	command.PersistentFlags().BoolVar(&cluster, "cluster", false, "enable cluster mode")
-	command.PersistentFlags().StringVar(&namespace, "namespace", "", "namespace (overrides context namespace in Kubernetes configuration)")
-	command.PersistentFlags().UintVar(&concurrency, "concurrency", 1, "number of concurrent workers per processor")
-	command.PersistentFlags().DurationVar(&resyncPeriod, "resync", time.Second*30, "informer resync period")
-	command.PersistentFlags().StringVar(&cachePath, "cache", "", "cache path")
-	command.PersistentFlags().UintVar(&healthPort, "health-port", 8086, "HTTP port for health check (for liveness and readiness probes)")
+	command.Flags().BoolVar(&version, "version", false, "print version")
+	command.Flags().StringVar(&site, "site", "default", "site name")
+	command.Flags().BoolVar(&cluster, "cluster", false, "enable cluster mode")
+	command.Flags().StringVar(&namespace, "namespace", "", "namespace (overrides context namespace in Kubernetes configuration)")
+	command.Flags().UintVar(&concurrency, "concurrency", 1, "number of concurrent workers per processor")
+	command.Flags().DurationVar(&resyncPeriod, "resync", time.Second*30, "informer resync period")
+	command.Flags().StringVar(&cachePath, "cache", "", "cache path")
+	command.Flags().UintVar(&healthPort, "health-port", 8086, "HTTP port for health check (for liveness and readiness probes)")
 
 	common.SetCobraFlagsFromEnvironment("TURANDOT_OPERATOR_", command)
 }

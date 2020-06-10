@@ -7,7 +7,7 @@ import (
 
 func init() {
 	serviceCommand.AddCommand(serviceDeleteCommand)
-	serviceDeleteCommand.PersistentFlags().BoolVarP(&all, "all", "a", false, "delete all services")
+	serviceDeleteCommand.Flags().BoolVarP(&all, "all", "a", false, "delete all services")
 }
 
 var serviceDeleteCommand = &cobra.Command{

@@ -7,7 +7,7 @@ import (
 
 func init() {
 	delegateCommand.AddCommand(delegateDeleteCommand)
-	delegateDeleteCommand.PersistentFlags().BoolVarP(&all, "all", "a", false, "delete all delegates")
+	delegateDeleteCommand.Flags().BoolVarP(&all, "all", "a", false, "delete all delegates")
 }
 
 var delegateDeleteCommand = &cobra.Command{

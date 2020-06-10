@@ -182,7 +182,7 @@ func (self *Table) Write(writer io.Writer) {
 			for column, cell := range row {
 				if line < len(cell) {
 					if r != 0 {
-						fmt.Fprint(writer, terminal.ColorName(pad(cell[line], columnWidths[column])))
+						fmt.Fprint(writer, terminal.ColorValue(pad(cell[line], columnWidths[column])))
 					} else {
 						// Heading
 						fmt.Fprint(writer, terminal.ColorTypeName(pad(cell[line], columnWidths[column])))

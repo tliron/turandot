@@ -23,6 +23,8 @@ turandot install -s central -n workspace -w -v
 kubectl config set-context --current --namespace=workspace
 
 turandot service deploy hello-world -f dist/hello-world.csar -v
+turandot operator logs -f
+exit
 turandot service deploy helm-hello-world -f dist/helm-hello-world.csar -v
 
 turandot delegate set edge --delegate-context=edge -v

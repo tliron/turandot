@@ -12,6 +12,7 @@ import (
 	"github.com/tliron/puccini/common/format"
 	urlpkg "github.com/tliron/puccini/url"
 	"github.com/tliron/turandot/common"
+	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	errorspkg "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,7 +56,7 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 			Inputs:             inputs_,
 		},
 		Status: resources.ServiceStatus{
-			Status: resources.ServiceStatusNotInstantiated,
+			InstantiationState: resources.ServiceNotInstantiated,
 		},
 	}
 
@@ -68,25 +69,17 @@ func (self *Controller) CreateService(namespace string, name string, url urlpkg.
 	}
 }
 
-func (self *Controller) UpdateServiceStatusString(service *resources.Service, statusString resources.ServiceStatusString) (*resources.Service, error) {
-	self.Log.Infof("updating status string to %q for service: %s/%s", statusString, service.Namespace, service.Name)
+func (self *Controller) UpdateServiceInstantiationState(service *resources.Service, state resources.ServiceInstantiationState) (*resources.Service, error) {
+	self.Log.Infof("updating instantiation status to %q for service: %s/%s", state, service.Namespace, service.Name)
 
-	service = service.DeepCopy()
-	service.Status.Status = statusString
+	service.Status.InstantiationState = state
 
-	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
-		// When retrieved from cache the GVK may be empty
-		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
-		return service, nil
-	} else {
-		return nil, err
-	}
+	return self.updateServiceStatus(service)
 }
 
 func (self *Controller) UpdateServiceStatusClout(service *resources.Service, cloutPath string, cloutHash string) (*resources.Service, error) {
 	self.Log.Infof("updating Clout status for service: %s/%s", service.Namespace, service.Name)
 
-	service = service.DeepCopy()
 	service.Status.ServiceTemplateURL = service.Spec.ServiceTemplateURL
 	if service.Spec.Inputs != nil {
 		service.Status.Inputs = make(map[string]string)
@@ -97,26 +90,43 @@ func (self *Controller) UpdateServiceStatusClout(service *resources.Service, clo
 	service.Status.CloutPath = cloutPath
 	service.Status.CloutHash = cloutHash
 
-	// TODO: check: does update return an error if there was no change?
-	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
-		// When retrieved from cache the GVK may be empty
-		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
-		return service, nil
-	} else {
-		return service, err
-	}
+	return self.updateServiceStatus(service)
 }
 
 func (self *Controller) UpdateServiceStatusOutputs(service *resources.Service, outputs map[string]string) (*resources.Service, error) {
 	self.Log.Infof("updating outputs for service: %s/%s", service.Namespace, service.Name)
 
-	service = service.DeepCopy()
 	service.Status.Outputs = outputs
 
-	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
+	return self.updateServiceStatus(service)
+}
+
+func (self *Controller) UpdateServiceStatusNodeStates(service *resources.Service, states parser.OrchestrationNodeStates) (*resources.Service, error) {
+	self.Log.Infof("updating node states for service: %s/%s", service.Namespace, service.Name)
+
+	if service.Status.NodeStates == nil {
+		service.Status.NodeStates = make(map[string]resources.ServiceNodeModeState)
+	}
+	for nodeTemplateName, nodeState := range states {
+		service.Status.NodeStates[nodeTemplateName] = resources.ServiceNodeModeState{
+			Mode:    nodeState.Mode,
+			State:   resources.ModeState(nodeState.State),
+			Message: nodeState.Message,
+		}
+	}
+
+	return self.updateServiceStatus(service)
+}
+
+func (self *Controller) updateServiceStatus(service *resources.Service) (*resources.Service, error) {
+	service = service.DeepCopy()
+	if service_, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
 		// When retrieved from cache the GVK may be empty
-		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
-		return service, nil
+		if service_.Kind == "" {
+			service_ = service_.DeepCopy()
+			service_.APIVersion, service_.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+		}
+		return service_, nil
 	} else {
 		return service, err
 	}
@@ -124,7 +134,7 @@ func (self *Controller) UpdateServiceStatusOutputs(service *resources.Service, o
 
 func (self *Controller) processService(service *resources.Service) (bool, error) {
 	// The "Instantiating" status is used as a processing lock
-	if service.Status.Status == resources.ServiceStatusInstantiating {
+	if service.Status.InstantiationState == resources.ServiceInstantiating {
 		return true, nil
 	}
 
@@ -148,7 +158,7 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 
 	// The "Instantiating" status is used as a processing lock
 	var err error
-	if service, err = self.UpdateServiceStatusString(service, resources.ServiceStatusInstantiating); err != nil {
+	if service, err = self.UpdateServiceInstantiationState(service, resources.ServiceInstantiating); err != nil {
 		return false, err
 	}
 
@@ -174,12 +184,12 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 
 		self.EventCompiled(service)
 		if service, err = self.UpdateServiceStatusClout(service, cloutPath, cloutHash); err != nil {
-			_, err := self.UpdateServiceStatusString(service, resources.ServiceStatusNotInstantiated)
+			_, err := self.UpdateServiceInstantiationState(service, resources.ServiceNotInstantiated)
 			return true, err
 		}
 	} else {
 		self.EventCompilationError(service, err)
-		_, err := self.UpdateServiceStatusString(service, resources.ServiceStatusNotInstantiated)
+		_, err := self.UpdateServiceInstantiationState(service, resources.ServiceNotInstantiated)
 		// Note that we return true to avoid unnecessary recompilation of the same service template
 		return true, err
 	}
@@ -187,11 +197,11 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 	// Instantiate
 	if service, err = self.instantiateClout(service, urlContext); err == nil {
 		self.EventInstantiated(service)
-		_, err := self.UpdateServiceStatusString(service, resources.ServiceStatusInstantiated)
+		_, err := self.UpdateServiceInstantiationState(service, resources.ServiceInstantiated)
 		return true, err
 	} else {
 		self.EventInstantiationError(service, err)
-		_, err := self.UpdateServiceStatusString(service, resources.ServiceStatusNotInstantiated)
+		_, err := self.UpdateServiceInstantiationState(service, resources.ServiceNotInstantiated)
 		return false, err
 	}
 }
@@ -218,7 +228,7 @@ func (self *Controller) updateService(service *resources.Service) error {
 }
 
 func (self *Controller) isServiceInstanceOfCurrentClout(service *resources.Service) (bool, error) {
-	if service.Status.Status != resources.ServiceStatusInstantiated {
+	if service.Status.InstantiationState != resources.ServiceInstantiated {
 		return false, nil
 	} else if service.Status.CloutPath == "" {
 		self.Log.Infof("no Clout for service %s/%s", service.Namespace, service.Name)

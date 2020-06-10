@@ -5,6 +5,14 @@ import (
 )
 
 //
+// OrchestrationExecution
+//
+
+type OrchestrationExecution interface {
+	GetMode() string
+}
+
+//
 // OrchestrationCloutExecution
 //
 
@@ -38,10 +46,17 @@ func ParseOrchestrationCloutExecution(value ard.Value) (*OrchestrationCloutExecu
 				ScriptletName: scriptletName,
 				Arguments:     arguments,
 			}, true
+		} else {
+			return nil, false
 		}
+	} else {
+		return nil, false
 	}
+}
 
-	return nil, false
+// OrchestrationExecution interface
+func (self *OrchestrationCloutExecution) GetMode() string {
+	return self.Mode
 }
 
 //
@@ -109,17 +124,24 @@ func ParseOrchestrationContainerExecution(value ard.Value) (*OrchestrationContai
 				ContainerName: containerName,
 				Artifacts:     artifacts,
 			}, true
+		} else {
+			return nil, false
 		}
+	} else {
+		return nil, false
 	}
+}
 
-	return nil, false
+// OrchestrationExecution interface
+func (self *OrchestrationContainerExecution) GetMode() string {
+	return self.Mode
 }
 
 //
 // OrchestrationExecutions
 //
 
-type OrchestrationExecutions map[string][]interface{}
+type OrchestrationExecutions map[string][]OrchestrationExecution
 
 func ParseOrchestrationExecutions(value ard.Value) (OrchestrationExecutions, bool) {
 	if executions, ok := ard.NewNode(value).Get("executions").List(false); ok {

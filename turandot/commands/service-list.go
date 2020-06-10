@@ -4,14 +4,15 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tliron/puccini/ard"
 	puccinicommon "github.com/tliron/puccini/common"
+	formatpkg "github.com/tliron/puccini/common/format"
 	"github.com/tliron/puccini/common/terminal"
 	"github.com/tliron/turandot/common"
 )
 
 func init() {
 	serviceCommand.AddCommand(serviceListCommand)
-	serviceListCommand.PersistentFlags().BoolVarP(&bare, "bare", "b", false, "list bare names (not as a table)")
 }
 
 var serviceListCommand = &cobra.Command{
@@ -30,13 +31,17 @@ func ListServices() {
 	}
 	// TODO: sort services by name? they seem already sorted!
 
-	if bare {
+	switch format {
+	case "":
+		table := common.NewTable(maxWidth, "Name", "InstantiationState", "Mode", "Inputs", "Outputs")
 		for _, service := range services.Items {
-			fmt.Fprintln(terminal.Stdout, service.Name)
-		}
-	} else {
-		table := common.NewTable(maxWidth, "Name", "Status", "ServiceTemplateURL", "Inputs", "Outputs")
-		for _, service := range services.Items {
+			mode := fmt.Sprintf("%s\n", service.Status.Mode)
+			if service.Status.NodeStates != nil {
+				for node, nodeState := range service.Status.NodeStates {
+					mode += fmt.Sprintf("%s: %s\n", node, nodeState.State)
+				}
+			}
+
 			var inputs string
 			if service.Spec.Inputs != nil {
 				for _, name := range common.SortedMapStringStringKeys(service.Spec.Inputs) {
@@ -53,8 +58,20 @@ func ListServices() {
 				}
 			}
 
-			table.Add(service.Name, string(service.Status.Status), service.Spec.ServiceTemplateURL, inputs, outputs)
+			table.Add(service.Name, string(service.Status.InstantiationState), mode, inputs, outputs)
 		}
 		table.Print()
+
+	case "bare":
+		for _, service := range services.Items {
+			fmt.Fprintln(terminal.Stdout, service.Name)
+		}
+
+	default:
+		list := make(ard.List, len(services.Items))
+		for index, service := range services.Items {
+			list[index] = ServiceToARD(&service)
+		}
+		formatpkg.Print(list, format, terminal.Stdout, strict, pretty)
 	}
 }

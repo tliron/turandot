@@ -45,6 +45,17 @@ func (self *Client) GetService(serviceName string) (*resources.Service, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Get(self.Context, serviceName, meta.GetOptions{})
 }
 
+func (self *Client) UpdateServiceStatus(service *resources.Service) (*resources.Service, error) {
+	service = service.DeepCopy()
+	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
+		// When retrieved from cache the GVK may be empty
+		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+		return service, nil
+	} else {
+		return service, err
+	}
+}
+
 func (self *Client) DeleteService(serviceName string) error {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
 }
@@ -78,7 +89,7 @@ func (self *Client) createService(name string, url urlpkg.URL, inputs map[string
 			Inputs:             inputs_,
 		},
 		Status: resources.ServiceStatus{
-			Status: resources.ServiceStatusNotInstantiated,
+			InstantiationState: resources.ServiceNotInstantiated,
 		},
 	}
 

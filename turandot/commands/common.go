@@ -19,7 +19,6 @@ var url string
 var component string
 var tail int
 var follow bool
-var bare bool
 var all bool
 var wait bool
 

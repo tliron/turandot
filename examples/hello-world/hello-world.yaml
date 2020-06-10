@@ -28,9 +28,11 @@ node_types:
       web: k8s:LoadBalancer
     interfaces:
       normal.1:
-        type: o11n:CloutExecution
-      normal.2:
         type: k8s:ContainerExecution
+      normal.2:
+        type: o11n:CloutExecution
+      normal.3:
+        type: o11n:CloutExecution
 
 topology_template:
 
@@ -78,14 +80,6 @@ topology_template:
         normal.1:
           operations:
             execute:
-              implementation: hello-world.set-output
-              inputs:
-                arguments:
-                  name: initialized
-                  value: 'true'
-        normal.2:
-          operations:
-            execute:
               implementation: cp
               #implementation: /tmp/configure.sh
               inputs:
@@ -98,6 +92,24 @@ topology_template:
                 #- this is an argument
                 artifacts:
                 - configure
+        normal.2:
+          operations:
+            execute:
+              implementation: hello-world.set-output
+              inputs:
+                arguments:
+                  name: initialized
+                  value: 'true'
+        normal.3:
+          operations:
+            execute:
+              implementation: orchestration.states.set
+              inputs:
+                arguments:
+                  service: hello-world
+                  mode: normal
+                  state: Achieved
+                  message: We did it!
       artifacts:
         image:
           # Container images can be placed in the CSAR (or any other repository)

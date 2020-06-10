@@ -41,12 +41,10 @@ spec:
           status:
             type: object
             properties:
-              status:
+              cloutPath:
                 type: string
-                enum:
-                - NotInstantiated
-                - Instantiating
-                - Instantiated
+              cloutHash:
+                type: string
               serviceTemplateUrl:
                 type: string
               inputs:
@@ -59,7 +57,28 @@ spec:
                 nullable: true
                 additionalProperties:
                   type: string
-              cloutPath:
+              instantiationState:
                 type: string
-              cloutHash:
+                enum:
+                - NotInstantiated
+                - Instantiating
+                - Instantiated
+              nodeStates:
+                type: object
+                nullable: true
+                additionalProperties:
+                  type: object
+                  properties:
+                    mode:
+                      type: string
+                    state:
+                      type: string
+                      enum:
+                      - Accepted
+                      - Rejected
+                      - Achieved
+                      - Failed
+                    message:
+                      type: string
+              mode:
                 type: string

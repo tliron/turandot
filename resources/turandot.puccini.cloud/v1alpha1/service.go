@@ -8,7 +8,11 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ServiceStatusString string
+var ServiceGVK = SchemeGroupVersion.WithKind(ServiceKind)
+
+type ServiceInstantiationState string
+
+type ModeState string
 
 const (
 	ServiceKind     = "Service"
@@ -18,12 +22,15 @@ const (
 	ServicePlural    = "services"
 	ServiceShortName = "si" // = ServIce? Service Instance?
 
-	ServiceStatusNotInstantiated ServiceStatusString = "NotInstantiated"
-	ServiceStatusInstantiating   ServiceStatusString = "Instantiating"
-	ServiceStatusInstantiated    ServiceStatusString = "Instantiated"
-)
+	ServiceNotInstantiated ServiceInstantiationState = "NotInstantiated"
+	ServiceInstantiating   ServiceInstantiationState = "Instantiating"
+	ServiceInstantiated    ServiceInstantiationState = "Instantiated"
 
-var ServiceGVK = SchemeGroupVersion.WithKind(ServiceKind)
+	ModeAccepted ModeState = "Accepted"
+	ModeRejected ModeState = "Rejected"
+	ModeAchieved ModeState = "Achieved"
+	ModeFailed   ModeState = "Failed"
+)
 
 //
 // Service
@@ -45,12 +52,22 @@ type ServiceSpec struct {
 }
 
 type ServiceStatus struct {
-	Status             ServiceStatusString `json:"status"`
-	ServiceTemplateURL string              `json:"serviceTemplateUrl"`
-	Inputs             map[string]string   `json:"inputs"`
-	Outputs            map[string]string   `json:"outputs"`
-	CloutPath          string              `json:"cloutPath"`
-	CloutHash          string              `json:"cloutHash"`
+	CloutPath string `json:"cloutPath"`
+	CloutHash string `json:"cloutHash"`
+
+	ServiceTemplateURL string            `json:"serviceTemplateUrl"`
+	Inputs             map[string]string `json:"inputs"`
+	Outputs            map[string]string `json:"outputs"`
+
+	InstantiationState ServiceInstantiationState       `json:"instantiationState"`
+	NodeStates         map[string]ServiceNodeModeState `json:"nodeStates"`
+	Mode               string                          `json:"mode"`
+}
+
+type ServiceNodeModeState struct {
+	Mode    string    `json:"mode"`
+	State   ModeState `json:"state"`
+	Message string    `json:"message"`
 }
 
 //
@@ -126,13 +143,11 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 							"status": {
 								Type: "object",
 								Properties: map[string]apiextensions.JSONSchemaProps{
-									"status": {
+									"cloutPath": {
 										Type: "string",
-										Enum: []apiextensions.JSON{
-											{Raw: []byte(fmt.Sprintf("%q", ServiceStatusNotInstantiated))},
-											{Raw: []byte(fmt.Sprintf("%q", ServiceStatusInstantiating))},
-											{Raw: []byte(fmt.Sprintf("%q", ServiceStatusInstantiated))},
-										},
+									},
+									"cloutHash": {
+										Type: "string",
 									},
 									"serviceTemplateUrl": {
 										Type: "string",
@@ -155,10 +170,41 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 											},
 										},
 									},
-									"cloutPath": {
+									"instantiationState": {
 										Type: "string",
+										Enum: []apiextensions.JSON{
+											{Raw: []byte(fmt.Sprintf("%q", ServiceNotInstantiated))},
+											{Raw: []byte(fmt.Sprintf("%q", ServiceInstantiating))},
+											{Raw: []byte(fmt.Sprintf("%q", ServiceInstantiated))},
+										},
 									},
-									"cloutHash": {
+									"nodeStates": {
+										Type:     "object",
+										Nullable: true,
+										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
+											Schema: &apiextensions.JSONSchemaProps{
+												Type: "object",
+												Properties: map[string]apiextensions.JSONSchemaProps{
+													"mode": {
+														Type: "string",
+													},
+													"state": {
+														Type: "string",
+														Enum: []apiextensions.JSON{
+															{Raw: []byte(fmt.Sprintf("%q", ModeAccepted))},
+															{Raw: []byte(fmt.Sprintf("%q", ModeRejected))},
+															{Raw: []byte(fmt.Sprintf("%q", ModeAchieved))},
+															{Raw: []byte(fmt.Sprintf("%q", ModeFailed))},
+														},
+													},
+													"message": {
+														Type: "string",
+													},
+												},
+											},
+										},
+									},
+									"mode": {
 										Type: "string",
 									},
 								},

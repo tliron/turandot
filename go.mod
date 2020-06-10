@@ -21,7 +21,7 @@ require (
 	github.com/tliron/yamlkeys v1.3.3
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	k8s.io/api v0.18.3
-	k8s.io/apiextensions-apiserver v0.18.3
+	k8s.io/apiextensions-apiserver v0.18.0
 	k8s.io/apimachinery v0.18.3
 	k8s.io/apiserver v0.18.3 // indirect
 	k8s.io/client-go v0.18.3

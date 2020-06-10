@@ -21,6 +21,10 @@ import (
 func (self *Controller) processExecutions(executions parser.OrchestrationExecutions, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
 	for nodeTemplateName, nodeTemplateExecutions := range executions {
 		for _, execution := range nodeTemplateExecutions {
+			if execution.GetMode() != service.Status.Mode {
+				continue
+			}
+
 			var err error
 			switch execution_ := execution.(type) {
 			case *parser.OrchestrationCloutExecution:

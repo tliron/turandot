@@ -24,22 +24,17 @@ var serviceOutputCommand = &cobra.Command{
 }
 
 func ServiceOutput(serviceName string, outputName string) {
-	services, err := NewClient().Turandot().ListServices()
+	service, err := NewClient().Turandot().GetService(serviceName)
 	puccinicommon.FailOnError(err)
 
-	for _, service := range services.Items {
-		if service.Name == serviceName {
-			if service.Status.Outputs != nil {
-				if output, ok := service.Status.Outputs[outputName]; ok {
-					// TODO: unpack the YAML
-					// TODO: support output in various formats
-					fmt.Fprintln(terminal.Stdout, output)
-					return
-				}
-			}
-			puccinicommon.Failf("output %q not found in service %q", outputName, serviceName)
+	if service.Status.Outputs != nil {
+		if output, ok := service.Status.Outputs[outputName]; ok {
+			// TODO: unpack the YAML
+			// TODO: support output in various formats
+			fmt.Fprintln(terminal.Stdout, output)
+			return
 		}
 	}
 
-	puccinicommon.Failf("service %q not found", serviceName)
+	puccinicommon.Failf("output %q not found in service %q", outputName, serviceName)
 }

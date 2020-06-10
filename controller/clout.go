@@ -201,7 +201,7 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 
 	// TODO: debug weird recompilation namespace errors
 
-	return self.updateCloutOutputs(service, urlContext)
+	return self.updateServiceStatusFromClout(service, urlContext)
 }
 
 func (self *Controller) composeClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
@@ -254,22 +254,50 @@ func (self *Controller) composeClout(service *resources.Service, urlContext *url
 		}
 	}
 
-	return self.updateCloutOutputs(service, urlContext)
+	return self.updateServiceStatusFromClout(service, urlContext)
 }
 
-func (self *Controller) updateCloutOutputs(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
-	self.Log.Infof("processing outputs for Clout: %s", service.Status.CloutPath)
+func (self *Controller) updateServiceStatusFromClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+	var err error
+
+	// Get outputs
+	self.Log.Infof("getting outputs from Clout: %s", service.Status.CloutPath)
+	var outputs map[string]string
 	if clout, err := self.ReadClout(service.Status.CloutPath, true, true, urlContext); err == nil {
-		if outputs, ok := parser.GetOutputs(clout); ok {
-			if !reflect.DeepEqual(outputs, service.Status.Outputs) {
-				return self.UpdateServiceStatusOutputs(service, outputs)
-			} else {
-				return service, nil
-			}
-		} else {
+		var ok bool
+		if outputs, ok = parser.GetOutputs(clout); !ok {
 			return service, fmt.Errorf("could not parse outputs for Clout: %s", service.Status.CloutPath)
 		}
 	} else {
 		return service, err
 	}
+
+	// Update outputs in status
+	if !reflect.DeepEqual(outputs, service.Status.Outputs) {
+		if service, err = self.UpdateServiceStatusOutputs(service, outputs); err != nil {
+			return service, err
+		}
+	}
+
+	// Get node states
+	self.Log.Infof("get node states from Clout: %s", service.Status.CloutPath)
+	var states ard.Value
+	if states, err = self.executeCloutGet(service, urlContext, "orchestration.states.get", nil); err != nil {
+		return service, err
+	}
+
+	// Process node states
+	if states != nil {
+		if orchestrationStates, ok := parser.ParseOrchestrationStates(states); ok {
+			if serviceStates, ok := orchestrationStates[service.Name]; ok {
+				if service, err = self.UpdateServiceStatusNodeStates(service, serviceStates); err != nil {
+					return service, err
+				}
+			}
+		} else {
+			return service, fmt.Errorf("could not parse node states: %+v", states)
+		}
+	}
+
+	return service, nil
 }

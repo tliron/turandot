@@ -10,10 +10,10 @@ var registry string
 
 func init() {
 	rootCommand.AddCommand(installCommand)
-	installCommand.PersistentFlags().StringVarP(&site, "site", "s", "default", "site name")
-	installCommand.PersistentFlags().BoolVarP(&cluster, "cluster", "c", false, "cluster mode")
-	installCommand.PersistentFlags().StringVarP(&registry, "registry", "r", "docker.io", "registry URL (use special value \"internal\" to discover internally deployed registry)")
-	installCommand.PersistentFlags().BoolVarP(&wait, "wait", "w", false, "wait for installation to succeed")
+	installCommand.Flags().StringVarP(&site, "site", "s", "default", "site name")
+	installCommand.Flags().BoolVarP(&cluster, "cluster", "c", false, "cluster mode")
+	installCommand.Flags().StringVarP(&registry, "registry", "r", "docker.io", "registry URL (use special value \"internal\" to discover internally deployed registry)")
+	installCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for installation to succeed")
 }
 
 var installCommand = &cobra.Command{

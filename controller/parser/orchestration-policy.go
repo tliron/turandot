@@ -104,6 +104,7 @@ func ParseOrchestrationPolicies(value ard.Value) (OrchestrationPolicies, bool) {
 			}
 		}
 		return self, true
+	} else {
+		return nil, false
 	}
-	return nil, false
 }
