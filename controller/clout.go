@@ -207,10 +207,21 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 func (self *Controller) composeClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
 	var err error
 
+	// Change mode?
+	if service.Status.Mode != service.Spec.Mode {
+		if service, err = self.UpdateServiceStatusMode(service); err != nil {
+			return service, err
+		}
+		self.Log.Infof("resetting node states in Clout: %s", service.Status.CloutPath)
+		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.executions.reset", map[string]string{"service": service.Name, "mode": service.Status.Mode}); err != nil {
+			return service, err
+		}
+	}
+
 	// Get executions
 	var executions ard.Value
 	self.Log.Infof("getting executions for Clout: %s", service.Status.CloutPath)
-	if executions, err = self.executeCloutGet(service, urlContext, "kubernetes.executions", nil); err != nil {
+	if executions, err = self.executeCloutGet(service, urlContext, "kubernetes.executions", map[string]string{"service": service.Name}); err != nil {
 		return service, err
 	}
 

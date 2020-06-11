@@ -2,8 +2,9 @@
 clout.exec('tosca.lib.utils');
 
 var serviceName = puccini.arguments.service;
-var mode = puccini.arguments.mode;
 var nodeTemplateName = puccini.arguments.nodeTemplate;
+
+var mode = puccini.arguments.mode;
 var state = puccini.arguments.state;
 var message = puccini.arguments.message;
 

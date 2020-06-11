@@ -2,14 +2,17 @@ package controller
 
 import (
 	contextpkg "context"
+	"fmt"
 	"time"
 
 	"github.com/op/go-logging"
 	turandotclientset "github.com/tliron/turandot/apis/clientset/versioned"
 	turandotinformers "github.com/tliron/turandot/apis/informers/externalversions"
 	turandotlisters "github.com/tliron/turandot/apis/listers/turandot.puccini.cloud/v1alpha1"
+	clientpkg "github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/common"
 	turandotresources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
+	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	dynamicpkg "k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
@@ -29,6 +32,7 @@ type Controller struct {
 	Kubernetes  kubernetes.Interface
 	Turandot    turandotclientset.Interface
 	Config      *restpkg.Config
+	Client      *clientpkg.Client
 	CachePath   string
 	StopChannel <-chan struct{}
 
@@ -44,7 +48,7 @@ type Controller struct {
 	Log     *logging.Logger
 }
 
-func NewController(toolName string, site string, cluster bool, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, turandot turandotclientset.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
+func NewController(toolName string, site string, cluster bool, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotclientset.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
 	context := contextpkg.TODO()
 
 	if cluster {
@@ -65,6 +69,25 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		Context:    context,
 		Log:        log,
 	}
+
+	self.Client = clientpkg.NewClient(
+		fmt.Sprintf("turandot.client.%s", site),
+		kubernetes,
+		apiExtensions,
+		turandot,
+		kubernetes.CoreV1().RESTClient(),
+		config,
+		cluster,
+		namespace,
+		NamePrefix,
+		PartOf,
+		ManagedBy,
+		OperatorImageName,
+		InventoryImageName,
+		InventorySpoolerImageName,
+		CacheDirectory,
+		SpoolDirectory,
+	)
 
 	if cluster {
 		self.KubernetesInformerFactory = informers.NewSharedInformerFactory(kubernetes, informerResyncPeriod)

@@ -49,6 +49,7 @@ type Service struct {
 type ServiceSpec struct {
 	ServiceTemplateURL string            `json:"serviceTemplateUrl"`
 	Inputs             map[string]string `json:"inputs"`
+	Mode               string            `json:"mode"`
 }
 
 type ServiceStatus struct {
@@ -137,6 +138,9 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 												Type: "string",
 											},
 										},
+									},
+									"mode": {
+										Type: "string",
 									},
 								},
 							},

@@ -7,10 +7,11 @@ import (
 	"github.com/heptiolabs/healthcheck"
 	"github.com/tebeka/atexit"
 	puccinicommon "github.com/tliron/puccini/common"
-	puccinipkg "github.com/tliron/turandot/apis/clientset/versioned"
+	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	"github.com/tliron/turandot/common"
 	controllerpkg "github.com/tliron/turandot/controller"
 	versionpkg "github.com/tliron/turandot/version"
+	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/dynamic"
 	kubernetespkg "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -52,10 +53,13 @@ func Controller() {
 	kubernetesClient, err := kubernetespkg.NewForConfig(config)
 	puccinicommon.FailOnError(err)
 
+	apiExtensionsClient, err := apiextensionspkg.NewForConfig(config)
+	puccinicommon.FailOnError(err)
+
 	dynamicClient, err := dynamic.NewForConfig(config)
 	puccinicommon.FailOnError(err)
 
-	pucciniClient, err := puccinipkg.NewForConfig(config)
+	turandotClient, err := turandotpkg.NewForConfig(config)
 	puccinicommon.FailOnError(err)
 
 	// Controller
@@ -67,7 +71,8 @@ func Controller() {
 		namespace,
 		dynamicClient,
 		kubernetesClient,
-		pucciniClient,
+		apiExtensionsClient,
+		turandotClient,
 		config,
 		cachePath,
 		resyncPeriod,

@@ -24,30 +24,6 @@ var serviceDescribeCommand = &cobra.Command{
 	},
 }
 
-func ServiceToARD(service *resources.Service) ard.StringMap {
-	map_ := make(ard.StringMap)
-	map_["Name"] = service.Name
-	map_["ServiceTemplateURL"] = service.Spec.ServiceTemplateURL
-	map_["Inputs"] = service.Spec.Inputs
-	map_["Outputs"] = service.Status.Outputs
-	map_["InstantiationState"] = service.Status.InstantiationState
-	map_["CloutPath"] = service.Status.CloutPath
-	map_["CloutHash"] = service.Status.CloutHash
-	map_["Mode"] = service.Status.Mode
-	nodeStates := make(ard.StringMap)
-	if service.Status.NodeStates != nil {
-		for node, nodeState := range service.Status.NodeStates {
-			nodeStates[node] = ard.StringMap{
-				"Mode":    nodeState.Mode,
-				"State":   nodeState.State,
-				"Message": nodeState.Message,
-			}
-		}
-	}
-	map_["NodeStates"] = nodeStates
-	return map_
-}
-
 func DescribeService(serviceName string) {
 	service, err := NewClient().Turandot().GetService(serviceName)
 	puccinicommon.FailOnError(err)
@@ -87,4 +63,28 @@ func DescribeService(serviceName string) {
 			}
 		}
 	}
+}
+
+func ServiceToARD(service *resources.Service) ard.StringMap {
+	map_ := make(ard.StringMap)
+	map_["Name"] = service.Name
+	map_["ServiceTemplateURL"] = service.Spec.ServiceTemplateURL
+	map_["Inputs"] = service.Spec.Inputs
+	map_["Outputs"] = service.Status.Outputs
+	map_["InstantiationState"] = service.Status.InstantiationState
+	map_["CloutPath"] = service.Status.CloutPath
+	map_["CloutHash"] = service.Status.CloutHash
+	map_["Mode"] = service.Status.Mode
+	nodeStates := make(ard.StringMap)
+	if service.Status.NodeStates != nil {
+		for node, nodeState := range service.Status.NodeStates {
+			nodeStates[node] = ard.StringMap{
+				"Mode":    nodeState.Mode,
+				"State":   nodeState.State,
+				"Message": nodeState.Message,
+			}
+		}
+	}
+	map_["NodeStates"] = nodeStates
+	return map_
 }

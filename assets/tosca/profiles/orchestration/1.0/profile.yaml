@@ -5,6 +5,7 @@ metadata:
   puccini.scriptlet.import:orchestration.policies: js/policies.js
   puccini.scriptlet.import:orchestration.states.get: js/states/get.js
   puccini.scriptlet.import:orchestration.states.set: js/states/set.js
+  puccini.scriptlet.import:orchestration.states.reset: js/states/reset.js
 
 namespace: cloud.puccini.turandot.orchestration
 

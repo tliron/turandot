@@ -16,10 +16,13 @@ func (self *Controller) processPolicies(policies parser.OrchestrationPolicies, s
 				self.Log.Infof("substitutable: %t", policy_.Substitutable)
 				self.Log.Infof("sites: %s", policy_.Sites)
 
+				// TODO: should mode be defined in policy?
+				mode := "normal"
+
 				// Substitutions
 				if policy_.Substitutable {
 					for _, site := range policy_.Sites {
-						if err := self.Substitute(service.Namespace, nodeTemplateName, policy_.SubstitutionInputs, site, urlContext); err != nil {
+						if err := self.Substitute(service.Namespace, nodeTemplateName, policy_.SubstitutionInputs, mode, site, urlContext); err != nil {
 							return err
 						}
 					}

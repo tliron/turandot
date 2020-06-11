@@ -11,36 +11,40 @@ interface_types:
   Execution:
     description: >-
       Base type for executions.
-    operations:
-      execute:
-        inputs:
-          mode:
-            description: >-
-              If not specified then the interface name will be used. If the interface names has "."
-              in it then the last "." and what follows it will be stripped. E.g. interface
-              "normal.1" will have mode "normal".
+    inputs:
+      mode:
+        description: >-
+          If not specified then the interface name will be used. If the interface names has "."
+          in it then the last "." and what follows it will be stripped. E.g. interface
+          "normal.1" will have mode "normal".
 
-              This makes it easy to specify a several executions for the same mode. Note that
-              executions will occur in alphanumeric sorting order of the interface names. 
-            type: string
-            required: false
-          requirements:
-            type: ExecutionRequirements
-            required: false
+          This makes it easy to specify several executions for the same mode. Note that
+          executions will occur in alphanumeric sorting order of the interface names. 
+        type: string
+        required: false
+      requirements:
+        type: ExecutionRequirements
+        required: false
 
-  CloutExecution:
+  Scriptlet:
     description: >-
-      Implementations are names of scriptlets within the Clout.
+      Executes a scriptlet within the Clout.
     derived_from: Execution
-    operations:
-      execute:
-        inputs:
-          arguments:
-            description: >-
-              Scriptlet arguments.
+    inputs:
+      scriptlet:
+        description: >-
+          Scriptlet name.
+        type: string
+      arguments:
+        description: >-
+          Scriptlet arguments.
 
-              A "nodeTemplate" argument will be implicitly set with the name of the node template.
-              In the case of interfaces on relationships, [TODO]
-            type: map
-            entry_schema: string
-            required: false
+          Implicit arguments:
+
+          * "service" is the name of the service.
+          * "nodeTemplate" is the name of the node template.
+
+          TODO: in the case of interfaces on relationships?
+        type: map
+        entry_schema: string
+        required: false

@@ -33,12 +33,18 @@ func ListServices() {
 
 	switch format {
 	case "":
-		table := common.NewTable(maxWidth, "Name", "InstantiationState", "Mode", "Inputs", "Outputs")
+		table := common.NewTable(maxWidth, "Name", "State", "Mode", "Inputs", "Outputs")
 		for _, service := range services.Items {
 			mode := fmt.Sprintf("%s\n", service.Status.Mode)
 			if service.Status.NodeStates != nil {
 				for node, nodeState := range service.Status.NodeStates {
-					mode += fmt.Sprintf("%s: %s\n", node, nodeState.State)
+					if nodeState.Mode == service.Status.Mode {
+						if nodeState.Message != "" {
+							mode += fmt.Sprintf("%s: %s, %s\n", node, nodeState.State, nodeState.Message)
+						} else {
+							mode += fmt.Sprintf("%s: %s\n", node, nodeState.State)
+						}
+					}
 				}
 			}
 

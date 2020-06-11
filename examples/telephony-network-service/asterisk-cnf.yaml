@@ -25,7 +25,7 @@ node_types:
         node: ns:NetworkPlane
     interfaces:
       normal:
-        type: k8s:ContainerExecution
+        type: k8s:ContainerCommand
 
 topology_template:
 
@@ -73,12 +73,11 @@ topology_template:
             - ip: <unknown>
       interfaces:
         normal:
-          operations:
-            execute:
-              implementation: /configure.sh
-              inputs:
-                artifacts:
-                - configure
+          inputs:
+            command:
+            - /configure.sh
+            artifacts:
+            - configure
       artifacts:
         image:
           type: k8s:ContainerImage

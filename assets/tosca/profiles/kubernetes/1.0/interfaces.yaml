@@ -8,65 +8,60 @@ imports:
 
 interface_types:
 
-  Execution:
+  Command:
     derived_from: o11n:Execution
     description: >-
-      Base type for Kubernetes executions.
+      Base type for Kubernetes command executions.
 
       The implementation is the command to execute.
-    operations:
-      execute:
-        inputs:
-          selector:
-            type: LabelSelector
-            required: false
-          pods:
-            type: ExecutionPods
-            default: all
-          arguments:
-            description: >-
-              Arguments to add to the command.
-            type: list
-            entry_schema: string
-            required: false
-          artifacts:
-            description: >-
-              A list of artifact names to copy to the target before execution.
-    
-              The artifact's "deploy_path" *must* be set. Directories will be created if they do not
-              exist (using `mkdir --parents`).
-    
-              Note that there is special support for the "permissions" property of Deployable type
-              artifacts.
-            type: list
-            entry_schema: string
-            required: false
+    inputs:
+      selector:
+        type: LabelSelector
+        required: false
+      pods:
+        type: ExecutionPods
+        default: all
+      command:
+        description: >-
+          Command plus its arguments.
+        type: list
+        entry_schema: string
+        constraints:
+        - min_length: 1
+      artifacts:
+        description: >-
+          A list of artifact names to copy to the target before execution.
 
-  ContainerExecution:
+          The artifact's "deploy_path" *must* be set. Directories will be created if they do not
+          exist (using `mkdir --parents`).
+
+          Note that there is special support for the "permissions" property of Deployable type
+          artifacts.
+        type: list
+        entry_schema: string
+        required: false
+
+  ContainerCommand:
     description: >-
       Uses the SPDY executor on the "exec" subresource of the pods.
-    derived_from: Execution
-    operations:
-      execute:
-        inputs:
-          container:
-            description: >-
-              The name of the container in the pods in which to execute.
+    derived_from: Command
+    inputs:
+      container:
+        description: >-
+          The name of the container in the pods in which to execute.
 
-              This is only required if the pods have more than one container.
-            type: string
-            required: false
+          This is only required if the pods have more than one container.
+        type: string
+        required: false
 
-  SSHExecution:
+  SSHCommand:
     description: >-
       Uses SSH to execute commands.
-    derived_from: Execution
-    operations:
-      execute:
-        inputs:
-          host:
-            type: string
-          username:
-            type: string
-          key:
-            type: string
+    derived_from: Command
+    inputs:
+      host:
+        type: string
+      username:
+        type: string
+      key:
+        type: string

@@ -5,19 +5,17 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 
 	"github.com/gofrs/flock"
 	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/puccini/common/format"
 	urlpkg "github.com/tliron/puccini/url"
 	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
-	errorspkg "k8s.io/apimachinery/pkg/api/errors"
-	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
+// TODO: use self.Client.GetService
 func (self *Controller) GetService(name string, namespace string) (*resources.Service, error) {
 	if service, err := self.Services.Services(namespace).Get(name); err == nil {
 		// When retrieved from cache the GVK may be empty
@@ -31,104 +29,122 @@ func (self *Controller) GetService(name string, namespace string) (*resources.Se
 	}
 }
 
-func (self *Controller) CreateService(namespace string, name string, url urlpkg.URL, inputs map[string]interface{}) (*resources.Service, error) {
-	// Encode inputs
-	var inputs_ map[string]string
-	if (inputs != nil) && len(inputs) > 0 {
-		inputs_ = make(map[string]string)
-		for key, input := range inputs {
-			var err error
-			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
-				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
-			} else {
-				return nil, err
-			}
-		}
-	}
-
-	service := &resources.Service{
-		ObjectMeta: meta.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: resources.ServiceSpec{
-			ServiceTemplateURL: url.String(),
-			Inputs:             inputs_,
-		},
-		Status: resources.ServiceStatus{
-			InstantiationState: resources.ServiceNotInstantiated,
-		},
-	}
-
-	if service, err := self.Turandot.TurandotV1alpha1().Services(namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
-		return service, nil
-	} else if errorspkg.IsAlreadyExists(err) {
-		return self.Turandot.TurandotV1alpha1().Services(namespace).Get(self.Context, name, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
-}
-
 func (self *Controller) UpdateServiceInstantiationState(service *resources.Service, state resources.ServiceInstantiationState) (*resources.Service, error) {
 	self.Log.Infof("updating instantiation status to %q for service: %s/%s", state, service.Namespace, service.Name)
 
-	service.Status.InstantiationState = state
+	for {
+		service = service.DeepCopy()
+		service.Status.InstantiationState = state
 
-	return self.updateServiceStatus(service)
+		service_, err, retry := self.updateServiceStatus(service)
+		if retry {
+			service = service_
+		} else {
+			return service_, err
+		}
+	}
 }
 
 func (self *Controller) UpdateServiceStatusClout(service *resources.Service, cloutPath string, cloutHash string) (*resources.Service, error) {
 	self.Log.Infof("updating Clout status for service: %s/%s", service.Namespace, service.Name)
 
-	service.Status.ServiceTemplateURL = service.Spec.ServiceTemplateURL
-	if service.Spec.Inputs != nil {
-		service.Status.Inputs = make(map[string]string)
-		for key, input := range service.Spec.Inputs {
-			service.Status.Inputs[key] = input
+	for {
+		service = service.DeepCopy()
+		service.Status.ServiceTemplateURL = service.Spec.ServiceTemplateURL
+		if service.Spec.Inputs != nil {
+			service.Status.Inputs = make(map[string]string)
+			for key, input := range service.Spec.Inputs {
+				service.Status.Inputs[key] = input
+			}
+		}
+		service.Status.CloutPath = cloutPath
+		service.Status.CloutHash = cloutHash
+
+		service_, err, retry := self.updateServiceStatus(service)
+		if retry {
+			service = service_
+		} else {
+			return service_, err
 		}
 	}
-	service.Status.CloutPath = cloutPath
-	service.Status.CloutHash = cloutHash
+}
 
-	return self.updateServiceStatus(service)
+func (self *Controller) UpdateServiceStatusMode(service *resources.Service) (*resources.Service, error) {
+	self.Log.Infof("updating mode to %q for service: %s/%s", service.Spec.Mode, service.Namespace, service.Name)
+
+	for {
+		service = service.DeepCopy()
+		service.Status.Mode = service.Spec.Mode
+		if service.Status.NodeStates != nil {
+			for nodeTemplateName, nodeState := range service.Status.NodeStates {
+				if nodeState.Mode == service.Status.Mode {
+					delete(service.Status.NodeStates, nodeTemplateName)
+				}
+			}
+		}
+
+		service_, err, retry := self.updateServiceStatus(service)
+		if retry {
+			service = service_
+		} else {
+			return service_, err
+		}
+	}
 }
 
 func (self *Controller) UpdateServiceStatusOutputs(service *resources.Service, outputs map[string]string) (*resources.Service, error) {
 	self.Log.Infof("updating outputs for service: %s/%s", service.Namespace, service.Name)
 
-	service.Status.Outputs = outputs
+	for {
+		service = service.DeepCopy()
+		service.Status.Outputs = outputs
 
-	return self.updateServiceStatus(service)
+		service_, err, retry := self.updateServiceStatus(service)
+		if retry {
+			service = service_
+		} else {
+			return service_, err
+		}
+	}
 }
 
 func (self *Controller) UpdateServiceStatusNodeStates(service *resources.Service, states parser.OrchestrationNodeStates) (*resources.Service, error) {
 	self.Log.Infof("updating node states for service: %s/%s", service.Namespace, service.Name)
 
-	if service.Status.NodeStates == nil {
-		service.Status.NodeStates = make(map[string]resources.ServiceNodeModeState)
-	}
-	for nodeTemplateName, nodeState := range states {
-		service.Status.NodeStates[nodeTemplateName] = resources.ServiceNodeModeState{
-			Mode:    nodeState.Mode,
-			State:   resources.ModeState(nodeState.State),
-			Message: nodeState.Message,
+	for {
+		service = service.DeepCopy()
+		if service.Status.NodeStates == nil {
+			service.Status.NodeStates = make(map[string]resources.ServiceNodeModeState)
+		}
+		for nodeTemplateName, nodeState := range states {
+			service.Status.NodeStates[nodeTemplateName] = resources.ServiceNodeModeState{
+				Mode:    nodeState.Mode,
+				State:   resources.ModeState(nodeState.State),
+				Message: nodeState.Message,
+			}
+		}
+
+		service_, err, retry := self.updateServiceStatus(service)
+		if retry {
+			service = service_
+		} else {
+			return service_, err
 		}
 	}
-
-	return self.updateServiceStatus(service)
 }
 
-func (self *Controller) updateServiceStatus(service *resources.Service) (*resources.Service, error) {
-	service = service.DeepCopy()
-	if service_, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
-		// When retrieved from cache the GVK may be empty
-		if service_.Kind == "" {
-			service_ = service_.DeepCopy()
-			service_.APIVersion, service_.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+func (self *Controller) updateServiceStatus(service *resources.Service) (*resources.Service, error, bool) {
+	if service_, err := self.Client.UpdateServiceStatus(service); err == nil {
+		return service_, nil, false
+	} else if errors.IsConflict(err) {
+		self.Log.Warningf("retrying status update for service: %s/%s", service.Namespace, service.Name)
+		if service_, err := self.Client.GetService(service.Name); err == nil {
+			return service_, nil, true
+		} else {
+			return service, err, false
 		}
-		return service_, nil
 	} else {
-		return service, err
+		return service, err, false
 	}
 }
 

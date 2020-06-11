@@ -15,6 +15,7 @@ import (
 var template string
 var inputs []string
 var inputsUrl string
+var mode string
 
 //var remote bool
 
@@ -28,6 +29,7 @@ func init() {
 	serviceDeployCommand.Flags().StringVarP(&url, "url", "u", "", "URL to a CSAR or TOSCA YAML file (must be accessible from cluster)")
 	serviceDeployCommand.Flags().StringArrayVarP(&inputs, "input", "i", []string{}, "specify an input (name=YAML)")
 	serviceDeployCommand.Flags().StringVarP(&inputsUrl, "inputs", "p", "", "load inputs from a PATH or URL to YAML content")
+	serviceDeployCommand.Flags().StringVarP(&mode, "mode", "e", "normal", "initial mode")
 }
 
 var serviceDeployCommand = &cobra.Command{
@@ -53,7 +55,7 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().DeployServiceFromTemplate(serviceName, template, inputValues, urlContext)
+		err := client.Turandot().DeployServiceFromTemplate(serviceName, template, inputValues, mode, urlContext)
 		puccinicommon.FailOnError(err)
 	} else if filePath != "" {
 		if (template != "") || (directoryPath != "") || (url != "") {
@@ -69,7 +71,7 @@ func DeployService(serviceName string) {
 		}
 		puccinicommon.FailOnError(err)
 
-		err = client.Turandot().DeployServiceFromContent(serviceName, client.Spooler(), url_, inputValues, urlContext)
+		err = client.Turandot().DeployServiceFromContent(serviceName, client.Spooler(), url_, inputValues, mode, urlContext)
 		puccinicommon.FailOnError(err)
 	} else if directoryPath != "" {
 		if (template != "") || (filePath != "") || (url != "") {
@@ -82,7 +84,7 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().DeployServiceFromURL(serviceName, url, inputValues, urlContext)
+		err := client.Turandot().DeployServiceFromURL(serviceName, url, inputValues, mode, urlContext)
 		puccinicommon.FailOnError(err)
 	} else {
 		deployFailOnlyOneOf()

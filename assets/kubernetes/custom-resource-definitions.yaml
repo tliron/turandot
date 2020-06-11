@@ -38,6 +38,8 @@ spec:
                 nullable: true
                 additionalProperties:
                   type: string
+              mode:
+                type: string
           status:
             type: object
             properties:

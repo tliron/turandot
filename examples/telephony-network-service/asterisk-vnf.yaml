@@ -32,7 +32,7 @@ node_types:
         node: ns:NetworkPlane
     interfaces:
       normal:
-        type: k8s:SSHExecution
+        type: k8s:SSHCommand
 
 topology_template:
 
@@ -115,15 +115,14 @@ topology_template:
             - ip: <unknown>
       interfaces:
         normal:
-          operations:
-            execute:
-              implementation: /configure.sh
-              inputs:
-                host: TODO #{ get_attribute: [ SELF, ip ] }
-                username: admin
-                key: { get_artifact: [ SELF, privateKey ] }
-                artifacts:
-                - configure
+          inputs:
+            host: TODO #{ get_attribute: [ SELF, ip ] }
+            username: admin
+            key: { get_artifact: [ SELF, privateKey ] }
+            command:
+            - /configure.sh
+            artifacts:
+            - configure
       artifacts:
         image:
           type: k8s:ContainerImage

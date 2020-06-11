@@ -22,67 +22,65 @@ for (var vertexId in clout.vertexes) {
 		var interface_ = nodeTemplate.interfaces[interfaceName];
 
 		if ('cloud.puccini.turandot.orchestration::Execution' in interface_.types) {
-			var operation = interface_.operations.execute;
-			if (operation && operation.implementation) {
-				var execution = {nodeTemplate: nodeTemplate.name};
+			var execution = {nodeTemplate: nodeTemplate.name};
 
-				if (operation.inputs.mode)
-					execution.mode = operation.inputs.mode;
-				else {
-					var last = interfaceName.lastIndexOf('.');
-					if (last !== -1)
-						execution.mode = interfaceName.substring(0, last);
-					else
-						execution.mode = interfaceName;
-				}
-
-				if (operation.inputs.requirements)
-					execution.requirements = operation.inputs.requirements;
-
-				if ('cloud.puccini.turandot.orchestration::CloutExecution' in interface_.types) {
-					execution.type = 'clout';
-					execution.scriptlet = operation.implementation;
-					execution.arguments = {nodeTemplate: nodeTemplate.name};
-					// TODO: verify that the scriptlet exists
-					if (operation.inputs.arguments)
-						for (var k in operation.inputs.arguments)
-							execution.arguments[k] = operation.inputs.arguments[k];
-				} else if ('cloud.puccini.kubernetes::Execution' in interface_.types) {
-					var metadata = getKubernetesMetadata(nodeTemplate);
-					if (metadata.namespace)
-						execution.namespace = metadata.namespace;
-					if (operation.inputs.selector)
-						execution.selector = operation.inputs.selector;
-					else {
-						if (metadata)
-							execution.selector = {matchLabels: metadata.labels};
-							// TODO: matchExpressions
-						else
-							throw 'no pod selector for execution';
-					}
-
-					execution.pods = operation.inputs.pods;
-					execution.command = [operation.implementation];
-					if (operation.inputs.arguments)
-						execution.command = execution.command.concat(operation.inputs.arguments);
-					var artifacts = getArtifacts(nodeTemplate, operation.inputs.artifacts);
-					if (artifacts)
-						execution.artifacts = artifacts;
-
-					if ('cloud.puccini.kubernetes::ContainerExecution' in interface_.types) {
-						execution.type = 'container';
-						if (operation.inputs.container)
-							execution.container = operation.inputs.container;
-					} else if ('cloud.puccini.kubernetes::SSHExecution' in interface_.types) {
-						execution.type = 'ssh';
-						execution.host = operation.inputs.host;
-						execution.username = operation.inputs.username;
-						execution.key = operation.inputs.key;
-					}
-				}
-
-				executions.push(execution);
+			if (interface_.inputs.mode)
+				execution.mode = interface_.inputs.mode;
+			else {
+				var last = interfaceName.lastIndexOf('.');
+				if (last !== -1)
+					execution.mode = interfaceName.substring(0, last);
+				else
+					execution.mode = interfaceName;
 			}
+
+			if (interface_.inputs.requirements)
+				execution.requirements = interface_.inputs.requirements;
+
+			if ('cloud.puccini.turandot.orchestration::Scriptlet' in interface_.types) {
+				execution.type = 'clout';
+				execution.scriptlet = interface_.inputs.scriptlet;
+				execution.arguments = {
+					service: puccini.arguments.service,
+					nodeTemplate: nodeTemplate.name
+				};
+				// TODO: verify that the scriptlet exists
+				if (interface_.inputs.arguments)
+					for (var k in interface_.inputs.arguments)
+						execution.arguments[k] = interface_.inputs.arguments[k];
+			} else if ('cloud.puccini.kubernetes::Command' in interface_.types) {
+				var metadata = getKubernetesMetadata(nodeTemplate);
+				if (metadata.namespace)
+					execution.namespace = metadata.namespace;
+				if (interface_.inputs.selector)
+					execution.selector = interface_.inputs.selector;
+				else {
+					if (metadata)
+						execution.selector = {matchLabels: metadata.labels};
+						// TODO: matchExpressions
+					else
+						throw 'no pod selector for execution';
+				}
+
+				execution.pods = interface_.inputs.pods;
+				execution.command = interface_.inputs.command;
+				var artifacts = getArtifacts(nodeTemplate, interface_.inputs.artifacts);
+				if (artifacts)
+					execution.artifacts = artifacts;
+
+				if ('cloud.puccini.kubernetes::ContainerCommand' in interface_.types) {
+					execution.type = 'container';
+					if (interface_.inputs.container)
+						execution.container = interface_.inputs.container;
+				} else if ('cloud.puccini.kubernetes::SSHCommand' in interface_.types) {
+					execution.type = 'ssh';
+					execution.host = interface_.inputs.host;
+					execution.username = interface_.inputs.username;
+					execution.key = interface_.inputs.key;
+				}
+			}
+
+			executions.push(execution);
 		}
 	}
 }

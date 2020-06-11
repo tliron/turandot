@@ -23,16 +23,20 @@ node_types:
       # Only one should be used per node type
       metadata: k8s:Metadata
       # Other capabilities can be added to represent Kubernetes resources
-      # (The same capability type can be used multiple times, e.g. two Services)
+      # (The same capability type can be used multiple times, e.g. two LoadBalancer)
       deployment: k8s:Deployment
       web: k8s:LoadBalancer
     interfaces:
+      # Interfaces are used to achieve service modes
+      # The name of the interface is used by default as the name of the mode
+      # (Anything after "." in the name is ignored for this purpose)
+      # The interfaces are executed in alphabetical order
       normal.1:
-        type: k8s:ContainerExecution
+        type: k8s:ContainerCommand
       normal.2:
-        type: o11n:CloutExecution
+        type: o11n:Scriptlet
       normal.3:
-        type: o11n:CloutExecution
+        type: o11n:Scriptlet
 
 topology_template:
 
@@ -78,38 +82,31 @@ topology_template:
             - ip: <unknown>
       interfaces:
         normal.1:
-          operations:
-            execute:
-              implementation: cp
-              #implementation: /tmp/configure.sh
-              inputs:
-                #selector:
-                #  matchLabels:
-                #    app.kubernetes.io/name: hello-world
-                arguments:
-                - /dev/stdin
-                - /tmp/hello
-                #- this is an argument
-                artifacts:
-                - configure
+          inputs:
+            #selector:
+            #  matchLabels:
+            #    app.kubernetes.io/name: hello-world
+            command:
+            #- /tmp/configure.sh
+            - cp
+            - /dev/stdin
+            - /tmp/hello
+            #- this is an argument
+            artifacts:
+            - configure
         normal.2:
-          operations:
-            execute:
-              implementation: hello-world.set-output
-              inputs:
-                arguments:
-                  name: initialized
-                  value: 'true'
+          inputs:
+            scriptlet: hello-world.set-output
+            arguments:
+              name: initialized
+              value: 'true'
         normal.3:
-          operations:
-            execute:
-              implementation: orchestration.states.set
-              inputs:
-                arguments:
-                  service: hello-world
-                  mode: normal
-                  state: Achieved
-                  message: We did it!
+          inputs:
+            scriptlet: orchestration.states.set
+            arguments:
+              mode: normal
+              state: Achieved
+              message: We did it!
       artifacts:
         image:
           # Container images can be placed in the CSAR (or any other repository)

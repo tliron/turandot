@@ -13,44 +13,68 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (self *Client) DeployServiceFromTemplate(serviceName string, serviceTemplateName string, inputs map[string]interface{}, urlContext *urlpkg.Context) error {
+func (self *Client) DeployServiceFromTemplate(serviceName string, serviceTemplateName string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
 	if url, err := self.GetInventoryServiceTemplateURL(serviceTemplateName, urlContext); err == nil {
-		_, err := self.createService(serviceName, url, inputs)
+		_, err := self.CreateService(serviceName, url, inputs, mode)
 		return err
 	} else {
 		return err
 	}
 }
 
-func (self *Client) DeployServiceFromURL(serviceName string, url string, inputs map[string]interface{}, urlContext *urlpkg.Context) error {
+func (self *Client) DeployServiceFromURL(serviceName string, url string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
 	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-		_, err = self.createService(serviceName, url_, inputs)
+		_, err = self.CreateService(serviceName, url_, inputs, mode)
 		return err
 	} else {
 		return err
 	}
 }
 
-func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, urlContext *urlpkg.Context) error {
+func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
 	serviceTemplateName := uuid.New().String()
 	imageName := GetInventoryImageName(serviceTemplateName)
 	if err := common.PublishOnRegistry(imageName, url, spooler); err == nil {
-		return self.DeployServiceFromTemplate(serviceName, serviceTemplateName, inputs, urlContext)
+		return self.DeployServiceFromTemplate(serviceName, serviceTemplateName, inputs, mode, urlContext)
 	} else {
 		return err
 	}
 }
 
 func (self *Client) GetService(serviceName string) (*resources.Service, error) {
-	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Get(self.Context, serviceName, meta.GetOptions{})
+	if service, err := self.Turandot.TurandotV1alpha1().Services(self.Namespace).Get(self.Context, serviceName, meta.GetOptions{}); err == nil {
+		// When retrieved from cache the GVK may be empty
+		if service.Kind == "" {
+			service = service.DeepCopy()
+			service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+		}
+		return service, nil
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) UpdateServiceSpec(service *resources.Service) (*resources.Service, error) {
+	if service_, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).Update(self.Context, service, meta.UpdateOptions{}); err == nil {
+		// When retrieved from cache the GVK may be empty
+		if service_.Kind == "" {
+			service_ = service_.DeepCopy()
+			service_.APIVersion, service_.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+		}
+		return service_, nil
+	} else {
+		return service, err
+	}
 }
 
 func (self *Client) UpdateServiceStatus(service *resources.Service) (*resources.Service, error) {
-	service = service.DeepCopy()
-	if service, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
+	if service_, err := self.Turandot.TurandotV1alpha1().Services(service.Namespace).UpdateStatus(self.Context, service, meta.UpdateOptions{}); err == nil {
 		// When retrieved from cache the GVK may be empty
-		service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
-		return service, nil
+		if service_.Kind == "" {
+			service_ = service_.DeepCopy()
+			service_.APIVersion, service_.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
+		}
+		return service_, nil
 	} else {
 		return service, err
 	}
@@ -64,7 +88,7 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) createService(name string, url urlpkg.URL, inputs map[string]interface{}) (*resources.Service, error) {
+func (self *Client) CreateService(name string, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	// Encode inputs
 	var inputs_ map[string]string
 	if (inputs != nil) && len(inputs) > 0 {
@@ -87,9 +111,7 @@ func (self *Client) createService(name string, url urlpkg.URL, inputs map[string
 		Spec: resources.ServiceSpec{
 			ServiceTemplateURL: url.String(),
 			Inputs:             inputs_,
-		},
-		Status: resources.ServiceStatus{
-			InstantiationState: resources.ServiceNotInstantiated,
+			Mode:               mode,
 		},
 	}
 
