@@ -80,12 +80,37 @@ func (self *Client) UpdateServiceStatus(service *resources.Service) (*resources.
 	}
 }
 
-func (self *Client) DeleteService(serviceName string) error {
-	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
+func (self *Client) SetServiceMode(service *resources.Service, mode string) (*resources.Service, error) {
+	if service.Spec.Mode != mode {
+		service = service.DeepCopy()
+		service.Spec.Mode = mode
+		return self.UpdateServiceSpec(service)
+	} else {
+		return service, nil
+	}
 }
 
 func (self *Client) ListServices() (*resources.ServiceList, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
+}
+
+func (self *Client) ListServicesForImage(imageName string, urlContext *urlpkg.Context) ([]string, error) {
+	if serviceTemplateUrl, err := self.GetInventoryURL(imageName, urlContext); err == nil {
+		serviceTemplateUrl_ := serviceTemplateUrl.String()
+		if services, err := self.ListServices(); err == nil {
+			var serviceNames []string
+			for _, service := range services.Items {
+				if service.Spec.ServiceTemplateURL == serviceTemplateUrl_ {
+					serviceNames = append(serviceNames, service.Name)
+				}
+			}
+			return serviceNames, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
 }
 
 func (self *Client) CreateService(name string, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
@@ -122,4 +147,8 @@ func (self *Client) CreateService(name string, url urlpkg.URL, inputs map[string
 	} else {
 		return nil, err
 	}
+}
+
+func (self *Client) DeleteService(serviceName string) error {
+	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
 }

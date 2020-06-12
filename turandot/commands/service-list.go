@@ -39,11 +39,7 @@ func ListServices() {
 			if service.Status.NodeStates != nil {
 				for node, nodeState := range service.Status.NodeStates {
 					if nodeState.Mode == service.Status.Mode {
-						if nodeState.Message != "" {
-							mode += fmt.Sprintf("%s: %s, %s\n", node, nodeState.State, nodeState.Message)
-						} else {
-							mode += fmt.Sprintf("%s: %s\n", node, nodeState.State)
-						}
+						mode += fmt.Sprintf("%s: %s\n", node, nodeState.State)
 					}
 				}
 			}

@@ -35,10 +35,6 @@ func SetMode(serviceName string, mode string) {
 	client := NewClient().Turandot()
 	service, err := client.GetService(serviceName)
 	puccinicommon.FailOnError(err)
-	if service.Spec.Mode != mode {
-		service = service.DeepCopy()
-		service.Spec.Mode = mode
-		_, err = client.UpdateServiceSpec(service)
-		puccinicommon.FailOnError(err)
-	}
+	_, err = client.SetServiceMode(service, mode)
+	puccinicommon.FailOnError(err)
 }

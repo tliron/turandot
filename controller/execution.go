@@ -53,6 +53,11 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 	self.Log.Infof("executing %q", execution.Command)
 
 	// TODO: copy artifacts
+	if execution.Artifacts != nil {
+		for _, artifactName := range execution.Artifacts {
+			self.Log.Infof("artifact: %s", artifactName)
+		}
+	}
 
 	var selector string
 	if execution.MatchLabels != nil {
