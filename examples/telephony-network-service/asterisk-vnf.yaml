@@ -137,7 +137,7 @@ topology_template:
             variables:
               $KEY: { get_artifact: [ SELF, publicKey ] }
         configure:
-          type: o11n:ShellScript
+          type: o11n:Executable
           file: artifacts/scripts/asterisk/configure.sh
           deploy_path: /configure.sh
         privateKey:

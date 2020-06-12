@@ -35,6 +35,3 @@ artifact_types:
     properties:
       permissions:
         default: 0555
-
-  ShellScript:
-    derived_from: Executable

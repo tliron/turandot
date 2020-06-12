@@ -3,6 +3,7 @@ package delegate
 import (
 	"io"
 	"path/filepath"
+	"strconv"
 
 	"github.com/tliron/puccini/common/terminal"
 	core "k8s.io/api/core/v1"
@@ -10,10 +11,18 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
-func (self *Client) WriteToContainer(podName string, containerName string, reader io.Reader, targetPath string) error {
+func (self *Client) WriteToContainer(podName string, containerName string, reader io.Reader, targetPath string, permissions *int64) error {
 	dir := filepath.Dir(targetPath)
 	if err := self.Exec(podName, containerName, nil, nil, "mkdir", "--parents", dir); err == nil {
-		return self.Exec(podName, containerName, reader, nil, "cp", "/dev/stdin", targetPath)
+		if err := self.Exec(podName, containerName, reader, nil, "cp", "/dev/stdin", targetPath); err == nil {
+			if permissions != nil {
+				return self.Exec(podName, containerName, nil, nil, "chmod", strconv.FormatInt(*permissions, 8), targetPath)
+			} else {
+				return nil
+			}
+		} else {
+			return err
+		}
 	} else {
 		return err
 	}

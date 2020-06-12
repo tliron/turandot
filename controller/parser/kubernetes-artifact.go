@@ -18,9 +18,12 @@ func ParseKubernetesArtifact(value ard.Value) (*KubernetesArtifact, bool) {
 	if name, ok := artifact.Get("name").String(false); ok {
 		if sourcePath, ok := artifact.Get("sourcePath").String(false); ok {
 			return &KubernetesArtifact{name, sourcePath}, true
+		} else {
+			return nil, false
 		}
+	} else {
+		return nil, false
 	}
-	return nil, false
 }
 
 //
@@ -40,6 +43,7 @@ func ParseKubernetesArtifacts(value ard.Value) (KubernetesArtifacts, bool) {
 			}
 		}
 		return self, true
+	} else {
+		return nil, false
 	}
-	return nil, false
 }

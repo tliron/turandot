@@ -60,6 +60,54 @@ func (self *OrchestrationCloutExecution) GetMode() string {
 }
 
 //
+// OrchestrationArtifact
+//
+
+type OrchestrationArtifact struct {
+	SourceURL   string
+	TargetPath  string
+	Permissions *int64
+}
+
+func ParseOrchestrationArtifact(value ard.Value) (*OrchestrationArtifact, bool) {
+	artifact := ard.NewNode(value)
+	if sourceUrl, ok := artifact.Get("sourceUrl").String(false); ok {
+		if targetPath, ok := artifact.Get("targetPath").String(false); ok {
+			self := OrchestrationArtifact{
+				SourceURL:  sourceUrl,
+				TargetPath: targetPath,
+			}
+			if permissions, ok := artifact.Get("permissions").Integer(false); ok {
+				self.Permissions = &permissions
+			}
+			return &self, true
+		} else {
+			return nil, false
+		}
+	} else {
+		return nil, false
+	}
+}
+
+//
+// OrchestrationArtifacts
+//
+
+type OrchestrationArtifacts []*OrchestrationArtifact
+
+func ParseOrchestrationArtifacts(value ard.List) (OrchestrationArtifacts, bool) {
+	self := make(OrchestrationArtifacts, len(value))
+	for index, artifact := range value {
+		if artifact_, ok := ParseOrchestrationArtifact(artifact); ok {
+			self[index] = artifact_
+		} else {
+			return nil, false
+		}
+	}
+	return self, true
+}
+
+//
 // OrchestrationContainerExecution
 //
 
@@ -70,7 +118,7 @@ type OrchestrationContainerExecution struct {
 	MatchLabels      map[string]string
 	MatchExpressions interface{}
 	ContainerName    string // can be emtpy
-	Artifacts        []string
+	Artifacts        OrchestrationArtifacts
 }
 
 func ParseOrchestrationContainerExecution(value ard.Value) (*OrchestrationContainerExecution, bool) {
@@ -107,12 +155,10 @@ func ParseOrchestrationContainerExecution(value ard.Value) (*OrchestrationContai
 
 			// TODO: matchExpressions
 
-			var artifacts []string
+			var artifacts OrchestrationArtifacts
 			if artifacts_, ok := execution.Get("artifacts").List(false); ok {
-				for _, value := range artifacts_ {
-					if value_, ok := value.(string); ok {
-						artifacts = append(artifacts, value_)
-					}
+				if artifacts, ok = ParseOrchestrationArtifacts(artifacts_); !ok {
+					return nil, false
 				}
 			}
 

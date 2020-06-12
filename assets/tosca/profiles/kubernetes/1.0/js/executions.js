@@ -105,7 +105,7 @@ function getArtifacts(nodeTemplate, artifactNames) {
 			if (artifact === undefined)
 				throw puccini.sprintf('artifact not found: %s', artifactName);
 			var info = {
-				sourcePath: artifact.sourcePath,
+				sourceUrl: artifact.sourcePath,
 				targetPath: artifact.targetPath
 			};
 			if (('cloud.puccini.turandot.orchestration::Deployable' in artifact.types) && (artifact.properties.permissions !== undefined))

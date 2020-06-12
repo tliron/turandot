@@ -85,7 +85,7 @@ topology_template:
           properties:
             tag: asterisk-cnf
         configure:
-          type: o11n:ShellScript
+          type: o11n:Executable
           file: artifacts/scripts/asterisk/configure.sh
           deploy_path: /configure.sh
 

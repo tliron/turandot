@@ -32,7 +32,7 @@ func (self *Client) SetDelegate(name string, kubeconfigPath string, context stri
 		for _, podName := range podNames {
 			//os.Stdout.Write(configBytes)
 			self.Log.Infof("setting delegate %q in operator pod: %s/%s", name, self.Namespace, podName)
-			if err := self.WriteToContainer(podName, "operator", bytes.NewReader(configBytes), configPath); err != nil {
+			if err := self.WriteToContainer(podName, "operator", bytes.NewReader(configBytes), configPath, nil); err != nil {
 				return err
 			}
 		}

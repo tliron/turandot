@@ -83,15 +83,13 @@ topology_template:
       interfaces:
         normal.1:
           inputs:
-            #selector:
-            #  matchLabels:
-            #    app.kubernetes.io/name: hello-world
+            # The command is executed with the contents of the Clout in stdin
+            # If the command has a non-empty stdout, it will be used to replace the current Clout
+            # This combination allows the command to manipulate the Clout if desired
             command:
-            #- /tmp/configure.sh
-            - cp
-            - /dev/stdin
-            - /tmp/hello
-            #- this is an argument
+            - /tmp/configure.sh
+            - /tmp/clout.yaml
+            # Artifacts are copied to target before execution
             artifacts:
             - configure
         normal.2:
@@ -119,7 +117,7 @@ topology_template:
             # The tag is required for publishing the image
             tag: hello-world
         configure:
-          type: o11n:ShellScript
+          type: o11n:Executable
           file: artifacts/scripts/configure.sh
           deploy_path: /tmp/configure.sh
 
