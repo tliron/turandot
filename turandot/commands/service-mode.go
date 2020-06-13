@@ -26,15 +26,21 @@ var serviceModeCommand = &cobra.Command{
 }
 
 func GetMode(serviceName string) {
-	service, err := NewClient().Turandot().GetService(serviceName)
+	// TODO: in cluster mode we must specify the namespace
+	namespace := ""
+
+	service, err := NewClient().Turandot().GetService(namespace, serviceName)
 	puccinicommon.FailOnError(err)
 	fmt.Fprintln(terminal.Stdout, service.Status.Mode)
 }
 
 func SetMode(serviceName string, mode string) {
+	// TODO: in cluster mode we must specify the namespace
+	namespace := ""
+
 	client := NewClient().Turandot()
-	service, err := client.GetService(serviceName)
+	service, err := client.GetService(namespace, serviceName)
 	puccinicommon.FailOnError(err)
-	_, err = client.SetServiceMode(service, mode)
+	_, err = client.UpdateServiceMode(service, mode)
 	puccinicommon.FailOnError(err)
 }

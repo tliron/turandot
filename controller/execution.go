@@ -84,7 +84,7 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 					if url, err := urlpkg.NewURL(artifact.SourceURL, urlContext); err == nil {
 						if reader, err := url.Open(); err == nil {
 							defer reader.Close()
-							if err := self.Client.WriteToContainer(pod.Name, containerName, reader, artifact.TargetPath, artifact.Permissions); err != nil {
+							if err := self.Client.WriteToContainer(namespace, pod.Name, containerName, reader, artifact.TargetPath, artifact.Permissions); err != nil {
 								return service, err
 							}
 						} else {
@@ -102,10 +102,10 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 					defer reader.Close()
 
 					var stdout strings.Builder
-					if err := self.Client.Exec(pod.Name, containerName, reader, &stdout, execution.Command...); err == nil {
+					if err := self.Client.Exec(namespace, pod.Name, containerName, reader, &stdout, execution.Command...); err == nil {
 						yaml := stdout.String()
 						if yaml != "" {
-							return self.UpdateClout(yaml, service)
+							return self.WriteServiceClout(yaml, service)
 						}
 					} else {
 						return service, nil

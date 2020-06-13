@@ -43,6 +43,9 @@ var serviceDeployCommand = &cobra.Command{
 }
 
 func DeployService(serviceName string) {
+	// TODO: in cluster mode we must specify the namespace
+	namespace := ""
+
 	ParseInputs()
 
 	client := NewClient()
@@ -55,7 +58,7 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().DeployServiceFromTemplate(serviceName, template, inputValues, mode, urlContext)
+		err := client.Turandot().CreateServiceFromTemplate(namespace, serviceName, template, inputValues, mode, urlContext)
 		puccinicommon.FailOnError(err)
 	} else if filePath != "" {
 		if (template != "") || (directoryPath != "") || (url != "") {
@@ -71,7 +74,7 @@ func DeployService(serviceName string) {
 		}
 		puccinicommon.FailOnError(err)
 
-		err = client.Turandot().DeployServiceFromContent(serviceName, client.Spooler(), url_, inputValues, mode, urlContext)
+		err = client.Turandot().CreateServiceFromContent(namespace, serviceName, client.Spooler(), url_, inputValues, mode, urlContext)
 		puccinicommon.FailOnError(err)
 	} else if directoryPath != "" {
 		if (template != "") || (filePath != "") || (url != "") {
@@ -84,7 +87,7 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().DeployServiceFromURL(serviceName, url, inputValues, mode, urlContext)
+		err := client.Turandot().CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
 		puccinicommon.FailOnError(err)
 	} else {
 		deployFailOnlyOneOf()

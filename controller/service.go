@@ -15,20 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-// TODO: use self.Client.GetService
-func (self *Controller) GetService(name string, namespace string) (*resources.Service, error) {
-	if service, err := self.Services.Services(namespace).Get(name); err == nil {
-		// When retrieved from cache the GVK may be empty
-		if service.Kind == "" {
-			service = service.DeepCopy()
-			service.APIVersion, service.Kind = resources.ServiceGVK.ToAPIVersionAndKind()
-		}
-		return service, nil
-	} else {
-		return nil, err
-	}
-}
-
 func (self *Controller) UpdateServiceInstantiationState(service *resources.Service, state resources.ServiceInstantiationState) (*resources.Service, error) {
 	self.Log.Infof("updating instantiation status to %q for service: %s/%s", state, service.Namespace, service.Name)
 
@@ -138,7 +124,7 @@ func (self *Controller) updateServiceStatus(service *resources.Service) (*resour
 		return service_, nil, false
 	} else if errors.IsConflict(err) {
 		self.Log.Warningf("retrying status update for service: %s/%s", service.Namespace, service.Name)
-		if service_, err := self.Client.GetService(service.Name); err == nil {
+		if service_, err := self.Client.GetService(service.Namespace, service.Name); err == nil {
 			return service_, nil, true
 		} else {
 			return service, err, false
@@ -235,7 +221,7 @@ func (self *Controller) updateService(service *resources.Service) error {
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
-	if _, err := self.composeClout(service, urlContext); err == nil {
+	if _, err := self.updateClout(service, urlContext); err == nil {
 		return nil
 	} else {
 		self.EventCloutUpdateError(service, err)

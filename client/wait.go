@@ -60,7 +60,7 @@ func (self *Client) waitForPodContainers(appName string, deployment *apps.Deploy
 			for _, pod := range pods.Items {
 				if self.isPodOwnedBy(&pod, deployment) {
 					for _, container := range pod.Spec.Containers {
-						if err := self.Exec(pod.Name, container.Name, nil, nil, "echo"); err == nil {
+						if err := self.Exec(self.Namespace, pod.Name, container.Name, nil, nil, "echo"); err == nil {
 							self.Log.Infof("container %q available for pod: %s", container.Name, pod.Name)
 						} else {
 							return false, nil

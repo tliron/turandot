@@ -13,36 +13,13 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (self *Client) DeployServiceFromTemplate(serviceName string, serviceTemplateName string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	if url, err := self.GetInventoryServiceTemplateURL(serviceTemplateName, urlContext); err == nil {
-		_, err := self.CreateService(serviceName, url, inputs, mode)
-		return err
-	} else {
-		return err
+func (self *Client) GetService(namespace string, serviceName string) (*resources.Service, error) {
+	// Default to same namespace as operator
+	if namespace == "" {
+		namespace = self.Namespace
 	}
-}
 
-func (self *Client) DeployServiceFromURL(serviceName string, url string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-		_, err = self.CreateService(serviceName, url_, inputs, mode)
-		return err
-	} else {
-		return err
-	}
-}
-
-func (self *Client) DeployServiceFromContent(serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	serviceTemplateName := uuid.New().String()
-	imageName := GetInventoryImageName(serviceTemplateName)
-	if err := common.PublishOnRegistry(imageName, url, spooler); err == nil {
-		return self.DeployServiceFromTemplate(serviceName, serviceTemplateName, inputs, mode, urlContext)
-	} else {
-		return err
-	}
-}
-
-func (self *Client) GetService(serviceName string) (*resources.Service, error) {
-	if service, err := self.Turandot.TurandotV1alpha1().Services(self.Namespace).Get(self.Context, serviceName, meta.GetOptions{}); err == nil {
+	if service, err := self.Turandot.TurandotV1alpha1().Services(namespace).Get(self.Context, serviceName, meta.GetOptions{}); err == nil {
 		// When retrieved from cache the GVK may be empty
 		if service.Kind == "" {
 			service = service.DeepCopy()
@@ -51,6 +28,99 @@ func (self *Client) GetService(serviceName string) (*resources.Service, error) {
 		return service, nil
 	} else {
 		return nil, err
+	}
+}
+
+func (self *Client) ListServices() (*resources.ServiceList, error) {
+	// TODO: all services in cluster mode
+	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
+}
+
+func (self *Client) ListServicesForImage(imageName string, urlContext *urlpkg.Context) ([]string, error) {
+	if serviceTemplateUrl, err := self.GetInventoryURL(imageName, urlContext); err == nil {
+		serviceTemplateUrl_ := serviceTemplateUrl.String()
+		if services, err := self.ListServices(); err == nil {
+			var serviceNames []string
+			for _, service := range services.Items {
+				if service.Spec.ServiceTemplateURL == serviceTemplateUrl_ {
+					serviceNames = append(serviceNames, service.Name)
+				}
+			}
+			return serviceNames, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) CreateService(namespace string, serviceName string, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+	// Default to same namespace as operator
+	if namespace == "" {
+		namespace = self.Namespace
+	}
+
+	// Encode inputs
+	var inputs_ map[string]string
+	if (inputs != nil) && len(inputs) > 0 {
+		inputs_ = make(map[string]string)
+		for key, input := range inputs {
+			var err error
+			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
+				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	service := &resources.Service{
+		ObjectMeta: meta.ObjectMeta{
+			Name:      serviceName,
+			Namespace: namespace,
+		},
+		Spec: resources.ServiceSpec{
+			ServiceTemplateURL: url.String(),
+			Inputs:             inputs_,
+			Mode:               mode,
+		},
+	}
+
+	if service, err := self.Turandot.TurandotV1alpha1().Services(namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
+		return service, nil
+	} else if errors.IsAlreadyExists(err) {
+		return self.Turandot.TurandotV1alpha1().Services(namespace).Get(self.Context, serviceName, meta.GetOptions{})
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, serviceTemplateName string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
+	if url, err := self.GetInventoryServiceTemplateURL(serviceTemplateName, urlContext); err == nil {
+		_, err := self.CreateService(namespace, serviceName, url, inputs, mode)
+		return err
+	} else {
+		return err
+	}
+}
+
+func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
+	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
+		_, err = self.CreateService(namespace, serviceName, url_, inputs, mode)
+		return err
+	} else {
+		return err
+	}
+}
+
+func (self *Client) CreateServiceFromContent(namespace string, serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
+	serviceTemplateName := uuid.New().String()
+	imageName := GetInventoryImageName(serviceTemplateName)
+	if err := common.PublishOnRegistry(imageName, url, spooler); err == nil {
+		return self.CreateServiceFromTemplate(namespace, serviceName, serviceTemplateName, inputs, mode, urlContext)
+	} else {
+		return err
 	}
 }
 
@@ -80,7 +150,7 @@ func (self *Client) UpdateServiceStatus(service *resources.Service) (*resources.
 	}
 }
 
-func (self *Client) SetServiceMode(service *resources.Service, mode string) (*resources.Service, error) {
+func (self *Client) UpdateServiceMode(service *resources.Service, mode string) (*resources.Service, error) {
 	if service.Spec.Mode != mode {
 		service = service.DeepCopy()
 		service.Spec.Mode = mode
@@ -90,65 +160,11 @@ func (self *Client) SetServiceMode(service *resources.Service, mode string) (*re
 	}
 }
 
-func (self *Client) ListServices() (*resources.ServiceList, error) {
-	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
-}
-
-func (self *Client) ListServicesForImage(imageName string, urlContext *urlpkg.Context) ([]string, error) {
-	if serviceTemplateUrl, err := self.GetInventoryURL(imageName, urlContext); err == nil {
-		serviceTemplateUrl_ := serviceTemplateUrl.String()
-		if services, err := self.ListServices(); err == nil {
-			var serviceNames []string
-			for _, service := range services.Items {
-				if service.Spec.ServiceTemplateURL == serviceTemplateUrl_ {
-					serviceNames = append(serviceNames, service.Name)
-				}
-			}
-			return serviceNames, nil
-		} else {
-			return nil, err
-		}
-	} else {
-		return nil, err
-	}
-}
-
-func (self *Client) CreateService(name string, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
-	// Encode inputs
-	var inputs_ map[string]string
-	if (inputs != nil) && len(inputs) > 0 {
-		inputs_ = make(map[string]string)
-		for key, input := range inputs {
-			var err error
-			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
-				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
-			} else {
-				return nil, err
-			}
-		}
+func (self *Client) DeleteService(namespace string, serviceName string) error {
+	// Default to same namespace as operator
+	if namespace == "" {
+		namespace = self.Namespace
 	}
 
-	service := &resources.Service{
-		ObjectMeta: meta.ObjectMeta{
-			Name:      name,
-			Namespace: self.Namespace,
-		},
-		Spec: resources.ServiceSpec{
-			ServiceTemplateURL: url.String(),
-			Inputs:             inputs_,
-			Mode:               mode,
-		},
-	}
-
-	if service, err := self.Turandot.TurandotV1alpha1().Services(self.Namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
-		return service, nil
-	} else if errors.IsAlreadyExists(err) {
-		return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Get(self.Context, name, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
-}
-
-func (self *Client) DeleteService(serviceName string) error {
-	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
+	return self.Turandot.TurandotV1alpha1().Services(namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
 }

@@ -11,12 +11,12 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
-func (self *Client) WriteToContainer(podName string, containerName string, reader io.Reader, targetPath string, permissions *int64) error {
+func (self *Client) WriteToContainer(namespace string, podName string, containerName string, reader io.Reader, targetPath string, permissions *int64) error {
 	dir := filepath.Dir(targetPath)
-	if err := self.Exec(podName, containerName, nil, nil, "mkdir", "--parents", dir); err == nil {
-		if err := self.Exec(podName, containerName, reader, nil, "cp", "/dev/stdin", targetPath); err == nil {
+	if err := self.Exec(namespace, podName, containerName, nil, nil, "mkdir", "--parents", dir); err == nil {
+		if err := self.Exec(namespace, podName, containerName, reader, nil, "cp", "/dev/stdin", targetPath); err == nil {
 			if permissions != nil {
-				return self.Exec(podName, containerName, nil, nil, "chmod", strconv.FormatInt(*permissions, 8), targetPath)
+				return self.Exec(namespace, podName, containerName, nil, nil, "chmod", strconv.FormatInt(*permissions, 8), targetPath)
 			} else {
 				return nil
 			}
@@ -28,7 +28,7 @@ func (self *Client) WriteToContainer(podName string, containerName string, reade
 	}
 }
 
-func (self *Client) Exec(podName string, containerName string, stdin io.Reader, stdout io.Writer, command ...string) error {
+func (self *Client) Exec(namespace string, podName string, containerName string, stdin io.Reader, stdout io.Writer, command ...string) error {
 	execOptions := core.PodExecOptions{
 		Container: containerName,
 		Command:   command,
@@ -51,7 +51,7 @@ func (self *Client) Exec(podName string, containerName string, stdin io.Reader, 
 		streamOptions.Stdout = stdout
 	}
 
-	request := self.REST.Post().Namespace(self.Namespace).Resource("pods").Name(podName).SubResource("exec").VersionedParams(&execOptions, scheme.ParameterCodec)
+	request := self.REST.Post().Namespace(namespace).Resource("pods").Name(podName).SubResource("exec").VersionedParams(&execOptions, scheme.ParameterCodec)
 
 	if executor, err := remotecommand.NewSPDYExecutor(self.Config, "POST", request.URL()); err == nil {
 		if err = executor.Stream(streamOptions); err == nil {

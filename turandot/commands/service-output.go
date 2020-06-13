@@ -24,7 +24,10 @@ var serviceOutputCommand = &cobra.Command{
 }
 
 func ServiceOutput(serviceName string, outputName string) {
-	service, err := NewClient().Turandot().GetService(serviceName)
+	// TODO: in cluster mode we must specify the namespace
+	namespace := ""
+
+	service, err := NewClient().Turandot().GetService(namespace, serviceName)
 	puccinicommon.FailOnError(err)
 
 	if service.Status.Outputs != nil {

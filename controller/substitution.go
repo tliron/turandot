@@ -20,8 +20,7 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 	if url, err := self.GetInventoryServiceTemplateURL(namespace, serviceTemplateName, urlContext); err == nil {
 		if (site == "") || (site == self.Site) {
 			// Local
-			// TODO: different client per namespace?
-			if _, err := self.Client.CreateService(serviceName, url, inputs, mode); err != nil {
+			if _, err := self.Client.CreateService(namespace, serviceName, url, inputs, mode); err != nil {
 				return err
 			}
 		} else {
@@ -32,7 +31,7 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 					return err
 				}
 
-				if err := client.DeployServiceFromContent(serviceName, spooler, url, inputs, mode, urlContext); err != nil {
+				if err := client.CreateServiceFromContent(namespace, serviceName, spooler, url, inputs, mode, urlContext); err != nil {
 					return err
 				}
 			} else {

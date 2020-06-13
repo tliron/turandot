@@ -25,7 +25,10 @@ var serviceDescribeCommand = &cobra.Command{
 }
 
 func DescribeService(serviceName string) {
-	service, err := NewClient().Turandot().GetService(serviceName)
+	// TODO: in cluster mode we must specify the namespace
+	namespace := ""
+
+	service, err := NewClient().Turandot().GetService(namespace, serviceName)
 	puccinicommon.FailOnError(err)
 
 	if format != "" {

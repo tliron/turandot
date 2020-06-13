@@ -25,7 +25,10 @@ var serviceDeleteCommand = &cobra.Command{
 }
 
 func DeleteService(serviceName string) {
-	err := NewClient().Turandot().DeleteService(serviceName)
+	// TODO: in cluster mode we must specify the namespace
+	namespace := ""
+
+	err := NewClient().Turandot().DeleteService(namespace, serviceName)
 	puccinicommon.FailOnError(err)
 }
 
@@ -34,8 +37,8 @@ func DeleteAllServices() {
 	services, err := turandot.ListServices()
 	puccinicommon.FailOnError(err)
 	for _, service := range services.Items {
-		log.Infof("deleting service: %s", service.Name)
-		err := turandot.DeleteService(service.Name)
+		log.Infof("deleting service: %s/%s", service.Namespace, service.Name)
+		err := turandot.DeleteService(service.Namespace, service.Name)
 		puccinicommon.FailOnError(err)
 	}
 }

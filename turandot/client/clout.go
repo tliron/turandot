@@ -7,14 +7,13 @@ import (
 	"github.com/tliron/turandot/common"
 )
 
-func (self *Client) ServiceClout(serviceName string) (string, error) {
-	if service, err := self.GetService(serviceName); err == nil {
-		//return service.Status.CloutPath, nil
+func (self *Client) ServiceClout(namespace string, serviceName string) (string, error) {
+	if service, err := self.GetService(namespace, serviceName); err == nil {
 		appName := fmt.Sprintf("%s-operator", self.NamePrefix)
 
 		if podName, err := common.GetFirstPodName(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 			var builder strings.Builder
-			if err := self.Exec(podName, "operator", nil, &builder, "cat", service.Status.CloutPath); err == nil {
+			if err := self.Exec(self.Namespace, podName, "operator", nil, &builder, "cat", service.Status.CloutPath); err == nil {
 				return strings.TrimRight(builder.String(), "\n"), nil
 			} else {
 				return "", err

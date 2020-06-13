@@ -112,7 +112,7 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		serviceInformer.Informer(),
 		processorPeriod,
 		func(name string, namespace string) (interface{}, error) {
-			return self.GetService(name, namespace)
+			return self.Client.GetService(namespace, name)
 		},
 		func(object interface{}) (bool, error) {
 			return self.processService(object.(*turandotresources.Service))

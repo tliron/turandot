@@ -32,7 +32,7 @@ func (self *Client) SetDelegate(name string, kubeconfigPath string, context stri
 		for _, podName := range podNames {
 			//os.Stdout.Write(configBytes)
 			self.Log.Infof("setting delegate %q in operator pod: %s/%s", name, self.Namespace, podName)
-			if err := self.WriteToContainer(podName, "operator", bytes.NewReader(configBytes), configPath, nil); err != nil {
+			if err := self.WriteToContainer(self.Namespace, podName, "operator", bytes.NewReader(configBytes), configPath, nil); err != nil {
 				return err
 			}
 		}
@@ -48,7 +48,7 @@ func (self *Client) DeleteDelegate(name string) error {
 	configPath := self.getDelegateConfigPath(name)
 	if podNames, err := common.GetPodNames(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		for _, podName := range podNames {
-			if err := self.Exec(podName, "operator", nil, nil, "rm", "--force", configPath); err != nil {
+			if err := self.Exec(self.Namespace, podName, "operator", nil, nil, "rm", "--force", configPath); err != nil {
 				return err
 			}
 		}
@@ -63,7 +63,7 @@ func (self *Client) ListDelegates() ([]string, error) {
 	appName := fmt.Sprintf("%s-%s", self.NamePrefix, "operator")
 	if podName, err := common.GetFirstPodName(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 		var buffer bytes.Buffer
-		if err := self.Exec(podName, "operator", nil, &buffer, "find", filepath.Join(self.CachePath, "delegates"), "-type", "f", "-printf", "%f\n"); err == nil {
+		if err := self.Exec(self.Namespace, podName, "operator", nil, &buffer, "find", filepath.Join(self.CachePath, "delegates"), "-type", "f", "-printf", "%f\n"); err == nil {
 			var names []string
 			for _, filename := range strings.Split(strings.TrimRight(buffer.String(), "\n"), "\n") {
 				names = append(names, strings.TrimSuffix(filename, ".yaml"))

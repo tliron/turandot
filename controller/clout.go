@@ -61,7 +61,7 @@ func (self *Controller) WriteClout(yaml string, cloutPath string) (string, error
 	}
 }
 
-func (self *Controller) UpdateClout(yaml string, service *resources.Service) (*resources.Service, error) {
+func (self *Controller) WriteServiceClout(yaml string, service *resources.Service) (*resources.Service, error) {
 	if cloutHash, err := self.WriteClout(yaml, service.Status.CloutPath); err == nil {
 		return self.UpdateServiceStatusClout(service, service.Status.CloutPath, cloutHash)
 	} else {
@@ -113,7 +113,7 @@ func (self *Controller) executeCloutUpdate(service *resources.Service, urlContex
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
 		if yaml, err := common.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if yaml != "" {
-				return self.UpdateClout(yaml, service)
+				return self.WriteServiceClout(yaml, service)
 			} else {
 				return service, nil
 			}
@@ -204,7 +204,7 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 	return self.updateServiceStatusFromClout(service, urlContext)
 }
 
-func (self *Controller) composeClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+func (self *Controller) updateClout(service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
 	var err error
 
 	// Change mode?

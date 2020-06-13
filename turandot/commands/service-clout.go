@@ -23,7 +23,10 @@ var serviceCloutCommand = &cobra.Command{
 }
 
 func Clout(serviceName string) {
-	clout, err := NewClient().Turandot().ServiceClout(serviceName)
+	// TODO: in cluster mode we must specify the namespace
+	namespace := ""
+
+	clout, err := NewClient().Turandot().ServiceClout(namespace, serviceName)
 	puccinicommon.FailOnError(err)
 
 	fmt.Fprintln(terminal.Stdout, clout)
