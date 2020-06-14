@@ -63,7 +63,7 @@ for (var vertexId in clout.vertexes) {
 				}
 
 				execution.pods = interface_.inputs.pods;
-				execution.command = interface_.inputs.command;
+
 				var artifacts = getArtifacts(nodeTemplate, interface_.inputs.artifacts);
 				if (artifacts)
 					execution.artifacts = artifacts;
@@ -77,6 +77,17 @@ for (var vertexId in clout.vertexes) {
 					execution.host = interface_.inputs.host;
 					execution.username = interface_.inputs.username;
 					execution.key = interface_.inputs.key;
+				}
+
+				// Process special "$$" command arguments
+				execution.command = interface_.inputs.command.slice();
+				for (var ii = 1, ll = execution.command.length; ii < ll; ii++) {
+					var arg = execution.command[ii];
+					if (arg.substring(0, 2) === '$$') {
+						arg = execution[arg.substring(2)];
+						if (arg !== undefined)
+							execution.command[ii] = arg;
+					}
 				}
 			}
 

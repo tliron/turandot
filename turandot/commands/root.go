@@ -30,11 +30,11 @@ func init() {
 
 	rootCommand.PersistentFlags().StringVarP(&logTo, "log", "l", "", "log to file (defaults to stderr)")
 	rootCommand.PersistentFlags().CountVarP(&verbose, "verbose", "v", "add a log verbosity level (can be used twice)")
-	rootCommand.PersistentFlags().IntVar(&maxWidth, "width", -1, "maximum output width (-1 to use terminal width, 0 for no maximum)")
+	rootCommand.PersistentFlags().IntVarP(&maxWidth, "width", "j", -1, "maximum output width (-1 to use terminal width, 0 for no maximum)")
 	rootCommand.PersistentFlags().StringVarP(&colorize, "colorize", "z", "true", "colorize output (boolean or \"force\")")
-	rootCommand.PersistentFlags().StringVar(&format, "format", "", "output format (\"bare\", \"yaml\", \"json\", or \"xml\")")
-	rootCommand.PersistentFlags().BoolVar(&strict, "strict", false, "strict output (for \"YAML\" format only)")
-	rootCommand.PersistentFlags().BoolVar(&pretty, "pretty", true, "prettify output")
+	rootCommand.PersistentFlags().StringVarP(&format, "format", "o", "", "output format (\"bare\", \"yaml\", \"json\", or \"xml\")")
+	rootCommand.PersistentFlags().BoolVarP(&strict, "strict", "y", false, "strict output (for \"YAML\" format only)")
+	rootCommand.PersistentFlags().BoolVarP(&pretty, "pretty", "r", true, "prettify output")
 
 	rootCommand.PersistentFlags().StringVarP(&masterUrl, "master", "m", "", "address of the Kubernetes API server")
 	rootCommand.PersistentFlags().StringVarP(&kubeconfigPath, "kubeconfig", "k", defaultKubeconfigPath, "path to Kubernetes configuration")

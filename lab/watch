@@ -1,0 +1,3 @@
+#!/bin/bash
+
+watch --color ~/go/bin/turandot service list --colorize=force

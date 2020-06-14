@@ -34,4 +34,4 @@ artifact_types:
     derived_from: Deployable
     properties:
       permissions:
-        default: 0555
+        default: 0755

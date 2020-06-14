@@ -30,12 +30,9 @@ node_types:
       # Interfaces are used to achieve service modes
       # The name of the interface is used by default as the name of the mode
       # (Anything after "." in the name is ignored for this purpose)
-      # The interfaces are executed in alphabetical order
       normal.1:
         type: k8s:ContainerCommand
       normal.2:
-        type: o11n:Scriptlet
-      normal.3:
         type: o11n:Scriptlet
 
 topology_template:
@@ -81,6 +78,8 @@ topology_template:
             ingress:
             - ip: <unknown>
       interfaces:
+        # The interfaces are executed in alphabetical order
+        # The previous execution must succeed before moving on to the next
         normal.1:
           inputs:
             # The command is executed with the contents of the Clout in stdin
@@ -88,27 +87,21 @@ topology_template:
             # This combination allows the command to manipulate the Clout if desired
             command:
             - /tmp/configure.sh
-            - /tmp/clout.yaml
-            # Artifacts are copied to target before execution
+            - $$nodeTemplate # argument beginning with "$$" will be replaced with local values
+            # Artifacts are copied to the target container before execution
             artifacts:
-            - configure
+            - configure # See below
         normal.2:
           inputs:
             scriptlet: hello-world.set-output
             arguments:
               name: initialized
               value: 'true'
-        normal.3:
-          inputs:
-            scriptlet: orchestration.states.set
-            arguments:
-              mode: normal
-              state: Achieved
-              message: We did it!
       artifacts:
+        # In this case all our artifacts are in the CSAR
+        # But we can also use URLs to other locations
         image:
-          # Container images can be placed in the CSAR (or any other repository)
-          # They will all be published by Turandot on the inventory 
+          # Container images will be published on the inventory before deployment 
           type: k8s:ContainerImage
           # Note that the container image tarball must be "portable"
           # (You can use the included "save-portable-container-image" script to create it)
@@ -117,6 +110,7 @@ topology_template:
             # The tag is required for publishing the image
             tag: hello-world
         configure:
+          # The Executable type will set executable permissions on the file
           type: o11n:Executable
           file: artifacts/scripts/configure.sh
           deploy_path: /tmp/configure.sh

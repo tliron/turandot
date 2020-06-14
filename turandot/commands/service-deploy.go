@@ -28,7 +28,7 @@ func init() {
 	serviceDeployCommand.Flags().StringVarP(&directoryPath, "directory", "d", "", "path to a local directory of TOSCA YAML files (will be uploaded)")
 	serviceDeployCommand.Flags().StringVarP(&url, "url", "u", "", "URL to a CSAR or TOSCA YAML file (must be accessible from cluster)")
 	serviceDeployCommand.Flags().StringArrayVarP(&inputs, "input", "i", []string{}, "specify an input (name=YAML)")
-	serviceDeployCommand.Flags().StringVarP(&inputsUrl, "inputs", "p", "", "load inputs from a PATH or URL to YAML content")
+	serviceDeployCommand.Flags().StringVarP(&inputsUrl, "inputs", "s", "", "load inputs from a PATH or URL to YAML content")
 	serviceDeployCommand.Flags().StringVarP(&mode, "mode", "e", "normal", "initial mode")
 }
 

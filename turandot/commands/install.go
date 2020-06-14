@@ -12,7 +12,7 @@ func init() {
 	rootCommand.AddCommand(installCommand)
 	installCommand.Flags().StringVarP(&site, "site", "s", "default", "site name")
 	installCommand.Flags().BoolVarP(&cluster, "cluster", "c", false, "cluster mode")
-	installCommand.Flags().StringVarP(&registry, "registry", "r", "docker.io", "registry URL (use special value \"internal\" to discover internally deployed registry)")
+	installCommand.Flags().StringVarP(&registry, "registry", "g", "docker.io", "registry URL (use special value \"internal\" to discover internally deployed registry)")
 	installCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for installation to succeed")
 }
 

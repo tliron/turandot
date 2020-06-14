@@ -18,16 +18,16 @@ func ParseOrchestrationNodeState(value ard.Value) (*OrchestrationNodeState, bool
 	state := ard.NewNode(value)
 	var self OrchestrationNodeState
 	var ok bool
-	if self.Mode, ok = state.Get("mode").String(false); !ok {
+	if self.Mode, ok = state.Get("mode").String(false); ok {
+		if self.State, ok = state.Get("state").String(false); ok {
+			self.Message, _ = state.Get("message").String(false)
+			return &self, true
+		} else {
+			return nil, false
+		}
+	} else {
 		return nil, false
 	}
-	if self.State, ok = state.Get("state").String(false); !ok {
-		return nil, false
-	}
-	if self.Message, ok = state.Get("message").String(false); !ok {
-		return nil, false
-	}
-	return &self, true
 }
 
 //

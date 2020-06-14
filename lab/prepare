@@ -16,5 +16,4 @@ minikube profile central
 
 kubectl create namespace workspace || true
 
-#"$HERE/argo/deploy"
 "$HERE/mariadb/deploy"

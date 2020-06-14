@@ -6,7 +6,7 @@ import (
 
 func init() {
 	inventoryCommand.AddCommand(inventoryShellCommand)
-	inventoryShellCommand.PersistentFlags().StringVarP(&component, "component", "p", "registry", "sub-component (\"registry\" or \"spooler\")")
+	inventoryShellCommand.PersistentFlags().StringVarP(&component, "component", "c", "registry", "sub-component (\"registry\" or \"spooler\")")
 }
 
 var inventoryShellCommand = &cobra.Command{

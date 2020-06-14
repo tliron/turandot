@@ -213,7 +213,10 @@ func (self *Controller) updateClout(service *resources.Service, urlContext *urlp
 			return service, err
 		}
 		self.Log.Infof("resetting node states in Clout: %s", service.Status.CloutPath)
-		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.executions.reset", map[string]string{"service": service.Name, "mode": service.Status.Mode}); err != nil {
+		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.executions.reset", map[string]string{
+			"service": service.Name,
+			"mode":    service.Status.Mode,
+		}); err != nil {
 			return service, err
 		}
 	}
@@ -221,7 +224,9 @@ func (self *Controller) updateClout(service *resources.Service, urlContext *urlp
 	// Get executions
 	var executions ard.Value
 	self.Log.Infof("getting executions for Clout: %s", service.Status.CloutPath)
-	if executions, err = self.executeCloutGet(service, urlContext, "kubernetes.executions", map[string]string{"service": service.Name}); err != nil {
+	if executions, err = self.executeCloutGet(service, urlContext, "kubernetes.executions", map[string]string{
+		"service": service.Name,
+	}); err != nil {
 		return service, err
 	}
 
@@ -230,7 +235,7 @@ func (self *Controller) updateClout(service *resources.Service, urlContext *urlp
 		if orchestrationExecutions, ok := parser.ParseOrchestrationExecutions(executions); ok {
 			if orchestrationExecutions != nil {
 				if service, err = self.processExecutions(orchestrationExecutions, service, urlContext); err != nil {
-					self.Log.Errorf("execution error: %s", err.Error())
+					return service, err
 				}
 			}
 		} else {

@@ -16,7 +16,17 @@ import (
 //   https://github.com/pressly/sup
 
 func (self *Controller) processExecutions(executions parser.OrchestrationExecutions, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+	var err error
+
 	for nodeTemplateName, nodeTemplateExecutions := range executions {
+		arguments := map[string]string{
+			"service":      service.Name,
+			"nodeTemplate": nodeTemplateName,
+			"mode":         service.Status.Mode,
+			"state":        string(resources.ModeAchieved),
+		}
+
+	executions:
 		for _, execution := range nodeTemplateExecutions {
 			if execution.GetMode() != service.Status.Mode {
 				continue
@@ -26,14 +36,22 @@ func (self *Controller) processExecutions(executions parser.OrchestrationExecuti
 			switch execution_ := execution.(type) {
 			case *parser.OrchestrationCloutExecution:
 				if service, err = self.processCloutExecution(nodeTemplateName, execution_, service, urlContext); err != nil {
-					return service, err
+					arguments["state"] = string(resources.ModeFailed)
+					arguments["message"] = err.Error()
+					break executions
 				}
 
 			case *parser.OrchestrationContainerExecution:
 				if service, err = self.processContainerExecution(nodeTemplateName, execution_, service, urlContext); err != nil {
-					return service, err
+					arguments["state"] = string(resources.ModeFailed)
+					arguments["message"] = err.Error()
+					break executions
 				}
 			}
+		}
+
+		if service, err = self.executeCloutUpdate(service, urlContext, "orchestration.states.set", arguments); err != nil {
+			return service, err
 		}
 	}
 
@@ -108,7 +126,7 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 							return self.WriteServiceClout(yaml, service)
 						}
 					} else {
-						return service, nil
+						return service, err
 					}
 				} else {
 					return service, err

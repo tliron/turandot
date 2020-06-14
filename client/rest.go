@@ -1,11 +1,12 @@
 package delegate
 
 import (
+	"fmt"
 	"io"
 	"path/filepath"
 	"strconv"
+	"strings"
 
-	"github.com/tliron/puccini/common/terminal"
 	core "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
@@ -29,6 +30,8 @@ func (self *Client) WriteToContainer(namespace string, podName string, container
 }
 
 func (self *Client) Exec(namespace string, podName string, containerName string, stdin io.Reader, stdout io.Writer, command ...string) error {
+	var stderr strings.Builder
+
 	execOptions := core.PodExecOptions{
 		Container: containerName,
 		Command:   command,
@@ -37,7 +40,7 @@ func (self *Client) Exec(namespace string, podName string, containerName string,
 	}
 
 	streamOptions := remotecommand.StreamOptions{
-		Stderr: terminal.Stderr,
+		Stderr: &stderr,
 		Tty:    false,
 	}
 
@@ -57,7 +60,7 @@ func (self *Client) Exec(namespace string, podName string, containerName string,
 		if err = executor.Stream(streamOptions); err == nil {
 			return nil
 		} else {
-			return err
+			return fmt.Errorf("%s\n%s", err.Error(), stderr.String())
 		}
 	} else {
 		return err
