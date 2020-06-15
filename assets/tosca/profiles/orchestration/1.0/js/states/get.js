@@ -10,7 +10,13 @@ for (var vertexId in clout.vertexes) {
 	var nodeTemplate = vertex.properties;
 
 	if (vertex.metadata.turandot && vertex.metadata.turandot.states)
-		states[nodeTemplate.name] = vertex.metadata.turandot.states;
+		for (var serviceName in vertex.metadata.turandot.states) {
+			var nodeState = vertex.metadata.turandot.states[serviceName];
+			var serviceStates = states[serviceName];
+			if (serviceStates === undefined)
+				serviceStates = states[serviceName] = {};
+			serviceStates[nodeTemplate.name] = nodeState;
+		}
 }
 
 puccini.write(states);

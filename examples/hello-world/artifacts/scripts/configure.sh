@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 NODE_TEMPLATE=$1
 

@@ -311,6 +311,8 @@ capability_types:
       # TODO: sessionAffinityConfig
     attributes:
       clusterIP:
+        metadata:
+          puccini.information:turandot.mapping: spec.clusterIP
         description: >-
           clusterIP is the IP address of the service and is usually assigned randomly by the master.
           If an address is specified manually and is not in use by others, it will be allocated to

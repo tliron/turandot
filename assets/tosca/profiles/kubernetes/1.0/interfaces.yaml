@@ -15,12 +15,6 @@ interface_types:
 
       The implementation is the command to execute.
     inputs:
-      selector:
-        type: LabelSelector
-        required: false
-      pods:
-        type: ExecutionPods
-        default: all
       command:
         description: >-
           Command plus its arguments.
@@ -46,6 +40,12 @@ interface_types:
       Uses the SPDY executor on the "exec" subresource of the pods.
     derived_from: Command
     inputs:
+      selector:
+        type: LabelSelector
+        required: false
+      pods:
+        type: ExecutionPods
+        default: all
       container:
         description: >-
           The name of the container in the pods in which to execute.

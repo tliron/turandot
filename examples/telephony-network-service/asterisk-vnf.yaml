@@ -116,11 +116,11 @@ topology_template:
       interfaces:
         normal:
           inputs:
-            host: TODO #{ get_attribute: [ SELF, ip ] }
+            host: { get_attribute: [ SELF, tcp, clusterIP ] }
             username: admin
             key: { get_artifact: [ SELF, privateKey ] }
             command:
-            - /configure.sh
+            - /tmp/configure.sh
             artifacts:
             - configure
       artifacts:
@@ -139,7 +139,7 @@ topology_template:
         configure:
           type: o11n:Executable
           file: artifacts/scripts/asterisk/configure.sh
-          deploy_path: /configure.sh
+          deploy_path: /tmp/configure.sh
         privateKey:
           type: o11n:Key
           file: artifacts/keypairs/admin@asterisk-vnf

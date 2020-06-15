@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+
+KEY=$HERE/../artifacts/keypairs/admin@asterisk-vnf
+
+IP=$(turandot service output asterisk-vnf tcp-ip)
+
+ssh \
+	-i "$KEY" \
+	-o StrictHostKeyChecking=no \
+	-o UserKnownHostsFile=/dev/null \
+	-o LogLevel=ERROR \
+	"admin@$IP" \
+	"$@"

@@ -184,6 +184,75 @@ func (self *OrchestrationContainerExecution) GetMode() string {
 }
 
 //
+// OrchestrationSSHExecution
+//
+
+type OrchestrationSSHExecution struct {
+	Mode      string
+	Command   []string // len > 0
+	Host      string
+	Username  string
+	Key       string
+	Artifacts OrchestrationArtifacts
+}
+
+func ParseOrchestrationSSHExecution(value ard.Value) (*OrchestrationSSHExecution, bool) {
+	execution := ard.NewNode(value)
+
+	if mode, ok := execution.Get("mode").String(false); ok {
+		if command, ok := execution.Get("command").List(false); ok {
+			if host, ok := execution.Get("host").String(false); ok {
+				if username, ok := execution.Get("username").String(false); ok {
+					if key, ok := execution.Get("key").String(false); ok {
+
+						command_ := make([]string, 0, len(command))
+						for _, value := range command {
+							if value_, ok := value.(string); ok {
+								command_ = append(command_, value_)
+							}
+						}
+						if len(command_) == 0 {
+							return nil, false
+						}
+
+						var artifacts OrchestrationArtifacts
+						if artifacts_, ok := execution.Get("artifacts").List(false); ok {
+							if artifacts, ok = ParseOrchestrationArtifacts(artifacts_); !ok {
+								return nil, false
+							}
+						}
+
+						return &OrchestrationSSHExecution{
+							Mode:      mode,
+							Command:   command_,
+							Host:      host,
+							Username:  username,
+							Key:       key,
+							Artifacts: artifacts,
+						}, true
+					} else {
+						return nil, false
+					}
+				} else {
+					return nil, false
+				}
+			} else {
+				return nil, false
+			}
+		} else {
+			return nil, false
+		}
+	} else {
+		return nil, false
+	}
+}
+
+// OrchestrationExecution interface
+func (self *OrchestrationSSHExecution) GetMode() string {
+	return self.Mode
+}
+
+//
 // OrchestrationExecutions
 //
 
@@ -208,6 +277,13 @@ func ParseOrchestrationExecutions(value ard.Value) (OrchestrationExecutions, boo
 
 					case "container":
 						if execution_, ok := ParseOrchestrationContainerExecution(execution); ok {
+							nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
+						} else {
+							return nil, false
+						}
+
+					case "ssh":
+						if execution_, ok := ParseOrchestrationSSHExecution(execution); ok {
 							nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
 						} else {
 							return nil, false

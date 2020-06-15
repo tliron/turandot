@@ -8,20 +8,6 @@ for (var vertexId in clout.vertexes) {
 	for (var artifactName in nodeTemplate.artifacts) {
 		var artifact = nodeTemplate.artifacts[artifactName];
 
-		if ('cloud.puccini.turandot.orchestration::Key' in artifact.types)
-			artifact.$artifact = puccini.loadString(artifact.sourcePath);
-	}
-}
-		
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
-	if (!tosca.isNodeTemplate(vertex))
-		continue;
-	var nodeTemplate = vertex.properties;
-
-	for (var artifactName in nodeTemplate.artifacts) {
-		var artifact = nodeTemplate.artifacts[artifactName];
-
 		if ('cloud.puccini.kubevirt::CloudConfig' in artifact.types) {
 			var cloudConfig = puccini.loadString(artifact.sourcePath);
 

@@ -1,6 +1,21 @@
 
 clout.exec('tosca.lib.traversal');
 
+// TODO: not here
+for (var vertexId in clout.vertexes) {
+	var vertex = clout.vertexes[vertexId];
+	if (!tosca.isNodeTemplate(vertex))
+		continue;
+	var nodeTemplate = vertex.properties;
+
+	for (var artifactName in nodeTemplate.artifacts) {
+		var artifact = nodeTemplate.artifacts[artifactName];
+
+		if ('cloud.puccini.turandot.orchestration::Key' in artifact.types)
+			artifact.$artifact = puccini.loadString(artifact.sourcePath);
+	}
+}
+
 // Run plugins
 clout.execAll('kubernetes.plugins.resources.pre-get');
 

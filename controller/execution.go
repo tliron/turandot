@@ -5,15 +5,12 @@ import (
 	"strings"
 
 	urlpkg "github.com/tliron/puccini/url"
+	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
-
-// See:
-//   https://github.com/cosiner/socker
-//   https://github.com/pressly/sup
 
 func (self *Controller) processExecutions(executions parser.OrchestrationExecutions, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
 	var err error
@@ -47,7 +44,18 @@ func (self *Controller) processExecutions(executions parser.OrchestrationExecuti
 					arguments["message"] = err.Error()
 					break executions
 				}
+
+			case *parser.OrchestrationSSHExecution:
+				if service, err = self.processSshExecution(nodeTemplateName, execution_, service, urlContext); err != nil {
+					arguments["state"] = string(resources.ModeFailed)
+					arguments["message"] = err.Error()
+					break executions
+				}
 			}
+		}
+
+		if message, ok := arguments["message"]; ok {
+			self.Log.Errorf("execution error: %s", message)
 		}
 
 		if service, err = self.executeCloutUpdate(service, urlContext, "orchestration.states.set", arguments); err != nil {
@@ -124,6 +132,8 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 						yaml := stdout.String()
 						if yaml != "" {
 							return self.WriteServiceClout(yaml, service)
+						} else {
+							return service, nil
 						}
 					} else {
 						return service, err
@@ -135,9 +145,54 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 				return service, err
 			}
 		}
+
+		return service, nil
+	} else {
+		return service, err
+	}
+}
+
+func (self *Controller) processSshExecution(nodeTemplateName string, execution *parser.OrchestrationSSHExecution, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+	if execution.Host == "" {
+		return service, errors.New("SSH execution did not specify host")
+	}
+
+	if execution.Artifacts != nil {
+		for _, artifact := range execution.Artifacts {
+			self.Log.Infof("copying artifact %q via SSH to %q path %q", artifact.SourceURL, execution.Host, artifact.TargetPath)
+			if url, err := urlpkg.NewURL(artifact.SourceURL, urlContext); err == nil {
+				if reader, err := url.Open(); err == nil {
+					defer reader.Close()
+					if err := common.CopySSH(execution.Host, execution.Username, execution.Key, reader, artifact.TargetPath, artifact.Permissions); err != nil {
+						return service, err
+					}
+				} else {
+					return service, err
+				}
+			} else {
+				return service, err
+			}
+		}
+	}
+
+	if url, err := urlpkg.NewURL(service.Status.CloutPath, urlContext); err == nil {
+		if reader, err := url.Open(); err == nil {
+			defer reader.Close()
+			self.Log.Infof("executing %q via SSH to %q", execution.Command, execution.Host)
+			if yaml, err := common.ExecSSH(execution.Host, execution.Username, execution.Key, reader, execution.Command...); err == nil {
+				if yaml != "" {
+					return self.WriteServiceClout(yaml, service)
+				} else {
+					return service, nil
+				}
+			} else {
+				return service, err
+			}
+		} else {
+			return service, err
+		}
 	} else {
 		return service, err
 	}
 
-	return service, nil
 }
