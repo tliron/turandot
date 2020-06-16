@@ -26,6 +26,9 @@ function build () {
 	m "built $ROOT/dist/$ARCHIVE.csar"
 }
 
+mkdir --parents "$HERE/../artifacts/binaries/"
+cp "$(which puccini-clout)" "$HERE/../artifacts/binaries/"
+
 build telephony-network-service \
 	telephony-network-service.yaml \
 	profiles
@@ -34,12 +37,16 @@ build asterisk-cnf \
 	asterisk-cnf.yaml \
 	profiles \
 	artifacts/scripts \
+	artifacts/binaries \
+	artifacts/asterisk \
 	artifacts/images/asterisk-cnf.tar.gz
 
 build asterisk-vnf \
 	asterisk-vnf.yaml \
 	profiles \
 	artifacts/scripts \
+	artifacts/binaries \
+	artifacts/asterisk \
 	artifacts/keypairs \
 	artifacts/cloud-config \
 	artifacts/images/asterisk-vnf.tar.gz

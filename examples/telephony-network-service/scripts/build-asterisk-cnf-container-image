@@ -17,7 +17,7 @@ function r () {
 }
 
 m 'installing asterisk packages...'
-r dnf --assumeyes install asterisk asterisk-pjsip asterisk-sounds-core-en asterisk-sounds-core-en-ulaw gettext
+r dnf --assumeyes install asterisk asterisk-pjsip asterisk-sounds-core-en asterisk-sounds-core-en-ulaw gettext iproute
 r dnf --assumeyes clean all
 
 buildah config \

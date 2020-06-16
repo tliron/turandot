@@ -121,8 +121,13 @@ topology_template:
             key: { get_artifact: [ SELF, privateKey ] }
             command:
             - /tmp/configure.sh
+            - { get_attribute: [ SELF, udp, ingress, 0, ip ] }
             artifacts:
-            - configure
+            - configure.sh
+            - puccini-clout
+            - pjsip.conf
+            - rtp.conf
+            - extensions.conf
       artifacts:
         image:
           type: k8s:ContainerImage
@@ -136,16 +141,32 @@ topology_template:
             base64: true
             variables:
               $KEY: { get_artifact: [ SELF, publicKey ] }
-        configure:
-          type: o11n:Executable
-          file: artifacts/scripts/asterisk/configure.sh
-          deploy_path: /tmp/configure.sh
         privateKey:
           type: o11n:Key
           file: artifacts/keypairs/admin@asterisk-vnf
         publicKey:
           type: o11n:Key
           file: artifacts/keypairs/admin@asterisk-vnf.pub
+        configure.sh:
+          type: o11n:Executable
+          file: artifacts/scripts/asterisk/configure-vnf.sh
+          deploy_path: /tmp/configure.sh
+        pjsip.conf:
+          type: o11n:Deployable
+          file: artifacts/asterisk/pjsip-vnf.conf.template
+          deploy_path: /tmp/pjsip.conf.template
+        rtp.conf:
+          type: o11n:Deployable
+          file: artifacts/asterisk/rtp.conf
+          deploy_path: /tmp/rtp.conf
+        extensions.conf:
+          type: o11n:Deployable
+          file: artifacts/asterisk/extensions-vnf.conf.template
+          deploy_path: /tmp/extensions.conf.template
+        puccini-clout:
+          type: o11n:Executable
+          file: artifacts/binaries/puccini-clout
+          deploy_path: /tmp/puccini-clout
 
     db:
       type: mariadb:DB

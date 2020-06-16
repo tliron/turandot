@@ -54,3 +54,6 @@ fetch virtctl "$KUBEVIRT_VERSION" \
 fetch helm "$HELM_VERSION" \
 "https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz" \
 "linux-amd64/"
+
+fetch yq "$YQ_VERSION" \
+"https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_amd64"

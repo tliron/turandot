@@ -1,0 +1,25 @@
+[net]
+firewall_policy=1
+nat_address=$NAT_IP
+
+[sip]
+sip_port=5063
+default_proxy=0
+
+[rtp]
+audio_rtp_port=7081
+video_rtp_port=9081
+
+[proxy_0]
+reg_identity=sip:201@$IP
+reg_proxy=<sip:$IP>
+reg_sendregister=1
+
+[auth_info_0]
+username=201
+passwd=password
+
+[sound]
+playback_dev_id=PulseAudio: default
+ringer_dev_id=PulseAudio: default
+capture_dev_id=PulseAudio: default

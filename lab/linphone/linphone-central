@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../scripts/_env"
+. "$HERE/_env"
+
+minikube profile central
+
+EXTERNAL_IP=$(turandot service output asterisk-vnf udp-ip -n workspace)
+
+cat "$HERE/linphonerc-central.template" | \
+IP=$EXTERNAL_IP NAT_IP=$LIBVIRT_GATEWAY envsubst > ~/.linphonerc
+
+linphone

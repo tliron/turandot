@@ -13,10 +13,12 @@ KUBERNETES_VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-rel
 MINIKUBE_VERSION=$(github_version kubernetes/minikube)
 KUBEVIRT_VERSION=$(github_version kubevirt/kubevirt)
 HELM_VERSION=$(github_version helm/helm)
+YQ_VERSION=$(github_version mikefarah/yq)
 MULTUS_VERSION=$(github_version intel/multus-cni)
 
 m "KUBERNETES_VERSION=$KUBERNETES_VERSION"
 m "MINIKUBE_VERSION=$MINIKUBE_VERSION"
 m "KUBEVIRT_VERSION=$KUBEVIRT_VERSION"
 m "HELM_VERSION=$HELM_VERSION"
+m "YQ_VERSION=$YQ_VERSION"
 m "MULTUS_VERSION=$MULTUS_VERSION"

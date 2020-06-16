@@ -27,7 +27,7 @@ See the included [examples](examples/).
 
 Turandot targets complex, large-scale workloads. Moreover, it intends to handle the
 orchestration aspect of
-[NFV (Network Function Virtualization) MANO (Management and Orchestration)](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29),
+[NFV MANO (Network Function Virtualization Management and Orchestration)](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29),
 which is a crucial component for deploying heterogeneous network services on clouds at scale.
 Included is a comprehensive example of a multi-cluster
 [telephony network service](examples/telephony-network-service/) modeled entirely in TOSCA.
@@ -42,14 +42,13 @@ Rationale
 ---------
 
 **Design-time**: TOSCA's extensibility via an object-oriented grammar is analogous to Kubernetes's
-extensibility via custom resource definitions and operators. TOSCA's added value is in providing a
-composable and validated graph of resource interrelations, effectively imbuing Kubernetes resources
-with architectural intent.
+extensibility via custom resource definitions and operators. TOSCA's added value for Kubernetes is
+in providing a composable and validated graph of resource interrelations, effectively imbuing
+Kubernetes resources with architectural intent.
 
-**Run-time**: Turandot manages resources *together* as single, coherent workloads—whether we call
-them "applications" or "services"—even across cluster boundaries, ensuring consistency and
-integration as well as allowing for cascading policies for allocation, composition, networking,
-security, etc.
+**Run-time**: Turandot manages resources *together* as single, coherent workloads, even across
+cluster boundaries, ensuring consistency and integration as well as allowing for cascading policies
+for allocation, composition, networking, security, etc.
 
 
 How It Works
@@ -87,14 +86,14 @@ simplify the work of the service template designer. For example, our telephony n
 example uses profiles for Kubernetes, KubeVirt, network services (including data planes), and
 telephony.
 
-**Day 0: Design.** Solution architects compose the models provided by the TOSCA profiles into
-service templates, either by writing the TOSCA manually, or by using a wonderful graphical TOSCA IDE
-(that is yet to be created!). The templates are tested in lab and staging environments using
+**Day 0: Design.** Solution architects compose service templates from the models provided by the
+TOSCA profiles, either by writing the TOSCA manually, or by using a wonderful graphical TOSCA IDE
+(that is yet to be created). The templates are tested in lab and staging environments using
 CI/CD-style automation.
 
 **Day 1: Operations Handoff.** The service templates are ready to be instantiated in production.
 A ticket from an operations support system (OSS) initiates the transfer to a managed multi-cluster
-cloud. Turandot is installed on the target clusters (or available as a delegate from central
+cloud. Turandot is deployed to the target clusters (or automatically delegated from central
 clusters) and takes it from there.
 
 **Day 2+: Cloud-native Operations.** Once they are up and running the services should orchestrate
@@ -163,30 +162,30 @@ Surely, for production systems a robust inventory is necessary. Turandot can wor
 inventory backends, as well as any container image repository adhering to the
 [OCI](https://www.opencontainers.org/) or Docker standards, e.g.
 [Quay](https://github.com/quay/quay) and [Harbor](https://goharbor.io/). Indeed, the internal
-repository is a simple Docker repository. Note that Turandot can store and retrieves CSAR files from
-such repositories even though they are not container images.
+repository is implemented via the reference Docker repository. (Note that Turandot can store and
+retrieve CSAR files from such repositories even though they are not container images.)
 
 The built-in inventory does not have to be used in production, but it can be useful as a local cache
-if the repositories are slow to access or if access is unreliable, e.g. on cloud edge datacenters.
+in cases in which the main inventories are slow to access or if access is unreliable, e.g. on cloud
+edge datacenters.
 
 ### Why use TOSCA and CSARs instead of packaged Helm charts?
 
 Turandot comes with a Helm profile that allows you to package one or more Helm charts inside the
 CSAR or install them from an external chart repository. See the [example](examples/helm/). This
 feature allows you to combine the advantages of TOSCA and Turandot with existing Helm packaging
-efforts.
+efforts. Up to Helm version 3, Helm had an in-cluster controller named Tiller. At version 3 it was
+removed, leaving Helm entirely devoted to text templating. Turandot can be understood in this
+context as a super-charged replacement for Tiller. 
 
-However, it is worth considering converting your Helm charts into pure TOSCA CSARs.  
-
-A Helm chart is essentially a collection of text templates for low-level Kubernetes YAML resource
-manifests stored in a bespoke [repository format](https://helm.sh/docs/topics/chart_repository/). Up
-to Helm version 3, it had an in-cluster controller named Tiller. At version 3 it was removed,
-leaving Helm entirely devoted to text templating.
-
-Text templating is a rather miserable mechanism for generating YAML, and it's hard to use it to
-model reusable types. By contrast, TOSCA is a strictly-typed object-oriented language that supports
-inheritance and topological composition, making it vastly superior for modeling complex cloud
-workloads. TOSCA is an industry-supported standard created exactly for this purpose.
+All that said, it is worth considering abandoning Helm entirely and converting your charts into pure
+TOSCA CSARs. A Helm chart is essentially a collection of text templates for low-level Kubernetes
+YAML resource manifests stored in a bespoke
+[repository format](https://helm.sh/docs/topics/chart_repository/). Text templating is a rather
+miserable mechanism for generating YAML, and it's hard to use it to model reusable types. By
+contrast, TOSCA is a strictly-typed object-oriented language that supports inheritance and
+topological composition, making it vastly superior for modeling complex cloud workloads. TOSCA and
+CSAR are industry-supported standards.
 
 ### Why is it called "Turandot"?
 

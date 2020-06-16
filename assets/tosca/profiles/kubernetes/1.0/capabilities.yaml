@@ -411,7 +411,8 @@ capability_types:
       turandot.apiVersion: apps/v1
       turandot.move: spec.template->spec.template.spec
       turandot.copy.1: metadata.labels->spec.template.metadata.labels
-      turandot.copy.2: metadata.labels->spec.selector.matchLabels
+      turandot.copy.2: metadata.annotations->spec.template.metadata.annotations
+      turandot.copy.3: metadata.labels->spec.selector.matchLabels
     description: >-
       Deployment enables declarative updates for Pods and ReplicaSets.
     derived_from: Controller
