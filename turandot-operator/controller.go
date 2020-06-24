@@ -37,7 +37,7 @@ func Controller() {
 	if cluster {
 		namespace = ""
 	} else if namespace == "" {
-		if namespace_, ok := common.GetConfiguredNamespace(kubeconfigPath); ok {
+		if namespace_, ok := common.GetConfiguredNamespace(kubeconfigPath, context); ok {
 			namespace = namespace_
 		}
 		if namespace == "" {

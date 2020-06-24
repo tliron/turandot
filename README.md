@@ -1,4 +1,4 @@
-*This is an early release. There are still important features missing.*
+*This is an early release. Some features are not yet fully implemented.*
 
 Turandot
 ========
@@ -10,32 +10,41 @@ Turandot
 Orchestrate and compose [Kubernetes](https://kubernetes.io/) workloads using
 [TOSCA](https://www.oasis-open.org/committees/tosca/).
 
-Supports policy-based service composition based on service templates stored in an inventory. 
+Want to dive in?
 
-Workloads can comprise both standard and
+Check out the included [examples](examples/) to understand what you can do with Turandot, and then
+head to the [quickstart guide](QUICKSTART.md) to get up and running.
+
+
+Get It
+------
+
+[![Download](assets/media/download.png "Download")](https://github.com/tliron/turandot/releases)
+
+
+Features
+--------
+
+**Complex workloads**: Turandot targets complex, large-scale workloads. Moreover, it intends to
+handle the orchestration aspect of
+[NFV MANO (Network Function Virtualization Management and Orchestration)](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29),
+which is a crucial component for deploying heterogeneous network services on clouds at scale.
+Included is a comprehensive example of a multi-cluster
+[telephony network service](examples/telephony-network-service/) modeled entirely in TOSCA.
+
+**Diverse workloads**: Workloads can comprise both standard and
 [custom](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
 Kubernetes resources, as well as their
 [operators](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/). They can be deployed
 on a single cluster or on multi-cluster clouds. Virtual machines are supported via
 [KubeVirt](https://kubevirt.io/).
 
-[Helm](https://helm.sh/) charts and external orchestrators, such as
+**Service composition**: Turandot implements TOSCA substitution mappings via policy-based service
+composition based on service templates selected from an inventory. 
+
+**Plugins**: [Helm charts](https://helm.sh/) and external orchestrators, such as
 [Ansible](https://www.ansible.com/), are supported via custom artifacts encapsulated as TOSCA
 types.
-
-See the included [examples](examples/).
-
-Turandot targets complex, large-scale workloads. Moreover, it intends to handle the
-orchestration aspect of
-[NFV MANO (Network Function Virtualization Management and Orchestration)](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29),
-which is a crucial component for deploying heterogeneous network services on clouds at scale.
-Included is a comprehensive example of a multi-cluster
-[telephony network service](examples/telephony-network-service/) modeled entirely in TOSCA.
-
-Get It
-------
-
-[![Download](assets/media/download.png "Download")](https://github.com/tliron/turandot/releases)
 
 
 Rationale
@@ -54,56 +63,51 @@ for allocation, composition, networking, security, etc.
 How It Works
 ------------
 
-The core is a Kubernetes operator that:
+Turandot is an in-cluster Kubernetes operator that:
 
-1. Can work with an internal (built-in) or external inventories to retrieve CSAR-packaged service
+1. Handles custom resources called "services".
+   ([here is the CRD](assets/kubernetes/custom-resource-definition.yaml))
+2. Can work with an internal (built-in) or external inventories to retrieve CSAR-packaged service
    templates. A CSAR
-   ([Cloud Service Archive](https://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.3/os/TOSCA-Simple-Profile-YAML-v1.3-os.html#_Toc26969474)) is a zip file containing a TOSCA service template, TOSCA profiles,
-   and other files ("artifacts") required for orchestration (see #4, below).
-2. Uses [Puccini](https://puccini.cloud/) to compile the CSAR-packaged service templates into the
+   ([Cloud Service Archive](https://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.3/os/TOSCA-Simple-Profile-YAML-v1.3-os.html#_Toc26969474))
+   is a zip file containing a TOSCA service template, TOSCA profiles, and other files ("artifacts")
+   required for orchestration (see #5, below).
+3. Uses [Puccini](https://puccini.cloud/) to compile the CSAR-packaged service templates into the
    [Clout](https://puccini.cloud/clout/) intermediary format.
-3. Renders the Clout to Kubernetes resources and schedules them as integrated workloads.
-4. Deploys and activates artifacts packaged in the CSAR file. This includes container images (as
+4. Renders the Clout to Kubernetes resources and schedules them as integrated workloads.
+5. Deploys and activates artifacts packaged in the CSAR file. This includes container images (as
    well as KubeVirt virtual machine images) and cloud-native configuration tools, such as scripts,
    playbooks, recipes, etc., as well as Kubernetes operators. These configuration tools have access
    to the entire workload topology, allowing them to essentially configure themselves.
-5. Can delegate orchestration to Turandot operators in remote clusters (see multi-cluster workloads,
-   below).
+6. Are some the resources remote? Turandot will delegate orchestration to Turandot operators in
+   remote clusters (see multi-cluster workloads, below).
 
-The Turandot operator can be controlled using the `turandot` utility, e.g.:
+The Turandot operator can be controlled using the stateless `turandot` utility, e.g.:
 
     turandot service deploy my-service --file=my-service-template.csar
 
 ⮕ [Documentation](turandot/)
 
+Note that this utility is merely a convenience, not a requirement. You can use your existing
+Kubernetes tools to interact with the "service" custom resources.
 
-The Cycle of Life
------------------
 
-**Day -1: Modeling.** TOSCA is used to create "profiles" of reusable, composable types, which
-together provide a validated and validating model for the target domain. TOSCA profiles vastly
-simplify the work of the service template designer. For example, our telephony network service
-example uses profiles for Kubernetes, KubeVirt, network services (including data planes), and
-telephony.
+Cloud-Native Self-Orchestration
+-------------------------------
 
-**Day 0: Design.** Solution architects compose service templates from the models provided by the
-TOSCA profiles, either by writing the TOSCA manually, or by using a wonderful graphical TOSCA IDE
-(that is yet to be created). The templates are tested in lab and staging environments using
-CI/CD-style automation.
+Self-orchestration is coordinated by setting a "mode" for the entire workflow, following a pattern
+we call the Town-Crier Model. This mode is a *proclamation*: a modal, asynchronous, system-wide
+event, which answers the question "What should we be doing now?" Service template designers can
+attach actions to certain modes, modeled as TOSCA interfaces that use Kubernetes command streaming
+(or SSH for KubeVirt virtual machines). The guiding assumption is that components know their own
+status, needs, and obstacles better than a centralized orchestrator ever could, and so the best
+approach is to optimize for coordination rather than dictation. The end result is that the total
+state of the system is *emergent* rather than imposed.
 
-**Day 1: Operations Handoff.** The service templates are ready to be instantiated in production.
-A ticket from an operations support system (OSS) initiates the transfer to a managed multi-cluster
-cloud. Turandot is deployed to the target clusters (or automatically delegated from central
-clusters) and takes it from there.
-
-**Day 2+: Cloud-native Operations.** Once they are up and running the services should orchestrate
-themselves by adapting to changing internal and external conditions, as well as triggered and manual
-actions from operations. Changes include scaling, healing, migration, as well as more elaborate
-transformations. The Turandot operator will continue to monitor these changes and update the Clout.
-Components can refer to the Clout as "single source of truth" to see the complete topology in order
-to make self-orchestration decisions, as well as checking against policies to which they must or can
-adhere. Machine learning and AI can be applied to the Clout in order to make the best possible
-runtime orchestration decisions.
+Turandot acts as the proclamation controller, or "town crier", ensuring that the interfaces for the
+current mode are continuously polled for all running components and collating their success/failure
+statuses, even across multi-cluster boundaries. The Clout functions as the "town hall": it is where
+components can continuously store and share configuration data with the entire topology.
 
 
 Multi-Cluster Workloads
@@ -138,6 +142,35 @@ within a cluster and to allow secure delegation between them, in effect treating
 multi-cluster scenario (see above).
 
 
+Putting It All Together: The Cycle of Life
+------------------------------------------
+
+**Day -1: Modeling.** TOSCA is used to create "profiles" of reusable, composable types, which
+together provide a validated and validating model for the target domain. TOSCA profiles vastly
+simplify the work of the service template designer. For example, our telephony network service
+example uses profiles for Kubernetes, KubeVirt, network services (including data planes), and
+telephony.
+
+**Day 0: Design.** Solution architects compose service templates from the models provided by the
+TOSCA profiles, either by writing the TOSCA manually, or by using a wonderful graphical TOSCA IDE
+(that is yet to be created). The templates are tested in lab and staging environments using
+CI/CD-style automation.
+
+**Day 1: Operations handoff.** The service templates are ready to be instantiated in production.
+A ticket from an operations support system (OSS) initiates the transfer to a managed multi-cluster
+cloud. Turandot is deployed to the target clusters (or automatically delegated from central
+clusters) and takes it from there.
+
+**Day 2+: Cloud-native operations.** Once they are up and running the services should orchestrate
+themselves by adapting to changing internal and external conditions, as well as triggered and manual
+actions from operations. Changes include scaling, healing, migration, as well as more elaborate
+transformations. The Turandot operator will continue to monitor these changes and update the Clout.
+Components can refer to the Clout as "single source of truth" to see the complete topology in order
+to make self-orchestration decisions, as well as checking against policies to which they must or can
+adhere. Machine learning and AI can be applied to the Clout in order to make the best possible
+runtime orchestration decisions.
+
+
 FAQ
 ---
 
@@ -155,6 +188,28 @@ atomic transactions that can be rolled back. Changes are expected to be dynamic,
 
 This is so different from "legacy" LCM that it's probably best not to use that term in this
 scenario. Kubernetes introduces a new, cloud-native orchestration paradigm.
+
+### Why doesn't Turandot include a workflow engine?
+
+Workflow engines are unreliable in any cloud environment but are an especially bad fit for
+Kubernetes. In Kubernetes a single container is, by design, controlled by multiple levels of
+operators, e.g. changes to the Pod, ReplicaSet, and Deployment resources can cause a container to
+restart and lose state at any moment. An event or message may very well be invalid as soon as it is
+triggered or sent.
+
+And so Turandot introduces and embraces the Town-Crier Model. The "town" of components will be
+*continuously* attempting to achieve the current mode (a modal event). Turandot is merely a
+coordinator, not an orchestrator per se. In other words, we encourage *self-orchestration*.
+
+That said, Turandot does not stop you from using a workflow engine if you reall need or want one.
+You can delegate to it via the mode interfaces or have it running as an entirely separate system.
+
+For a workflow solution that is well integrated with Kubernetes consider
+[Argo Workflows](https://argoproj.github.io/projects/argo), which extends the scheduling
+functionality of [Kubernetes jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
+to allow for declarative dependency graphs.
+
+(Note: We are working on an TOSCA profile for Argo, which will include a workflow example.)
 
 ### Why is there a built-in inventory? Shouldn't the inventory be managed externally?
 

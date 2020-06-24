@@ -34,6 +34,7 @@ archives:
   - assets/kubernetes/**/*
   - assets/tosca/**/*
   - examples/**/*
+  - lab/**/*
 
   format_overrides:
   - goos: windows

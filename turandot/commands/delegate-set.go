@@ -19,9 +19,9 @@ func init() {
 	}
 
 	delegateCommand.AddCommand(delegateSetCommand)
-	delegateSetCommand.Flags().StringVarP(&delegateKubeconfigPath, "delegate-kubeconfig", "", defaultKubeconfigPath, "path to delegate delegate Kubernetes configuration")
-	delegateSetCommand.Flags().StringVarP(&delegateContext, "delegate-context", "", "", "override current context in delegate Kubernetes configuration")
-	delegateSetCommand.Flags().StringVarP(&delegateNamespace, "delegate-namespace", "", "", "namespace (overrides context namespace in delegate Kubernetes configuration)")
+	delegateSetCommand.Flags().StringVar(&delegateKubeconfigPath, "delegate-kubeconfig", defaultKubeconfigPath, "path to delegate delegate Kubernetes configuration")
+	delegateSetCommand.Flags().StringVar(&delegateContext, "delegate-context", "", "override current context in delegate Kubernetes configuration")
+	delegateSetCommand.Flags().StringVar(&delegateNamespace, "delegate-namespace", "", "namespace (overrides context namespace in delegate Kubernetes configuration)")
 }
 
 var delegateSetCommand = &cobra.Command{

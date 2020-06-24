@@ -838,6 +838,8 @@ github.com/tliron/kubernetes-registry-spooler v1.0.5 h1:B9SYDH80wPi7lwOvFnR2DDSE
 github.com/tliron/kubernetes-registry-spooler v1.0.5/go.mod h1:H6vlnWWjwzrbDoPRdZlnSzhIv8YkvKsfTvSue4lBA1M=
 github.com/tliron/kubernetes-registry-spooler v1.0.6 h1:Rig36EyTVjYvPQUzDiFLPMYWa9dbadzdR0zJcTdGrUE=
 github.com/tliron/kubernetes-registry-spooler v1.0.6/go.mod h1:BkrRQaJuIhltiXK2OH+dNhiB29FZ7sqKNrbWk9D67EU=
+github.com/tliron/kubernetes-registry-spooler v1.0.7 h1:cbuFuPi2ZAUDD3rzy5vxbPdaVJ2BIi1+KgSbw5OWSjo=
+github.com/tliron/kubernetes-registry-spooler v1.0.7/go.mod h1:BkrRQaJuIhltiXK2OH+dNhiB29FZ7sqKNrbWk9D67EU=
 github.com/tliron/puccini v0.11.1 h1:oj0QPXHJvDJxlW+RJFrTY4GbWdIYcnXlrrSgo8CkLPU=
 github.com/tliron/puccini v0.11.1/go.mod h1:76YHG3b0BMDrJG6+y6Jvu0y/I6jdNHOIHM2tTLxEdXU=
 github.com/tliron/puccini v0.13.0 h1:F7SanqntknvNfoaINzH9H3G/j/cDll7eyrVTmiyQejA=

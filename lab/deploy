@@ -18,9 +18,10 @@ if [ "$1" == -b ]; then
 	"$ROOT/scripts/publish-container-image"
 fi
 
-turandot install -s central -n workspace -w -v
+kubectl config set-context central --namespace=workspace
+kubectl config set-context edge --namespace=workspace
 
-kubectl config set-context --current --namespace=workspace
+turandot install -s central -n workspace -w -v
 
 turandot service deploy hello-world -f dist/hello-world.csar -v
 turandot service deploy helm-hello-world -f dist/helm-hello-world.csar -v

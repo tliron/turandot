@@ -17,8 +17,9 @@ var format string
 var pretty bool
 var strict bool
 
-var kubeconfigPath string
 var masterUrl string
+var kubeconfigPath string
+var context string
 var cluster bool
 var namespace string
 
@@ -38,6 +39,7 @@ func init() {
 
 	rootCommand.PersistentFlags().StringVarP(&masterUrl, "master", "m", "", "address of the Kubernetes API server")
 	rootCommand.PersistentFlags().StringVarP(&kubeconfigPath, "kubeconfig", "k", defaultKubeconfigPath, "path to Kubernetes configuration")
+	rootCommand.PersistentFlags().StringVarP(&context, "context", "x", "", "name of context in Kubernetes configuration")
 	rootCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace (overrides context namespace in Kubernetes configuration)")
 }
 

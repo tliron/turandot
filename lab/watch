@@ -1,3 +1,5 @@
 #!/bin/bash
 
-watch --color "$(which turandot)" service list --colorize=force
+CONTEXT=${1:-central}
+
+watch --color "$(which turandot)" service list --colorize=force --context="$CONTEXT"

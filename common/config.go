@@ -3,19 +3,43 @@ package common
 import (
 	"io/ioutil"
 
+	"github.com/op/go-logging"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
 // See: clientcmd.BuildConfigFromFlags
+func NewConfigFromFlags(masterUrl string, configPath string, context string, log *logging.Logger) (*rest.Config, error) {
+	if configPath == "" && masterUrl == "" {
+		if config, err := rest.InClusterConfig(); err == nil {
+			return config, nil
+		} else {
+			log.Warningf("could not create InClusterConfig: %s", err)
+		}
+	}
 
-func NewConfig(configPath string) (*rest.Config, error) {
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		&clientcmd.ClientConfigLoadingRules{
 			ExplicitPath: configPath,
 		},
-		&clientcmd.ConfigOverrides{},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: context,
+			ClusterInfo: api.Cluster{
+				Server: masterUrl,
+			},
+		},
+	).ClientConfig()
+}
+
+func NewConfig(configPath string, context string) (*rest.Config, error) {
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{
+			ExplicitPath: configPath,
+		},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: context,
+		},
 	).ClientConfig()
 }
 
@@ -30,12 +54,14 @@ func NewConfigForContext(configPath string, context string) (*rest.Config, error
 	).ClientConfig()
 }
 
-func GetConfiguredNamespace(configPath string) (string, bool) {
+func GetConfiguredNamespace(configPath string, context string) (string, bool) {
 	clientConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		&clientcmd.ClientConfigLoadingRules{
 			ExplicitPath: configPath,
 		},
-		&clientcmd.ConfigOverrides{},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: context,
+		},
 	)
 	namespace, _, _ := clientConfig.Namespace()
 	return namespace, namespace != ""

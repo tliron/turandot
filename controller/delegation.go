@@ -14,8 +14,8 @@ import (
 
 func (self *Controller) NewDelegate(name string) (*clientpkg.Client, *spoolerpkg.Client, error) {
 	configPath := filepath.Join(self.CachePath, "delegates", fmt.Sprintf("%s.yaml", name))
-	if config, err := common.NewConfig(configPath); err == nil {
-		namespace, _ := common.GetConfiguredNamespace(configPath)
+	if config, err := common.NewConfig(configPath, ""); err == nil {
+		namespace, _ := common.GetConfiguredNamespace(configPath, "")
 
 		var kubernetes *kubernetespkg.Clientset
 		kubernetes, err := kubernetespkg.NewForConfig(config)

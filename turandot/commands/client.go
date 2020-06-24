@@ -10,7 +10,6 @@ import (
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kubernetespkg "k8s.io/client-go/kubernetes"
 	restpkg "k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 //
@@ -25,7 +24,7 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	config, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+	config, err := common.NewConfigFromFlags(masterUrl, kubeconfigPath, context, log)
 	puccinicommon.FailOnError(err)
 
 	kubernetes, err := kubernetespkg.NewForConfig(config)
@@ -35,7 +34,7 @@ func NewClient() *Client {
 	if cluster {
 		namespace_ = ""
 	} else if namespace_ == "" {
-		if namespace__, ok := common.GetConfiguredNamespace(kubeconfigPath); ok {
+		if namespace__, ok := common.GetConfiguredNamespace(kubeconfigPath, context); ok {
 			namespace_ = namespace__
 		}
 		if namespace_ == "" {

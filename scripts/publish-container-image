@@ -5,6 +5,7 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/_env"
 . "$HERE/_trap"
 
+m 'Login to docker.io'
 buildah login docker.io
 
 function push () {
