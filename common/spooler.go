@@ -4,6 +4,7 @@ import (
 	"io"
 
 	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
+	"github.com/tliron/puccini/common"
 	"github.com/tliron/puccini/common/registry"
 	urlpkg "github.com/tliron/puccini/url"
 )
@@ -56,7 +57,7 @@ func TarAndPublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerp
 		return err
 	}
 
-	size, err := ReaderSize(reader)
+	size, err := common.ReaderSize(reader)
 	if err != nil {
 		return err
 	}

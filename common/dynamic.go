@@ -46,7 +46,7 @@ func NewDynamic(dynamic dynamicpkg.Interface, discovery discovery.DiscoveryInter
 		Dynamic:         dynamic,
 		Discovery:       discovery,
 		InformerFactory: informerFactory,
-		Log:             logging.MustGetLogger(fmt.Sprintf("dynamic.%s", namespace)),
+		Log:             logging.MustGetLogger(fmt.Sprintf("turandot.dynamic.%s", namespace)),
 		informers:       make(map[schema.GroupVersionResource]cache.SharedIndexInformer),
 		context:         context,
 	}

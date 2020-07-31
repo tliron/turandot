@@ -27,7 +27,7 @@ func Controller() {
 		return
 	}
 
-	log.Infof("%s version=%s revision=%s site=%s", toolName, versionpkg.GitVersion, versionpkg.GitRevision, site)
+	log.Noticef("%s version=%s revision=%s site=%s", toolName, versionpkg.GitVersion, versionpkg.GitRevision, site)
 
 	// Config
 

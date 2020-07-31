@@ -216,7 +216,7 @@ to allow for declarative dependency graphs.
 Surely, for production systems a robust inventory is necessary. Turandot can work with various
 inventory backends, as well as any container image repository adhering to the
 [OCI](https://www.opencontainers.org/) or Docker standards, e.g.
-[Quay](https://github.com/quay/quay) and [Harbor](https://goharbor.io/). Indeed, the internal
+[Quay](https://www.projectquay.io/) and [Harbor](https://goharbor.io/). Indeed, the internal
 repository is implemented via the reference Docker repository. (Note that Turandot can store and
 retrieve CSAR files from such repositories even though they are not container images.)
 

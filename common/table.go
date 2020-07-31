@@ -35,7 +35,7 @@ const (
 )
 
 func NewTable(width int, headings ...string) *Table {
-	if width == -1 {
+	if width == 0 {
 		var err error
 		if width, _, err = sshterminal.GetSize(int(os.Stdout.Fd())); err != nil {
 			width = -1
