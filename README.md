@@ -50,7 +50,7 @@ types.
 Rationale
 ---------
 
-**Design-time**: TOSCA's extensibility via an object-oriented grammar is analogous to Kubernetes's
+**Design-time**: TOSCA's extensibility via an object-oriented grammar is  to Kubernetes's
 extensibility via custom resource definitions and operators. TOSCA's added value for Kubernetes is
 in providing a composable and validated graph of resource interrelations, effectively imbuing
 Kubernetes resources with architectural intent.
@@ -79,7 +79,7 @@ Turandot is an in-cluster Kubernetes operator that:
    well as KubeVirt virtual machine images) and cloud-native configuration tools, such as scripts,
    playbooks, recipes, etc., as well as Kubernetes operators. These configuration tools have access
    to the entire workload topology, allowing them to essentially configure themselves.
-6. Are some the resources remote? Turandot will delegate orchestration to Turandot operators in
+6. Are some of the resources remote? Turandot will delegate orchestration to Turandot operators in
    remote clusters (see multi-cluster workloads, below).
 
 The Turandot operator can be controlled using the stateless `turandot` utility, e.g.:
