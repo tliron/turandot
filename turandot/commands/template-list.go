@@ -11,7 +11,7 @@ import (
 	formatpkg "github.com/tliron/puccini/common/format"
 	"github.com/tliron/puccini/common/terminal"
 	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/client"
+	clientpkg "github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/common"
 )
 
@@ -43,7 +43,7 @@ func ListServiceTemplates() {
 
 		table := common.NewTable(maxWidth, "Name", "Services")
 		for _, image := range images {
-			if serviceTemplateName, ok := delegate.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameFromInventoryImageName(image); ok {
 				services, err := client.ListServicesForImage(image, urlContext)
 				puccinicommon.FailOnError(err)
 				sort.Strings(services)
@@ -54,7 +54,7 @@ func ListServiceTemplates() {
 
 	case "bare":
 		for _, image := range images {
-			if serviceTemplateName, ok := delegate.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameFromInventoryImageName(image); ok {
 				fmt.Fprintln(terminal.Stdout, serviceTemplateName)
 			}
 		}
@@ -66,7 +66,7 @@ func ListServiceTemplates() {
 
 		list := make(ard.List, 0, len(images))
 		for _, image := range images {
-			if serviceTemplateName, ok := delegate.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameFromInventoryImageName(image); ok {
 				map_ := make(ard.StringMap)
 				map_["Name"] = serviceTemplateName
 				map_["Services"], err = client.ListServicesForImage(image, urlContext)

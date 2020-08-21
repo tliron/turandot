@@ -18,11 +18,12 @@ require (
 	github.com/tebeka/atexit v0.3.0
 	github.com/tliron/kubernetes-registry-spooler v1.0.7
 	github.com/tliron/puccini v0.0.0-00010101000000-000000000000
-	github.com/tliron/yamlkeys v1.3.3
+	github.com/tliron/yamlkeys v1.3.4
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
-	k8s.io/api v0.18.6
-	k8s.io/apiextensions-apiserver v0.18.0
-	k8s.io/apimachinery v0.18.6
-	k8s.io/apiserver v0.18.6 // indirect
-	k8s.io/client-go v0.18.6
+	k8s.io/api v0.18.8
+	k8s.io/apiextensions-apiserver v0.18.8
+	k8s.io/apimachinery v0.18.8
+	k8s.io/apiserver v0.18.8 // indirect
+	k8s.io/client-go v0.18.8
+	k8s.io/code-generator v0.18.8 // indirect
 )

@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/turandot/client"
+	clientpkg "github.com/tliron/turandot/client"
 )
 
 func init() {
@@ -26,7 +26,7 @@ var templateDelistCommand = &cobra.Command{
 }
 
 func DelistServiceTemplate(serviceTemplateName string) {
-	imageName := delegate.GetInventoryImageName(serviceTemplateName)
+	imageName := clientpkg.GetInventoryImageName(serviceTemplateName)
 	err := NewClient().Spooler().Delete(imageName)
 	puccinicommon.FailOnError(err)
 }

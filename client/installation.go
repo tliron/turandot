@@ -1,4 +1,4 @@
-package delegate
+package client
 
 import (
 	"fmt"
@@ -156,7 +156,7 @@ func (self *Client) Uninstall(wait bool) {
 			_, err := self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
 			return err == nil
 		})
-		self.waitForDeletion("customer resource definition", func() bool {
+		self.waitForDeletion("custom resource definition", func() bool {
 			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.ServiceCustomResourceDefinition.Name, meta.GetOptions{})
 			return err == nil
 		})

@@ -1,4 +1,4 @@
-package delegate
+package client
 
 import (
 	"errors"
@@ -125,6 +125,7 @@ func (self *Client) isPodOwnedBy(pod *core.Pod, deployment *apps.Deployment) boo
 	return false
 }
 
+// TODO: not used
 func (self *Client) isReplicaSetOwnedBy(replicaSet *apps.ReplicaSet, deployment *apps.Deployment) bool {
 	for _, owner := range replicaSet.OwnerReferences {
 		if owner.UID == deployment.UID {

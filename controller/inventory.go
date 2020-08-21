@@ -16,7 +16,7 @@ import (
 
 func (self *Controller) GetInventoryServiceTemplateURL(namespace string, serviceTemplateName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
 	if ip, err := common.GetFirstServiceIP(self.Context, self.Kubernetes, namespace, "turandot-inventory"); err == nil {
-		imageName := delegate.GetInventoryImageName(serviceTemplateName)
+		imageName := client.GetInventoryImageName(serviceTemplateName)
 		url := fmt.Sprintf("docker://%s:5000/%s?format=csar", ip, imageName)
 		if url_, err := neturlpkg.ParseRequestURI(url); err == nil {
 			return urlpkg.NewDockerURL(url_, urlContext), nil
