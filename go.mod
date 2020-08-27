@@ -8,7 +8,7 @@ replace github.com/tliron/puccini => /Depot/Projects/RedHat/puccini
 
 require (
 	github.com/gofrs/flock v0.7.1
-	github.com/google/go-containerregistry v0.1.1
+	github.com/google/go-containerregistry v0.1.2
 	github.com/google/uuid v1.1.1
 	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40
 	github.com/klauspost/pgzip v1.2.4

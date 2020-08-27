@@ -28,10 +28,10 @@ import (
 type Controller struct {
 	Site string
 
+	Config      *restpkg.Config
 	Dynamic     *common.Dynamic
 	Kubernetes  kubernetes.Interface
 	Turandot    turandotclientset.Interface
-	Config      *restpkg.Config
 	Client      *clientpkg.Client
 	CachePath   string
 	StopChannel <-chan struct{}
@@ -58,16 +58,17 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 	log := logging.MustGetLogger("turandot.controller")
 
 	self := Controller{
-		Site:       site,
-		Config:     config,
-		Dynamic:    common.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
-		Kubernetes: kubernetes,
-		Turandot:   turandot,
-		CachePath:  cachePath,
-		Processors: common.NewProcessors(),
-		Events:     common.CreateEventRecorder(kubernetes, "Turandot", log),
-		Context:    context,
-		Log:        log,
+		Site:        site,
+		Config:      config,
+		Dynamic:     common.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
+		Kubernetes:  kubernetes,
+		Turandot:    turandot,
+		CachePath:   cachePath,
+		StopChannel: stopChannel,
+		Processors:  common.NewProcessors(),
+		Events:      common.CreateEventRecorder(kubernetes, "Turandot", log),
+		Context:     context,
+		Log:         log,
 	}
 
 	self.Client = clientpkg.NewClient(

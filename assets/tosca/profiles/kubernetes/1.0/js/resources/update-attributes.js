@@ -34,7 +34,7 @@ function getParameter(o, name) {
 	var path = name.split('.');
 	for (var i = 0, l = path.length; i < l; i++) {
 		o = o[path[i]];
-		if (o == undefined)
+		if (o === undefined)
 			throw 'could not find parameter ' + name;
 	}
 	return o;
@@ -42,7 +42,7 @@ function getParameter(o, name) {
 
 function setValue(parameter, value) {
 	var coercible = toCoercible(value);
-	if (coercible.$list) {
+	if (coercible.$list !== undefined) {
 		if (!puccini.deepEquals(parameter.$list, coercible.$list)) {
 			parameter.$list = coercible.$list;
 			delete parameter.$value;
@@ -50,7 +50,7 @@ function setValue(parameter, value) {
 			delete parameter.$functionCall;
 			return true;
 		}
-	} else if (coercible.$map) {
+	} else if (coercible.$map !== undefined) {
 		if (!puccini.deepEquals(parameter.$map, coercible.$map)) {
 			parameter.$map = coercible.$map;
 			delete parameter.$value;
@@ -76,7 +76,7 @@ function toCoercible(value) {
 		for (var i = 0, l = value.length; i < l; i++)
 			list.push(toCoercible(value[i]));
 		return {$list: list};
-	} else if (typeof value === 'object') {
+	} else if ((value !== null) && (typeof value === 'object')) {
 		var map = [];
 		for (var k in value) {
 			var entry = toCoercible(value[k]);
@@ -84,7 +84,6 @@ function toCoercible(value) {
 			map.push(entry);
 		}
 		return {$map: map};
-	} else {
+	} else
 		return {$value: value};
-	}
 }
