@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/util"
 )
 
 func init() {
@@ -26,16 +26,16 @@ var delegateDeleteCommand = &cobra.Command{
 
 func DeleteDelegate(delegateName string) {
 	err := NewClient().Turandot().DeleteDelegate(delegateName)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }
 
 func DeleteAllDelegates() {
 	turandot := NewClient().Turandot()
 	delegates, err := turandot.ListDelegates()
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	for _, delegate := range delegates {
 		log.Infof("deleting delegate: %s", delegate)
 		err := turandot.DeleteDelegate(delegate)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 	}
 }

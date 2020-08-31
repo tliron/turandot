@@ -1,12 +1,11 @@
-package common
+package tools
 
 import (
 	"io"
 
 	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
-	"github.com/tliron/puccini/common"
-	"github.com/tliron/puccini/common/registry"
-	urlpkg "github.com/tliron/puccini/url"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 )
 
 func PublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
@@ -42,7 +41,7 @@ func PullLayerFromRegistry(imageName string, writer io.Writer, spooler *spoolerp
 		}
 	}()
 
-	decoder := registry.NewImageLayerDecoder(pipeReader)
+	decoder := urlpkg.NewContainerImageLayerDecoder(pipeReader)
 	if _, err := io.Copy(writer, decoder.Decode()); err == nil {
 		return nil
 	} else {
@@ -57,7 +56,7 @@ func TarAndPublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerp
 		return err
 	}
 
-	size, err := common.ReaderSize(reader)
+	size, err := util.ReaderSize(reader)
 	if err != nil {
 		return err
 	}
@@ -77,7 +76,7 @@ func TarAndPublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerp
 		defer readCloser.Close()
 	}
 
-	encoder := NewTarEncoder(reader, size)
+	encoder := util.NewTarEncoder(reader, "portable", size)
 	if err = spooler.Publish(imageName, encoder.Encode()); err == nil {
 		return nil
 	} else {

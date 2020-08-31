@@ -5,17 +5,17 @@ import (
 	"path/filepath"
 
 	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
+	kubernetesutil "github.com/tliron/kutil/kubernetes"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	clientpkg "github.com/tliron/turandot/client"
-	"github.com/tliron/turandot/common"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kubernetespkg "k8s.io/client-go/kubernetes"
 )
 
 func (self *Controller) NewDelegate(name string) (*clientpkg.Client, *spoolerpkg.Client, error) {
 	configPath := filepath.Join(self.CachePath, "delegates", fmt.Sprintf("%s.yaml", name))
-	if config, err := common.NewConfig(configPath, ""); err == nil {
-		namespace, _ := common.GetConfiguredNamespace(configPath, "")
+	if config, err := kubernetesutil.NewConfig(configPath, ""); err == nil {
+		namespace, _ := kubernetesutil.GetConfiguredNamespace(configPath, "")
 
 		var kubernetes *kubernetespkg.Clientset
 		kubernetes, err := kubernetespkg.NewForConfig(config)

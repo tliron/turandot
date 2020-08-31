@@ -6,14 +6,13 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 gofmt -w -s -e \
 	"$ROOT/client" \
-	"$ROOT/common" \
 	"$ROOT/controller" \
 	"$ROOT/controller/parser" \
 	"$ROOT/resources" \
 	"$ROOT/resources/turandot.puccini.cloud" \
 	"$ROOT/resources/turandot.puccini.cloud/v1alpha1" \
+	"$ROOT/tools" \
 	"$ROOT/turandot" \
 	"$ROOT/turandot/client" \
 	"$ROOT/turandot/commands" \
-	"$ROOT/turandot-operator" \
-	"$ROOT/version"
+	"$ROOT/turandot-operator"

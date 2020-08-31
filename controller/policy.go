@@ -1,7 +1,7 @@
 package controller
 
 import (
-	urlpkg "github.com/tliron/puccini/url"
+	urlpkg "github.com/tliron/kutil/url"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )

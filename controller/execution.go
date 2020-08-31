@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -163,7 +163,7 @@ func (self *Controller) processSshExecution(nodeTemplateName string, execution *
 			if url, err := urlpkg.NewURL(artifact.SourceURL, urlContext); err == nil {
 				if reader, err := url.Open(); err == nil {
 					defer reader.Close()
-					if err := common.CopySSH(execution.Host, execution.Username, execution.Key, reader, artifact.TargetPath, artifact.Permissions); err != nil {
+					if err := util.CopySSH(execution.Host, execution.Username, execution.Key, reader, artifact.TargetPath, artifact.Permissions); err != nil {
 						return service, err
 					}
 				} else {
@@ -179,7 +179,7 @@ func (self *Controller) processSshExecution(nodeTemplateName string, execution *
 		if reader, err := url.Open(); err == nil {
 			defer reader.Close()
 			self.Log.Infof("executing %q via SSH to %q", execution.Command, execution.Host)
-			if yaml, err := common.ExecSSH(execution.Host, execution.Username, execution.Key, reader, execution.Command...); err == nil {
+			if yaml, err := util.ExecSSH(execution.Host, execution.Username, execution.Key, reader, execution.Command...); err == nil {
 				if yaml != "" {
 					return self.WriteServiceClout(yaml, service)
 				} else {

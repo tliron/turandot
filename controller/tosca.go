@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"github.com/tliron/puccini/ard"
-	"github.com/tliron/puccini/common/format"
-	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/kutil/ard"
+	"github.com/tliron/kutil/format"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
+	"github.com/tliron/turandot/tools"
 )
 
 func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs map[string]string, cloutPath string, urlContext *urlpkg.Context) (string, error) {
@@ -22,8 +23,8 @@ func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs
 
 	if file, err := format.OpenFileForWrite(cloutPath); err == nil {
 		defer file.Close()
-		if err := common.CompileTOSCA(serviceTemplateURL, inputs_, file, urlContext); err == nil {
-			return common.GetFileHash(cloutPath)
+		if err := tools.CompileTOSCA(serviceTemplateURL, inputs_, file, urlContext); err == nil {
+			return util.GetFileHash(cloutPath)
 		} else {
 			return "", err
 		}

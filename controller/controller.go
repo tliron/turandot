@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/op/go-logging"
+	kubernetesutil "github.com/tliron/kutil/kubernetes"
 	turandotclientset "github.com/tliron/turandot/apis/clientset/versioned"
 	turandotinformers "github.com/tliron/turandot/apis/informers/externalversions"
 	turandotlisters "github.com/tliron/turandot/apis/listers/turandot.puccini.cloud/v1alpha1"
 	clientpkg "github.com/tliron/turandot/client"
-	"github.com/tliron/turandot/common"
 	turandotresources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -29,14 +29,14 @@ type Controller struct {
 	Site string
 
 	Config      *restpkg.Config
-	Dynamic     *common.Dynamic
+	Dynamic     *kubernetesutil.Dynamic
 	Kubernetes  kubernetes.Interface
 	Turandot    turandotclientset.Interface
 	Client      *clientpkg.Client
 	CachePath   string
 	StopChannel <-chan struct{}
 
-	Processors *common.Processors
+	Processors *kubernetesutil.Processors
 	Events     record.EventRecorder
 
 	KubernetesInformerFactory informers.SharedInformerFactory
@@ -60,13 +60,13 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 	self := Controller{
 		Site:        site,
 		Config:      config,
-		Dynamic:     common.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
+		Dynamic:     kubernetesutil.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
 		Kubernetes:  kubernetes,
 		Turandot:    turandot,
 		CachePath:   cachePath,
 		StopChannel: stopChannel,
-		Processors:  common.NewProcessors(),
-		Events:      common.CreateEventRecorder(kubernetes, "Turandot", log),
+		Processors:  kubernetesutil.NewProcessors(),
+		Events:      kubernetesutil.CreateEventRecorder(kubernetes, "Turandot", log),
 		Context:     context,
 		Log:         log,
 	}
@@ -108,7 +108,7 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 
 	processorPeriod := 5 * time.Second
 
-	self.Processors.Add(turandotresources.ServiceGVK, common.NewProcessor(
+	self.Processors.Add(turandotresources.ServiceGVK, kubernetesutil.NewProcessor(
 		"services",
 		serviceInformer.Informer(),
 		processorPeriod,

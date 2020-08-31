@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/util"
 )
 
 func init() {
@@ -29,16 +29,16 @@ func DeleteService(serviceName string) {
 	namespace := ""
 
 	err := NewClient().Turandot().DeleteService(namespace, serviceName)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }
 
 func DeleteAllServices() {
 	turandot := NewClient().Turandot()
 	services, err := turandot.ListServices()
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	for _, service := range services.Items {
 		log.Infof("deleting service: %s/%s", service.Namespace, service.Name)
 		err := turandot.DeleteService(service.Namespace, service.Name)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 	}
 }

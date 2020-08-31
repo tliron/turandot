@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/puccini/ard"
-	puccinicommon "github.com/tliron/puccini/common"
-	formatpkg "github.com/tliron/puccini/common/format"
-	urlpkg "github.com/tliron/puccini/url"
+	"github.com/tliron/kutil/ard"
+	formatpkg "github.com/tliron/kutil/format"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 	"github.com/tliron/yamlkeys"
 )
 
@@ -59,7 +59,7 @@ func DeployService(serviceName string) {
 		}
 
 		err := client.Turandot().CreateServiceFromTemplate(namespace, serviceName, template, inputValues, mode, urlContext)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 	} else if filePath != "" {
 		if (template != "") || (directoryPath != "") || (url != "") {
 			deployFailOnlyOneOf()
@@ -72,10 +72,10 @@ func DeployService(serviceName string) {
 		} else {
 			url_, err = urlpkg.ReadToInternalURLFromStdin("yaml")
 		}
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 
 		err = client.Turandot().CreateServiceFromContent(namespace, serviceName, client.Spooler(), url_, inputValues, mode, urlContext)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 	} else if directoryPath != "" {
 		if (template != "") || (filePath != "") || (url != "") {
 			deployFailOnlyOneOf()
@@ -88,7 +88,7 @@ func DeployService(serviceName string) {
 		}
 
 		err := client.Turandot().CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 	} else {
 		deployFailOnlyOneOf()
 	}
@@ -102,21 +102,21 @@ func ParseInputs() {
 		defer urlContext.Release()
 
 		url, err := urlpkg.NewValidURL(inputsUrl, nil, urlContext)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 		reader, err := url.Open()
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 		if closer, ok := reader.(io.Closer); ok {
 			defer closer.Close()
 		}
 		data, err := formatpkg.ReadAllYAML(reader)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 		for _, data_ := range data {
 			if map_, ok := data_.(ard.Map); ok {
 				for key, value := range map_ {
 					inputValues[yamlkeys.KeyString(key)] = value
 				}
 			} else {
-				puccinicommon.Failf("malformed inputs in %q", inputsUrl)
+				util.Failf("malformed inputs in %q", inputsUrl)
 			}
 		}
 	}
@@ -124,14 +124,14 @@ func ParseInputs() {
 	for _, input := range inputs {
 		s := strings.SplitN(input, "=", 2)
 		if len(s) != 2 {
-			puccinicommon.Failf("malformed input: %s", input)
+			util.Failf("malformed input: %s", input)
 		}
 		value, err := formatpkg.DecodeYAML(s[1])
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 		inputValues[s[0]] = value
 	}
 }
 
 func deployFailOnlyOneOf() {
-	puccinicommon.Fail("must provide only one of \"--template\", \"--file\", \"--directory\", or \"--url\"")
+	util.Fail("must provide only one of \"--template\", \"--file\", \"--directory\", or \"--url\"")
 }

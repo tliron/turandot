@@ -5,10 +5,10 @@ import (
 
 	"github.com/google/uuid"
 	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
-	"github.com/tliron/puccini/common/format"
-	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/kutil/format"
+	urlpkg "github.com/tliron/kutil/url"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
+	"github.com/tliron/turandot/tools"
 	"k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -117,7 +117,7 @@ func (self *Client) CreateServiceFromURL(namespace string, serviceName string, u
 func (self *Client) CreateServiceFromContent(namespace string, serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
 	serviceTemplateName := uuid.New().String()
 	imageName := GetInventoryImageName(serviceTemplateName)
-	if err := common.PublishOnRegistry(imageName, url, spooler); err == nil {
+	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
 		return self.CreateServiceFromTemplate(namespace, serviceName, serviceTemplateName, inputs, mode, urlContext)
 	} else {
 		return err

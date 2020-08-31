@@ -3,9 +3,9 @@ package parser
 import (
 	"encoding/json"
 
-	"github.com/tliron/puccini/ard"
-	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/kutil/ard"
+	"github.com/tliron/kutil/kubernetes"
+	"github.com/tliron/kutil/util"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -88,7 +88,7 @@ func ParseKubernetesResourceMappingList(value ard.Value) (KubernetesResourceMapp
 }
 
 func (self *KubernetesResourceMapping) GVK() (schema.GroupVersionKind, error) {
-	if gvk, err := common.ParseGVK(self.APIVersion, self.Kind); err == nil {
+	if gvk, err := kubernetes.ParseGVK(self.APIVersion, self.Kind); err == nil {
 		return gvk, nil
 	} else {
 		return schema.GroupVersionKind{}, err
@@ -138,7 +138,7 @@ func (self KubernetesResourceMappings) StringMap() map[string]string {
 	map_ := make(map[string]string)
 	for vertexId, list := range self {
 		if bytes, err := json.Marshal(list); err == nil {
-			map_[vertexId] = puccinicommon.BytesToString(bytes)
+			map_[vertexId] = util.BytesToString(bytes)
 		}
 	}
 	return map_

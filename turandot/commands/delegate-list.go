@@ -5,11 +5,10 @@ import (
 	"sort"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/puccini/ard"
-	puccinicommon "github.com/tliron/puccini/common"
-	formatpkg "github.com/tliron/puccini/common/format"
-	"github.com/tliron/puccini/common/terminal"
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/kutil/ard"
+	formatpkg "github.com/tliron/kutil/format"
+	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/util"
 )
 
 func init() {
@@ -26,7 +25,7 @@ var delegateListCommand = &cobra.Command{
 
 func ListDelegates() {
 	delegates, err := NewClient().Turandot().ListDelegates()
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	if len(delegates) == 0 {
 		return
 	}
@@ -35,7 +34,7 @@ func ListDelegates() {
 	switch format {
 	case "":
 		// TODO fill table
-		table := common.NewTable(maxWidth, "Name", "Server", "Namespace")
+		table := terminal.NewTable(maxWidth, "Name", "Server", "Namespace")
 		for _, delegate := range delegates {
 			table.Add(delegate, "TODO", "TODO")
 		}

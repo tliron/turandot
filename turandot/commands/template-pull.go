@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/util"
 	clientpkg "github.com/tliron/turandot/client"
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/turandot/tools"
 )
 
 func init() {
@@ -26,9 +26,9 @@ var templatePullCommand = &cobra.Command{
 
 func PullServiceTemplate(serviceTemplateName string, path string) {
 	file, err := os.Create(path)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	defer file.Close()
 	imageName := clientpkg.GetInventoryImageName(serviceTemplateName)
-	err = common.PullLayerFromRegistry(imageName, file, NewClient().Spooler())
-	puccinicommon.FailOnError(err)
+	err = tools.PullLayerFromRegistry(imageName, file, NewClient().Spooler())
+	util.FailOnError(err)
 }

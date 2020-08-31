@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/tliron/puccini/ard"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/ard"
+	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/controller/parser"
 	errorspkg "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,7 +61,7 @@ func (self *Controller) createResources(objects []ard.StringMap, owner meta.Obje
 				if capability, ok := object_.GetAnnotations()["clout.puccini.cloud/capability"]; ok {
 					var attributesMappings map[string]string
 					if attributeMappings_, ok := object_.GetAnnotations()["clout.puccini.cloud/attributeMappings"]; ok {
-						if err := json.Unmarshal(puccinicommon.StringToBytes(attributeMappings_), &attributesMappings); err != nil {
+						if err := json.Unmarshal(util.StringToBytes(attributeMappings_), &attributesMappings); err != nil {
 							return nil, err
 						}
 					}

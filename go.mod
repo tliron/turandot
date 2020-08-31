@@ -4,6 +4,8 @@ go 1.15
 
 replace github.com/tliron/puccini => /Depot/Projects/RedHat/puccini
 
+// replace github.com/tliron/kutil => /Depot/Projects/RedHat/kutil
+
 // replace github.com/tliron/kubernetes-registry-spooler => /Depot/Projects/RedHat/kubernetes-registry-spooler
 
 require (
@@ -16,14 +18,15 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/tebeka/atexit v0.3.0
-	github.com/tliron/kubernetes-registry-spooler v1.0.7
-	github.com/tliron/puccini v0.0.0-00010101000000-000000000000
+	github.com/tliron/kubernetes-registry-spooler v1.0.8
+	github.com/tliron/kutil v0.1.1
+	github.com/tliron/puccini v0.15.0
 	github.com/tliron/yamlkeys v1.3.4
-	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
-	k8s.io/api v0.18.8
+	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
+	k8s.io/api v0.19.0
 	k8s.io/apiextensions-apiserver v0.18.8
-	k8s.io/apimachinery v0.18.8
-	k8s.io/apiserver v0.18.8 // indirect
-	k8s.io/client-go v0.18.8
-	k8s.io/code-generator v0.18.8 // indirect
+	k8s.io/apimachinery v0.19.0
+	k8s.io/apiserver v0.19.0 // indirect
+	k8s.io/client-go v0.19.0
+	k8s.io/code-generator v0.19.0 // indirect
 )

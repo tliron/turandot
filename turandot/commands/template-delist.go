@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/util"
 	clientpkg "github.com/tliron/turandot/client"
 )
 
@@ -28,16 +28,16 @@ var templateDelistCommand = &cobra.Command{
 func DelistServiceTemplate(serviceTemplateName string) {
 	imageName := clientpkg.GetInventoryImageName(serviceTemplateName)
 	err := NewClient().Spooler().Delete(imageName)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }
 
 func DelistAllTemplates() {
 	spooler := NewClient().Spooler()
 	images, err := spooler.List()
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	for _, image := range images {
 		log.Infof("deleting template: %s", image)
 		err := spooler.Delete(image)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 	}
 }

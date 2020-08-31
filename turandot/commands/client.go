@@ -2,9 +2,9 @@ package commands
 
 import (
 	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
-	puccinicommon "github.com/tliron/puccini/common"
+	kubernetesutil "github.com/tliron/kutil/kubernetes"
+	"github.com/tliron/kutil/util"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
-	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/controller"
 	clientpkg "github.com/tliron/turandot/turandot/client"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -24,21 +24,21 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	config, err := common.NewConfigFromFlags(masterUrl, kubeconfigPath, context, log)
-	puccinicommon.FailOnError(err)
+	config, err := kubernetesutil.NewConfigFromFlags(masterUrl, kubeconfigPath, context, log)
+	util.FailOnError(err)
 
 	kubernetes, err := kubernetespkg.NewForConfig(config)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	namespace_ := namespace
 	if cluster {
 		namespace_ = ""
 	} else if namespace_ == "" {
-		if namespace__, ok := common.GetConfiguredNamespace(kubeconfigPath, context); ok {
+		if namespace__, ok := kubernetesutil.GetConfiguredNamespace(kubeconfigPath, context); ok {
 			namespace_ = namespace__
 		}
 		if namespace_ == "" {
-			puccinicommon.Fail("could not discover namespace and \"--namespace\" not provided")
+			util.Fail("could not discover namespace and \"--namespace\" not provided")
 		}
 	}
 
@@ -52,10 +52,10 @@ func NewClient() *Client {
 
 func (self *Client) Turandot() *clientpkg.Client {
 	apiExtensions, err := apiextensionspkg.NewForConfig(self.config)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	turandot, err := turandotpkg.NewForConfig(self.config)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	return clientpkg.NewClient(
 		self.kubernetes,

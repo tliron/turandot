@@ -1,7 +1,7 @@
 package controller
 
 import (
-	urlpkg "github.com/tliron/puccini/url"
+	urlpkg "github.com/tliron/kutil/url"
 )
 
 func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, mode string, site string, urlContext *urlpkg.Context) error {

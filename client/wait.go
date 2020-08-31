@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/kutil/kubernetes"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,7 +56,7 @@ func (self *Client) waitForPodContainers(appName string, deployment *apps.Deploy
 	self.Log.Infof("waiting for pods for %q", appName)
 
 	return waitpkg.PollImmediate(time.Second, timeout, func() (bool, error) {
-		if pods, err := common.GetPods(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
+		if pods, err := kubernetes.GetPods(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 			for _, pod := range pods.Items {
 				if self.isPodOwnedBy(&pod, deployment) {
 					for _, container := range pod.Spec.Containers {
@@ -82,7 +82,7 @@ func (self *Client) waitForAPod(appName string, deployment *apps.Deployment) err
 	self.Log.Infof("waiting for a pod for %q", appName)
 
 	return waitpkg.PollImmediate(time.Second, timeout, func() (bool, error) {
-		if pods, err := common.GetPods(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
+		if pods, err := kubernetes.GetPods(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
 			for _, pod := range pods.Items {
 				if self.isPodOwnedBy(&pod, deployment) {
 					for _, containerStatus := range pod.Status.ContainerStatuses {
@@ -137,7 +137,7 @@ func (self *Client) isReplicaSetOwnedBy(replicaSet *apps.ReplicaSet, deployment 
 
 func (self *Client) getRegistry(registry string) (string, error) {
 	if registry == "internal" {
-		if registry, err := common.GetInternalRegistryURL(self.Kubernetes); err == nil {
+		if registry, err := kubernetes.GetInternalRegistryURL(self.Kubernetes); err == nil {
 			return registry, nil
 		} else {
 			return "", fmt.Errorf("could not discover internal registry: %s", err.Error())

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/puccini/common/terminal"
+	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/util"
 )
 
 func init() {
@@ -30,7 +30,7 @@ func GetMode(serviceName string) {
 	namespace := ""
 
 	service, err := NewClient().Turandot().GetService(namespace, serviceName)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	fmt.Fprintln(terminal.Stdout, service.Status.Mode)
 }
 
@@ -40,7 +40,7 @@ func SetMode(serviceName string, mode string) {
 
 	client := NewClient().Turandot()
 	service, err := client.GetService(namespace, serviceName)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	_, err = client.UpdateServiceMode(service, mode)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }

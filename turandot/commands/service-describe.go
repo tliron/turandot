@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/puccini/ard"
-	puccinicommon "github.com/tliron/puccini/common"
-	formatpkg "github.com/tliron/puccini/common/format"
-	"github.com/tliron/puccini/common/terminal"
+	"github.com/tliron/kutil/ard"
+	formatpkg "github.com/tliron/kutil/format"
+	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/util"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
@@ -29,7 +29,7 @@ func DescribeService(serviceName string) {
 	namespace := ""
 
 	service, err := NewClient().Turandot().GetService(namespace, serviceName)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	if format != "" {
 		formatpkg.Print(ServiceToARD(service), format, terminal.Stdout, strict, pretty)

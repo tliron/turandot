@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"github.com/tliron/turandot/version"
+	"github.com/tliron/kutil/cobra"
 )
 
 func init() {
-	rootCommand.AddCommand(version.NewCommand(toolName))
+	rootCommand.AddCommand(cobra.NewVersionCommand(toolName))
 }

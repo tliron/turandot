@@ -5,23 +5,24 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/tliron/puccini/ard"
+	"github.com/tliron/kutil/ard"
+	"github.com/tliron/kutil/format"
+	problemspkg "github.com/tliron/kutil/problems"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 	cloutpkg "github.com/tliron/puccini/clout"
 	"github.com/tliron/puccini/clout/js"
-	"github.com/tliron/puccini/common/format"
-	problemspkg "github.com/tliron/puccini/common/problems"
 	"github.com/tliron/puccini/tosca/compiler"
-	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
+	"github.com/tliron/turandot/tools"
 )
 
 func (self *Controller) ReadClout(cloutPath string, resolve bool, coerce bool, urlContext *urlpkg.Context) (*cloutpkg.Clout, error) {
 	if url, err := urlpkg.NewURL(cloutPath, urlContext); err == nil {
 		if reader, err := url.Open(); err == nil {
 			defer reader.Close()
-			if clout, err := common.ReadClout(reader, urlContext); err == nil {
+			if clout, err := tools.ReadClout(reader, urlContext); err == nil {
 				problems := &problemspkg.Problems{}
 
 				if resolve {
@@ -52,7 +53,7 @@ func (self *Controller) WriteClout(yaml string, cloutPath string) (string, error
 	if file, err := format.OpenFileForWrite(cloutPath); err == nil {
 		defer file.Close()
 		if _, err := file.WriteString(yaml); err == nil {
-			return common.GetFileHash(cloutPath)
+			return util.GetFileHash(cloutPath)
 		} else {
 			return "", err
 		}
@@ -71,7 +72,7 @@ func (self *Controller) WriteServiceClout(yaml string, service *resources.Servic
 
 func (self *Controller) executeCloutGet(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (ard.Value, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := tools.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if value, err := format.DecodeYAML(yaml); err == nil {
 				return value, nil
 			} else if err != io.EOF {
@@ -91,8 +92,8 @@ func (self *Controller) executeCloutGet(service *resources.Service, urlContext *
 
 func (self *Controller) executeCloutGetAll(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) ([]ard.StringMap, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
-			if value, err := common.DecodeAllYAML(yaml); err == nil {
+		if yaml, err := tools.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+			if value, err := format.DecodeYAMLStringMaps(yaml); err == nil {
 				return value, nil
 			} else if err != io.EOF {
 				return nil, err
@@ -111,7 +112,7 @@ func (self *Controller) executeCloutGetAll(service *resources.Service, urlContex
 
 func (self *Controller) executeCloutUpdate(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (*resources.Service, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := common.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := tools.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if yaml != "" {
 				return self.WriteServiceClout(yaml, service)
 			} else {

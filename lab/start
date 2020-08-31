@@ -39,7 +39,7 @@ minikube start \
     --vm-driver=kvm2 \
 	--container-runtime=cri-o \
 	--network-plugin=cni \
-	--enable-default-cni \
+	--cni=bridge \
 	--addons=registry \
 	--cpus=4 \
 	--memory="$MEMORY" \

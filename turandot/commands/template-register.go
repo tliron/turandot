@@ -2,10 +2,10 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
-	urlpkg "github.com/tliron/puccini/url"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 	clientpkg "github.com/tliron/turandot/client"
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/turandot/tools"
 )
 
 func init() {
@@ -37,11 +37,11 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		} else {
 			url, err = urlpkg.ReadToInternalURLFromStdin("yaml")
 		}
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 
 		imageName := clientpkg.GetInventoryImageName(serviceTemplateName)
-		err = common.PublishOnRegistry(imageName, url, NewClient().Spooler())
-		puccinicommon.FailOnError(err)
+		err = tools.PublishOnRegistry(imageName, url, NewClient().Spooler())
+		util.FailOnError(err)
 	} else if directoryPath != "" {
 		if (filePath != "") || (url != "") {
 			registerFailOnlyOneOf()
@@ -54,5 +54,5 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 }
 
 func registerFailOnlyOneOf() {
-	puccinicommon.Fail("must provide only one of \"--file\" or \"--directory\"")
+	util.Fail("must provide only one of \"--file\" or \"--directory\"")
 }

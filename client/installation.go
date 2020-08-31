@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tliron/kutil/version"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
-	"github.com/tliron/turandot/version"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"

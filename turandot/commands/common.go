@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/op/go-logging"
-	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/puccini/common/terminal"
+	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/util"
 )
 
 const toolName = "turandot"
@@ -25,7 +25,7 @@ var wait bool
 func Logs(appNameSuffix string, containerName string) {
 	// TODO: what happens if we follow more than one log?
 	readers, err := NewClient().Turandot().Logs(appNameSuffix, containerName, tail, follow)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	for _, reader := range readers {
 		defer reader.Close()
 	}
@@ -36,5 +36,5 @@ func Logs(appNameSuffix string, containerName string) {
 
 func Shell(appNameSuffix string, containerName string) {
 	err := NewClient().Turandot().Shell(appNameSuffix, containerName, os.Stdin, terminal.Stdout, terminal.Stderr)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/util"
 )
 
 var delegateKubeconfigPath string
@@ -36,5 +36,5 @@ var delegateSetCommand = &cobra.Command{
 
 func SetDelegate(delegateName string) {
 	err := NewClient().Turandot().SetDelegate(delegateName, delegateKubeconfigPath, delegateContext, delegateNamespace)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }

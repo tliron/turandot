@@ -7,9 +7,8 @@ import (
 	"reflect"
 
 	"github.com/gofrs/flock"
-	puccinicommon "github.com/tliron/puccini/common"
-	urlpkg "github.com/tliron/puccini/url"
-	"github.com/tliron/turandot/common"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -167,7 +166,7 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 	cloutPath := service.Status.CloutPath
 	if cloutPath == "" {
 		cloutPath = fmt.Sprintf("%s-%s-%s.yaml", service.Namespace, service.Name, service.UID)
-		cloutPath = puccinicommon.SanitizeFilename(cloutPath)
+		cloutPath = util.SanitizeFilename(cloutPath)
 		cloutPath = filepath.Join(self.CachePath, "clout", cloutPath)
 	}
 
@@ -250,7 +249,7 @@ func (self *Controller) isServiceInstanceOfCurrentClout(service *resources.Servi
 			self.Log.Infof("Clout disappeared for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 			return false, nil
 		} else {
-			if cloutHash, err := common.GetFileHash(service.Status.CloutPath); err == nil {
+			if cloutHash, err := util.GetFileHash(service.Status.CloutPath); err == nil {
 				if cloutHash == service.Status.CloutHash {
 					self.Log.Infof("Clout has not changed for service %s/%s: %s", service.Namespace, service.Name, service.Status.CloutPath)
 					return true, nil

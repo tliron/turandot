@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/puccini/common/terminal"
+	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/util"
 )
 
 func init() {
@@ -28,7 +28,7 @@ func ServiceOutput(serviceName string, outputName string) {
 	namespace := ""
 
 	service, err := NewClient().Turandot().GetService(namespace, serviceName)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	if service.Status.Outputs != nil {
 		if output, ok := service.Status.Outputs[outputName]; ok {
@@ -39,5 +39,5 @@ func ServiceOutput(serviceName string, outputName string) {
 		}
 	}
 
-	puccinicommon.Failf("output %q not found in service %q", outputName, serviceName)
+	util.Failf("output %q not found in service %q", outputName, serviceName)
 }

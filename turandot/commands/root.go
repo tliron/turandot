@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	puccinicommon "github.com/tliron/puccini/common"
-	"github.com/tliron/puccini/common/terminal"
+	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/util"
 )
 
 var logTo string
@@ -48,16 +48,16 @@ var rootCommand = &cobra.Command{
 	Short: "Control Turandot",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		err := terminal.ProcessColorizeFlag(colorize)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 		if logTo == "" {
-			puccinicommon.ConfigureLogging(verbose, nil)
+			util.ConfigureLogging(verbose, nil)
 		} else {
-			puccinicommon.ConfigureLogging(verbose, &logTo)
+			util.ConfigureLogging(verbose, &logTo)
 		}
 	},
 }
 
 func Execute() {
 	err := rootCommand.Execute()
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }

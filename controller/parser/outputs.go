@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	"github.com/tliron/puccini/ard"
+	"github.com/tliron/kutil/ard"
 	cloutpkg "github.com/tliron/puccini/clout"
 )
 

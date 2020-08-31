@@ -9,13 +9,13 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	gzip "github.com/klauspost/pgzip"
-	urlpkg "github.com/tliron/puccini/url"
+	kubernetesutil "github.com/tliron/kutil/kubernetes"
+	urlpkg "github.com/tliron/kutil/url"
 	"github.com/tliron/turandot/client"
-	"github.com/tliron/turandot/common"
 )
 
 func (self *Controller) GetInventoryServiceTemplateURL(namespace string, serviceTemplateName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
-	if ip, err := common.GetFirstServiceIP(self.Context, self.Kubernetes, namespace, "turandot-inventory"); err == nil {
+	if ip, err := kubernetesutil.GetFirstServiceIP(self.Context, self.Kubernetes, namespace, "turandot-inventory"); err == nil {
 		imageName := client.GetInventoryImageName(serviceTemplateName)
 		url := fmt.Sprintf("docker://%s:5000/%s?format=csar", ip, imageName)
 		if url_, err := neturlpkg.ParseRequestURI(url); err == nil {

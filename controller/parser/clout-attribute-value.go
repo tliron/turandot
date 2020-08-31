@@ -3,7 +3,7 @@ package parser
 import (
 	"encoding/json"
 
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/util"
 )
 
 //
@@ -44,7 +44,7 @@ func (self CloutAttributeValues) StringMap() map[string]string {
 	map_ := make(map[string]string)
 	for vertexId, list := range self {
 		if bytes, err := json.Marshal(list); err == nil {
-			map_[vertexId] = puccinicommon.BytesToString(bytes)
+			map_[vertexId] = util.BytesToString(bytes)
 		}
 	}
 	return map_

@@ -6,11 +6,11 @@ import (
 
 	"github.com/heptiolabs/healthcheck"
 	"github.com/tebeka/atexit"
-	puccinicommon "github.com/tliron/puccini/common"
+	"github.com/tliron/kutil/kubernetes"
+	"github.com/tliron/kutil/util"
+	versionpkg "github.com/tliron/kutil/version"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
-	"github.com/tliron/turandot/common"
 	controllerpkg "github.com/tliron/turandot/controller"
-	versionpkg "github.com/tliron/turandot/version"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/dynamic"
 	kubernetespkg "k8s.io/client-go/kubernetes"
@@ -32,16 +32,16 @@ func Controller() {
 	// Config
 
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	if cluster {
 		namespace = ""
 	} else if namespace == "" {
-		if namespace_, ok := common.GetConfiguredNamespace(kubeconfigPath, context); ok {
+		if namespace_, ok := kubernetes.GetConfiguredNamespace(kubeconfigPath, context); ok {
 			namespace = namespace_
 		}
 		if namespace == "" {
-			namespace = common.GetServiceAccountNamespace()
+			namespace = kubernetes.GetServiceAccountNamespace()
 		}
 		if namespace == "" {
 			log.Fatal("could not discover namespace and namespace not provided")
@@ -51,16 +51,16 @@ func Controller() {
 	// Clients
 
 	kubernetesClient, err := kubernetespkg.NewForConfig(config)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	apiExtensionsClient, err := apiextensionspkg.NewForConfig(config)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	dynamicClient, err := dynamic.NewForConfig(config)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	turandotClient, err := turandotpkg.NewForConfig(config)
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 
 	// Controller
 
@@ -76,7 +76,7 @@ func Controller() {
 		config,
 		cachePath,
 		resyncPeriod,
-		common.SetupSignalHandler(),
+		util.SetupSignalHandler(),
 	)
 
 	// Run
@@ -85,7 +85,7 @@ func Controller() {
 		log.Info("starting health monitor")
 		health := healthcheck.NewHandler()
 		err := http.ListenAndServe(fmt.Sprintf(":%d", healthPort), health)
-		puccinicommon.FailOnError(err)
+		util.FailOnError(err)
 	})
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 }

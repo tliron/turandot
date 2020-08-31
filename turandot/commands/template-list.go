@@ -6,13 +6,12 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/puccini/ard"
-	puccinicommon "github.com/tliron/puccini/common"
-	formatpkg "github.com/tliron/puccini/common/format"
-	"github.com/tliron/puccini/common/terminal"
-	urlpkg "github.com/tliron/puccini/url"
+	"github.com/tliron/kutil/ard"
+	formatpkg "github.com/tliron/kutil/format"
+	"github.com/tliron/kutil/terminal"
+	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 	clientpkg "github.com/tliron/turandot/client"
-	"github.com/tliron/turandot/common"
 )
 
 func init() {
@@ -29,7 +28,7 @@ var templateListCommand = &cobra.Command{
 
 func ListServiceTemplates() {
 	images, err := NewClient().Spooler().List()
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	if len(images) == 0 {
 		return
 	}
@@ -41,11 +40,11 @@ func ListServiceTemplates() {
 		urlContext := urlpkg.NewContext()
 		defer urlContext.Release()
 
-		table := common.NewTable(maxWidth, "Name", "Services")
+		table := terminal.NewTable(maxWidth, "Name", "Services")
 		for _, image := range images {
 			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameFromInventoryImageName(image); ok {
 				services, err := client.ListServicesForImage(image, urlContext)
-				puccinicommon.FailOnError(err)
+				util.FailOnError(err)
 				sort.Strings(services)
 				table.Add(serviceTemplateName, strings.Join(services, "\n"))
 			}
@@ -70,7 +69,7 @@ func ListServiceTemplates() {
 				map_ := make(ard.StringMap)
 				map_["Name"] = serviceTemplateName
 				map_["Services"], err = client.ListServicesForImage(image, urlContext)
-				puccinicommon.FailOnError(err)
+				util.FailOnError(err)
 				list = append(list, map_)
 			}
 		}

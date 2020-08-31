@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/puccini/ard"
-	puccinicommon "github.com/tliron/puccini/common"
-	formatpkg "github.com/tliron/puccini/common/format"
-	"github.com/tliron/puccini/common/terminal"
-	"github.com/tliron/turandot/common"
+	"github.com/tliron/kutil/ard"
+	formatpkg "github.com/tliron/kutil/format"
+	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/util"
 )
 
 func init() {
@@ -25,7 +24,7 @@ var serviceListCommand = &cobra.Command{
 
 func ListServices() {
 	services, err := NewClient().Turandot().ListServices()
-	puccinicommon.FailOnError(err)
+	util.FailOnError(err)
 	if len(services.Items) == 0 {
 		return
 	}
@@ -33,7 +32,7 @@ func ListServices() {
 
 	switch format {
 	case "":
-		table := common.NewTable(maxWidth, "Name", "State", "Mode", "Inputs", "Outputs")
+		table := terminal.NewTable(maxWidth, "Name", "State", "Mode", "Inputs", "Outputs")
 		for _, service := range services.Items {
 			mode := fmt.Sprintf("%s\n", service.Status.Mode)
 			if service.Status.NodeStates != nil {
@@ -46,7 +45,7 @@ func ListServices() {
 
 			var inputs string
 			if service.Spec.Inputs != nil {
-				for _, name := range common.SortedMapStringStringKeys(service.Spec.Inputs) {
+				for _, name := range util.SortedMapStringStringKeys(service.Spec.Inputs) {
 					input := service.Spec.Inputs[name]
 					inputs += fmt.Sprintf("%s: %s\n", name, input)
 				}
@@ -54,7 +53,7 @@ func ListServices() {
 
 			var outputs string
 			if service.Status.Outputs != nil {
-				for _, name := range common.SortedMapStringStringKeys(service.Status.Outputs) {
+				for _, name := range util.SortedMapStringStringKeys(service.Status.Outputs) {
 					output := service.Status.Outputs[name]
 					outputs += fmt.Sprintf("%s: %s\n", name, output)
 				}
