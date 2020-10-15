@@ -2,26 +2,27 @@
 set -e
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
-. "$HERE/../scripts/_env"
+. "$HERE/../../scripts/_env"
 . "$ROOT/scripts/_trap"
 
 minikube profile edge
 turandot uninstall --namespace=workspace --wait -v
 kubectl delete events --all --namespace=workspace
 
-minikube profile central
+oc config use-context crc-admin
 turandot uninstall --namespace=workspace --wait -v
 kubectl delete events --all --namespace=workspace
 
 if [ "$1" == -b ]; then
 	"$ROOT/scripts/build-container-image"
 	"$ROOT/scripts/publish-container-image"
+	# Reminder: clean ~/.local/share/containers/ occassionally!
 fi
 
-kubectl config set-context central --namespace=workspace
+kubectl config set-context crc-admin --namespace=workspace
 kubectl config set-context edge --namespace=workspace
 
-turandot install --site=central --wait -v
+turandot operator install --site=central --wait -v
 
 turandot service deploy hello-world -f dist/hello-world.csar -v
 turandot service deploy helm-hello-world -f dist/helm-hello-world.csar -v
@@ -36,5 +37,3 @@ turandot template register asterisk-vnf -f dist/asterisk-vnf.csar -v
 turandot service deploy telephony-network-service -t telephony-network-service -i namespace=workspace -v
 
 turandot operator logs --follow
-
-# Clean ~/.local/share/containers/ occassionally!

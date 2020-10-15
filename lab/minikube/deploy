@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../scripts/_env"
+. "$ROOT/scripts/_trap"
+
+#minikube profile edge
+#turandot operator uninstall --namespace=workspace --wait -v
+#turandot inventory uninstall --namespace=workspace --wait -v
+#kubectl delete events --all --namespace=workspace
+
+minikube profile central
+turandot operator uninstall --namespace=workspace --wait -v
+turandot inventory uninstall --namespace=workspace --wait -v
+kubectl delete events --all --namespace=workspace
+
+if [ "$1" == -b ]; then
+	"$ROOT/scripts/build-container-image"
+	"$ROOT/scripts/publish-container-image"
+	# Reminder: clean ~/.local/share/containers/ occassionally!
+fi
+
+kubectl config set-context central --namespace=workspace
+kubectl config set-context edge --namespace=workspace
+
+turandot operator install --site=central --wait -v
+# https://github.com/kubernetes/minikube/issues/6982
+IP=$(kubectl get svc registry --output=jsonpath='{.spec.clusterIP}' --namespace=kube-system)
+turandot inventory create default --url=$IP:80
+sleep 10
+#turandot inventory install --wait -v
+
+turandot service deploy hello-world -f dist/hello-world.csar -v
+turandot operator logs --follow
+exit
+
+turandot service deploy helm-hello-world -f dist/helm-hello-world.csar -v
+
+turandot delegate set edge --delegate-context=edge -v
+
+turandot template register telephony-network-service -f dist/telephony-network-service.csar -v
+turandot template register simple-data-plane -f dist/simple-data-plane.csar -v
+turandot template register asterisk-cnf -f dist/asterisk-cnf.csar -v
+turandot template register asterisk-vnf -f dist/asterisk-vnf.csar -v
+
+turandot service deploy telephony-network-service -t telephony-network-service -i namespace=workspace -v
+
+turandot operator logs --follow

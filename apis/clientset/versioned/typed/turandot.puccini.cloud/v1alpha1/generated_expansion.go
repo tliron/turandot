@@ -2,4 +2,6 @@
 
 package v1alpha1
 
+type InventoryExpansion interface{}
+
 type ServiceExpansion interface{}

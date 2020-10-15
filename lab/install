@@ -15,45 +15,10 @@ if [ "$1" == -f ]; then
 	FORCE=true
 fi
 
-function fetch () {
-	local NAME=$1
-	local VERSION=$2
-	local URL=$3
-	local ARCHIVE_PREFIX=$4
-	local EXEC=/usr/bin/$NAME
-	if [ -f "$EXEC" ]; then
-		if [ "$FORCE" == true ]; then
-			m "overriding existing \"$EXEC\"..."
-		else
-			m "\"$EXEC\" already exists (use -f to overwrite)"
-			return 0
-		fi
-	fi
-	m "downloading $NAME $VERSION..."
-	if [ "${URL: -7}" == .tar.gz ]; then
-		local ARCHIVE=$(mktemp --suffix=.tar.gz)
-		wget --quiet --output-document="$ARCHIVE" "$URL"
-		tar --extract --file="$ARCHIVE" --directory=/usr/bin --strip=1 "$ARCHIVE_PREFIX$NAME"
-		rm --force "$ARCHIVE"
-	else
-		wget --quiet --output-document="$EXEC" "$URL"
-	fi
-	chmod a+x "$EXEC"
-	m "installed \"$EXEC\""
-}
+install_tool minikube "$MINIKUBE_VERSION" \
+"https://storage.googleapis.com/minikube/releases/v$MINIKUBE_VERSION/minikube-linux-amd64"
 
-fetch kubectl "$KUBERNETES_VERSION" \
-"https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kubectl"
+install_tool kubectl "$KUBECTL_VERSION" \
+"https://storage.googleapis.com/kubernetes-release/release/v$KUBECTL_VERSION/bin/linux/amd64/kubectl"
 
-fetch minikube "$MINIKUBE_VERSION" \
-"https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64"
-
-fetch virtctl "$KUBEVIRT_VERSION" \
-"https://github.com/kubevirt/kubevirt/releases/download/$KUBEVIRT_VERSION/virtctl-${KUBEVIRT_VERSION}-linux-amd64"
-
-fetch helm "$HELM_VERSION" \
-"https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz" \
-"linux-amd64/"
-
-fetch yq "$YQ_VERSION" \
-"https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_amd64"
+"$HERE/kubevirt/install" "$1"

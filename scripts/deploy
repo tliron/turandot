@@ -22,13 +22,13 @@ export REGISTRY_URL=$(kubectl_registry_url)
 kubectl create namespace "$WORKSPACE" || true
 
 m "deploying operator to namespace \"$WORKSPACE\"..."
-kubectl_apply_template "$ROOT/assets/custom-resource-definition.yaml"
+kubectl_apply_template "$ROOT/assets/kubernetes/custom-resource-definition.yaml"
 kubectl_apply_template "$ROOT/assets/namespace.yaml"
 if [ "$CLUSTER_MODE" == true ]; then
-	kubectl_apply_template "$ROOT/assets/cluster-mode-authorization.yaml"
+	kubectl_apply_template "$ROOT/assets/kubernetes/cluster-mode-authorization.yaml"
 fi
-kubectl_apply_template "$ROOT/assets/turandot.yaml"
-kubectl_apply_template "$ROOT/assets/hello-world.yaml"
+kubectl_apply_template "$ROOT/assets/kubernetes/turandot.yaml"
+kubectl_apply_template "$ROOT/assets/kubernetes/hello-world.yaml"
 
 m "waiting for operator to start..."
 kubectl_wait_for_deployment turandot-operator

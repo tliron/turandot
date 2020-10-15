@@ -10,12 +10,17 @@ import (
 
 type TurandotV1alpha1Interface interface {
 	RESTClient() rest.Interface
+	InventoriesGetter
 	ServicesGetter
 }
 
 // TurandotV1alpha1Client is used to interact with features provided by the turandot.puccini.cloud group.
 type TurandotV1alpha1Client struct {
 	restClient rest.Interface
+}
+
+func (c *TurandotV1alpha1Client) Inventories(namespace string) InventoryInterface {
+	return newInventories(c, namespace)
 }
 
 func (c *TurandotV1alpha1Client) Services(namespace string) ServiceInterface {

@@ -37,7 +37,7 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 }
 
 func (self *Client) ListServicesForImage(imageName string, urlContext *urlpkg.Context) ([]string, error) {
-	if serviceTemplateUrl, err := self.GetInventoryURL(imageName, urlContext); err == nil {
+	if serviceTemplateUrl, err := self.GetInventoryURLForCSAR(self.Namespace, imageName, urlContext); err == nil {
 		serviceTemplateUrl_ := serviceTemplateUrl.String()
 		if services, err := self.ListServices(); err == nil {
 			var serviceNames []string
@@ -97,7 +97,7 @@ func (self *Client) CreateService(namespace string, serviceName string, url urlp
 }
 
 func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, serviceTemplateName string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	if url, err := self.GetInventoryServiceTemplateURL(serviceTemplateName, urlContext); err == nil {
+	if url, err := self.GetInventoryServiceTemplateURL(namespace, serviceTemplateName, urlContext); err == nil {
 		_, err := self.CreateService(namespace, serviceName, url, inputs, mode)
 		return err
 	} else {
@@ -116,7 +116,7 @@ func (self *Client) CreateServiceFromURL(namespace string, serviceName string, u
 
 func (self *Client) CreateServiceFromContent(namespace string, serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
 	serviceTemplateName := uuid.New().String()
-	imageName := GetInventoryImageName(serviceTemplateName)
+	imageName := InventoryImageNameForServiceTemplateName(serviceTemplateName)
 	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
 		return self.CreateServiceFromTemplate(namespace, serviceName, serviceTemplateName, inputs, mode, urlContext)
 	} else {

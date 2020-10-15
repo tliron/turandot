@@ -4,21 +4,33 @@ set -e
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/../scripts/_env"
 
-function github_version () {
-	local REPO=$1
-	curl --silent "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'	
-}
-
 KUBERNETES_VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-MINIKUBE_VERSION=$(github_version kubernetes/minikube)
-KUBEVIRT_VERSION=$(github_version kubevirt/kubevirt)
-HELM_VERSION=$(github_version helm/helm)
-YQ_VERSION=$(github_version mikefarah/yq)
-MULTUS_VERSION=$(github_version intel/multus-cni)
-
+KUBERNETES_VERSION=${KUBERNETES_VERSION:1}
 m "KUBERNETES_VERSION=$KUBERNETES_VERSION"
+
+MINIKUBE_VERSION=$(github_version kubernetes/minikube)
+MINIKUBE_VERSION=${MINIKUBE_VERSION:1}
 m "MINIKUBE_VERSION=$MINIKUBE_VERSION"
+
+MINISHIFT_VERSION=$(github_version minishift/minishift)
+MINISHIFT_VERSION=${MINISHIFT_VERSION:1}
+m "MINISHIFT_VERSION=$MINISHIFT_VERSION"
+
+KUBEVIRT_VERSION=$(github_version kubevirt/kubevirt)
+KUBEVIRT_VERSION=${KUBEVIRT_VERSION:1}
 m "KUBEVIRT_VERSION=$KUBEVIRT_VERSION"
+
+HELM_VERSION=$(github_version helm/helm)
+HELM_VERSION=${HELM_VERSION:1}
 m "HELM_VERSION=$HELM_VERSION"
+
+YQ_VERSION=$(github_version mikefarah/yq)
 m "YQ_VERSION=$YQ_VERSION"
+
+MULTUS_VERSION=$(github_version intel/multus-cni)
+MULTUS_VERSION=${MULTUS_VERSION:1}
 m "MULTUS_VERSION=$MULTUS_VERSION"
+
+CERT_MANAGER_VERSION=$(github_version jetstack/cert-manager)
+CERT_MANAGER_VERSION=${CERT_MANAGER_VERSION:1}
+m "CERT_MANAGER_VERSION=$CERT_MANAGER_VERSION"

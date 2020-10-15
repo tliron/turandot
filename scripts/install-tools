@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+
+if [ "$EUID" -ne 0 ]; then
+	echo "Run this script as root"
+	exit 1
+fi
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+
+FORCE=false
+if [ "$1" == -f ]; then
+	FORCE=true
+fi
+
+install_tool helm "$HELM_VERSION" \
+"https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz" \
+"linux-amd64/"
+
+install_tool yq "$YQ_VERSION" \
+"https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_amd64"

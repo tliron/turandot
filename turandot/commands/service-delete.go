@@ -20,6 +20,8 @@ var serviceDeleteCommand = &cobra.Command{
 			DeleteService(serviceName)
 		} else if all {
 			DeleteAllServices()
+		} else {
+			util.Fail("must provide service name or specify \"--all\"")
 		}
 	},
 }

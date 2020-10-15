@@ -3,55 +3,37 @@ package controller
 import (
 	"fmt"
 	"io"
-	neturlpkg "net/url"
 
 	namepkg "github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	gzip "github.com/klauspost/pgzip"
-	kubernetesutil "github.com/tliron/kutil/kubernetes"
 	urlpkg "github.com/tliron/kutil/url"
-	"github.com/tliron/turandot/client"
+	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (self *Controller) GetInventoryServiceTemplateURL(namespace string, serviceTemplateName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
-	if ip, err := kubernetesutil.GetFirstServiceIP(self.Context, self.Kubernetes, namespace, "turandot-inventory"); err == nil {
-		imageName := client.GetInventoryImageName(serviceTemplateName)
-		url := fmt.Sprintf("docker://%s:5000/%s?format=csar", ip, imageName)
-		if url_, err := neturlpkg.ParseRequestURI(url); err == nil {
-			return urlpkg.NewDockerURL(url_, urlContext), nil
-		} else {
-			return nil, err
-		}
-	} else {
-		return nil, err
-	}
-}
-
-func (self *Controller) PublishOnInventory(imageName string, url string, ips []string, urlContext *urlpkg.Context) (string, error) {
-	if url, err := urlpkg.NewURL(url, urlContext); err == nil {
+func (self *Controller) PublishOnInventory(imageName string, sourceUrl string, inventoryUrl string, urlContext *urlpkg.Context) (string, error) {
+	if sourceUrl_, err := urlpkg.NewURL(sourceUrl, urlContext); err == nil {
 		opener := func() (io.ReadCloser, error) {
-			if reader, err := url.Open(); err == nil {
+			if reader, err := sourceUrl_.Open(); err == nil {
 				return gzip.NewReader(reader)
 			} else {
 				return nil, err
 			}
 		}
 
-		for _, ip := range ips {
-			self.Log.Infof("publishing image %q at %q on %q", imageName, url, ip)
+		self.Log.Infof("publishing image %q at %q on %q", imageName, sourceUrl_, inventoryUrl)
 
-			name := fmt.Sprintf("%s:5000/%s", ip, imageName)
+		name := fmt.Sprintf("%s/%s", inventoryUrl, imageName)
+		//name := fmt.Sprintf("%s:5000/%s", inventoryUrl, imageName)
 
-			if contentTag, err := namepkg.NewTag("portable"); err == nil {
-				if tag, err := namepkg.NewTag(name); err == nil {
-					if image, err := tarball.Image(opener, &contentTag); err == nil {
-						if err := remote.Write(tag, image); err == nil {
-							self.Log.Infof("published image %q at %q on %q", imageName, url, ip)
-							return name, nil
-						} else {
-							return "", err
-						}
+		if contentTag, err := namepkg.NewTag("portable"); err == nil {
+			if tag, err := namepkg.NewTag(name); err == nil {
+				if image, err := tarball.Image(opener, &contentTag); err == nil {
+					if err := remote.Write(tag, image); err == nil {
+						self.Log.Infof("published image %q at %q on %q", imageName, sourceUrl_, inventoryUrl)
+						return name, nil
 					} else {
 						return "", err
 					}
@@ -61,10 +43,53 @@ func (self *Controller) PublishOnInventory(imageName string, url string, ips []s
 			} else {
 				return "", err
 			}
+		} else {
+			return "", err
 		}
-
-		return "", fmt.Errorf("did not publish image: %s", imageName)
 	} else {
 		return "", err
+	}
+}
+
+func (self *Controller) UpdateInventorySpoolerPod(inventory *resources.Inventory, spoolerPod string) (*resources.Inventory, error) {
+	self.Log.Infof("updating inventory spooler pod to %q for service: %s/%s", spoolerPod, inventory.Namespace, inventory.Name)
+
+	for {
+		inventory = inventory.DeepCopy()
+		inventory.Status.SpoolerPod = spoolerPod
+
+		service_, err, retry := self.updateInventoryStatus(inventory)
+		if retry {
+			inventory = service_
+		} else {
+			return service_, err
+		}
+	}
+}
+func (self *Controller) updateInventoryStatus(inventory *resources.Inventory) (*resources.Inventory, error, bool) {
+	if inventory_, err := self.Client.UpdateInventoryStatus(inventory); err == nil {
+		return inventory_, nil, false
+	} else if errors.IsConflict(err) {
+		self.Log.Warningf("retrying status update for inventory: %s/%s", inventory.Namespace, inventory.Name)
+		if inventory_, err := self.Client.GetInventory(inventory.Namespace, inventory.Name); err == nil {
+			return inventory_, nil, true
+		} else {
+			return inventory, err, false
+		}
+	} else {
+		return inventory, err, false
+	}
+}
+
+func (self *Controller) processInventory(inventory *resources.Inventory) (bool, error) {
+	// Create spooler
+	if pod, err := self.CreateSpooler(inventory); err == nil {
+		if _, err := self.UpdateInventorySpoolerPod(inventory, pod.Name); err == nil {
+			return true, nil
+		} else {
+			return false, err
+		}
+	} else {
+		return false, err
 	}
 }

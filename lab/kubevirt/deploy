@@ -15,13 +15,13 @@ fi
 
 m 'deploying KubeVirt...'
 
-kubectl apply --filename="https://github.com/kubevirt/kubevirt/releases/download/$KUBEVIRT_VERSION/kubevirt-operator.yaml"
+kubectl apply --filename="https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/kubevirt-operator.yaml"
 
 if [ "$KUBEVIRT_EMULATION" == true ]; then
 	kubectl create configmaps kubevirt-config --from-literal debug.useEmulation=true --namespace kubevirt
 fi
 
-kubectl apply --filename="https://github.com/kubevirt/kubevirt/releases/download/$KUBEVIRT_VERSION/kubevirt-cr.yaml"
+kubectl apply --filename="https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/kubevirt-cr.yaml"
 
 m 'waiting for KubeVirt to start...'
 

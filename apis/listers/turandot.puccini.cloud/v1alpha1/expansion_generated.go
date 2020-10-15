@@ -2,6 +2,14 @@
 
 package v1alpha1
 
+// InventoryListerExpansion allows custom methods to be added to
+// InventoryLister.
+type InventoryListerExpansion interface{}
+
+// InventoryNamespaceListerExpansion allows custom methods to be added to
+// InventoryNamespaceLister.
+type InventoryNamespaceListerExpansion interface{}
+
 // ServiceListerExpansion allows custom methods to be added to
 // ServiceLister.
 type ServiceListerExpansion interface{}

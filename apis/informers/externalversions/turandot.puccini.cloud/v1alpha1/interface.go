@@ -8,6 +8,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// Inventories returns a InventoryInformer.
+	Inventories() InventoryInformer
 	// Services returns a ServiceInformer.
 	Services() ServiceInformer
 }
@@ -21,6 +23,11 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
+}
+
+// Inventories returns a InventoryInformer.
+func (v *version) Inventories() InventoryInformer {
+	return &inventoryInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // Services returns a ServiceInformer.

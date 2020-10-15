@@ -88,3 +88,49 @@ function kubectl_data_plane_ip () {
 function kubectl_registry_url () {
 	echo $(kubectl get services registry --namespace=kube-system --output=jsonpath={.spec.clusterIP}):80
 }
+
+function install_tool () {
+	local NAME=$1
+	local VERSION=$2
+	local URL=$3
+	local ARCHIVE_PREFIX=$4
+	local EXEC=/usr/bin/$NAME
+
+	if [ -f "$EXEC" ]; then
+		if [ "$FORCE" == true ]; then
+			m "overriding existing \"$EXEC\"..."
+		else
+			m "\"$EXEC\" already exists (use -f to overwrite)"
+			return 0
+		fi
+	fi
+
+	m "downloading $NAME $VERSION..."
+	if [ "${URL: -7}" == .tar.gz ] || [ "${URL: -4}" == .tgz ]; then
+		local ARCHIVE=$(mktemp --suffix=.tar.gz)
+		if wget --quiet --output-document="$ARCHIVE" "$URL"; then
+			if tar --extract --file="$ARCHIVE" --directory=/usr/bin --strip=1 "$ARCHIVE_PREFIX$NAME"; then
+				rm --force "$ARCHIVE"
+			else
+				m "could not write to \"$EXEC\"" "$RED"
+				rm --force "$ARCHIVE"
+			fi
+		else
+			m "could not download from \"$URL\"" "$RED"
+			return
+		fi
+	else
+		if ! wget --quiet --output-document="$EXEC" "$URL"; then
+			m "could not download from \"$URL\" to \"$EXEC\"" "$RED"
+			return
+		fi
+	fi
+
+	chmod a+x "$EXEC"
+	m "installed \"$EXEC\""
+}
+
+function github_version () {
+	local REPO=$1
+	curl --silent "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'	
+}

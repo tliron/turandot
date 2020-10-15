@@ -28,7 +28,7 @@ func PullServiceTemplate(serviceTemplateName string, path string) {
 	file, err := os.Create(path)
 	util.FailOnError(err)
 	defer file.Close()
-	imageName := clientpkg.GetInventoryImageName(serviceTemplateName)
+	imageName := clientpkg.InventoryImageNameForServiceTemplateName(serviceTemplateName)
 	err = tools.PullLayerFromRegistry(imageName, file, NewClient().Spooler())
 	util.FailOnError(err)
 }

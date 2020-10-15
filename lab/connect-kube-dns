@@ -1,11 +1,14 @@
 #!/bin/bash
 set -e
 
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../scripts/_env"
+
 # Do we really need a new service?
 # Unfortunately, yes: port-forward will only work with TCP, but we need UDP for proper DNS support
 #kubectl port-forward service/kube-dns --namespace=kube-system 5353:53
 
-echo 'exposing kube-dns...'
+m 'exposing kube-dns...'
 cat <<- EOT | kubectl apply -f -
 	kind: Service
 	apiVersion: v1
@@ -27,15 +30,15 @@ cat <<- EOT | kubectl apply -f -
 	    targetPort: 53
 EOT
 
-echo 'waiting for kube-dns-external IP...'
+m 'waiting for kube-dns-external IP...'
 while [ -z "$IP" ]; do
 	IP=$(kubectl get services kube-dns-external --namespace=kube-system --output=jsonpath={.status.loadBalancer.ingress[0].ip})
 	sleep 1
 done
 
-echo $IP
+m $IP
 
-echo 'enabling dnsmasq plugin for NetworkManager...'
+m 'enabling dnsmasq plugin for NetworkManager...'
 cat <<- EOT | sudo tee /etc/NetworkManager/conf.d/00-dnsmasq.conf > /dev/null
 	[main]
 	dns=dnsmasq

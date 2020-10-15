@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -133,20 +132,4 @@ func (self *Client) isReplicaSetOwnedBy(replicaSet *apps.ReplicaSet, deployment 
 		}
 	}
 	return false
-}
-
-func (self *Client) getRegistry(registry string) (string, error) {
-	if registry == "internal" {
-		if registry, err := kubernetes.GetInternalRegistryURL(self.Kubernetes); err == nil {
-			return registry, nil
-		} else {
-			return "", fmt.Errorf("could not discover internal registry: %s", err.Error())
-		}
-	}
-
-	if registry != "" {
-		return registry, nil
-	} else {
-		return "", errors.New("must provide \"--registry\"")
-	}
 }

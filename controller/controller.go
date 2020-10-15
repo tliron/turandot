@@ -42,7 +42,8 @@ type Controller struct {
 	KubernetesInformerFactory informers.SharedInformerFactory
 	TurandotInformerFactory   turandotinformers.SharedInformerFactory
 
-	Services turandotlisters.ServiceLister
+	Services    turandotlisters.ServiceLister
+	Inventories turandotlisters.InventoryLister
 
 	Context contextpkg.Context
 	Log     *logging.Logger
@@ -55,24 +56,24 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		namespace = ""
 	}
 
-	log := logging.MustGetLogger("turandot.controller")
+	log := logging.MustGetLogger(fmt.Sprintf("%s.controller", toolName))
 
 	self := Controller{
 		Site:        site,
 		Config:      config,
-		Dynamic:     kubernetesutil.NewDynamic(dynamic, kubernetes.Discovery(), namespace, context),
+		Dynamic:     kubernetesutil.NewDynamic(toolName, dynamic, kubernetes.Discovery(), namespace, context),
 		Kubernetes:  kubernetes,
 		Turandot:    turandot,
 		CachePath:   cachePath,
 		StopChannel: stopChannel,
-		Processors:  kubernetesutil.NewProcessors(),
+		Processors:  kubernetesutil.NewProcessors(toolName),
 		Events:      kubernetesutil.CreateEventRecorder(kubernetes, "Turandot", log),
 		Context:     context,
 		Log:         log,
 	}
 
 	self.Client = clientpkg.NewClient(
-		fmt.Sprintf("turandot.client.%s", site),
+		fmt.Sprintf("%s.client.%s", toolName, site),
 		kubernetes,
 		apiExtensions,
 		turandot,
@@ -100,15 +101,18 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 
 	// Informers
 	serviceInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Services()
+	inventoryInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Inventories()
 
 	// Listers
 	self.Services = serviceInformer.Lister()
+	self.Inventories = inventoryInformer.Lister()
 
 	// Processors
 
 	processorPeriod := 5 * time.Second
 
 	self.Processors.Add(turandotresources.ServiceGVK, kubernetesutil.NewProcessor(
+		toolName,
 		"services",
 		serviceInformer.Informer(),
 		processorPeriod,
@@ -117,6 +121,19 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		},
 		func(object interface{}) (bool, error) {
 			return self.processService(object.(*turandotresources.Service))
+		},
+	))
+
+	self.Processors.Add(turandotresources.InventoryGVK, kubernetesutil.NewProcessor(
+		toolName,
+		"inventories",
+		inventoryInformer.Informer(),
+		processorPeriod,
+		func(name string, namespace string) (interface{}, error) {
+			return self.Client.GetInventory(namespace, name)
+		},
+		func(object interface{}) (bool, error) {
+			return self.processInventory(object.(*turandotresources.Inventory))
 		},
 	))
 

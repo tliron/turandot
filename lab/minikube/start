@@ -4,6 +4,7 @@ set -e
 # Fedora requirements:
 #   dnf install @virtualization
 #   sudo usermod -a -G libvirt $(whoami)
+#   newgrp libvirt
 
 PROFILE=$1
 
@@ -33,6 +34,7 @@ fi
 # Note: settings --dns-domain will break external access to registry
 # This error? "Unable to get host boot time: No such process"
 # See: https://www.spinics.net/lists/virt-tools/msg13886.html
+# --kubernetes-version="$KUBERNETES_VERSION" \
 
 minikube start \
 	--profile="$PROFILE" \

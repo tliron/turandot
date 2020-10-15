@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+if [ "$EUID" -ne 0 ]; then
+	echo "Run this script as root"
+	exit 1
+fi
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../scripts/_env"
+. "$HERE/../_env"
+
+FORCE=false
+if [ "$1" == -f ]; then
+	FORCE=true
+fi
+
+install_tool virtctl "$KUBEVIRT_VERSION" \
+"https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/virtctl-v${KUBEVIRT_VERSION}-linux-amd64"

@@ -39,7 +39,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		}
 		util.FailOnError(err)
 
-		imageName := clientpkg.GetInventoryImageName(serviceTemplateName)
+		imageName := clientpkg.InventoryImageNameForServiceTemplateName(serviceTemplateName)
 		err = tools.PublishOnRegistry(imageName, url, NewClient().Spooler())
 		util.FailOnError(err)
 	} else if directoryPath != "" {
@@ -47,7 +47,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 			registerFailOnlyOneOf()
 		}
 
-		// TODO pack directory into CSAR?
+		// TODO pack directory into CSAR
 	} else {
 		registerFailOnlyOneOf()
 	}

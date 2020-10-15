@@ -42,7 +42,7 @@ func ListServiceTemplates() {
 
 		table := terminal.NewTable(maxWidth, "Name", "Services")
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForInventoryImageName(image); ok {
 				services, err := client.ListServicesForImage(image, urlContext)
 				util.FailOnError(err)
 				sort.Strings(services)
@@ -53,7 +53,7 @@ func ListServiceTemplates() {
 
 	case "bare":
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForInventoryImageName(image); ok {
 				fmt.Fprintln(terminal.Stdout, serviceTemplateName)
 			}
 		}
@@ -65,7 +65,7 @@ func ListServiceTemplates() {
 
 		list := make(ard.List, 0, len(images))
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameFromInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForInventoryImageName(image); ok {
 				map_ := make(ard.StringMap)
 				map_["Name"] = serviceTemplateName
 				map_["Services"], err = client.ListServicesForImage(image, urlContext)
