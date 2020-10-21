@@ -11,11 +11,12 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templatePullCommand)
+	templatePullCommand.Flags().StringVarP(&inventory, "inventory", "w", "default", "name of inventory")
 }
 
 var templatePullCommand = &cobra.Command{
 	Use:   "pull [SERVICE TEMPLATE NAME] [LOCAL FILE PATH]",
-	Short: "Pull a service template from the inventory to a local file",
+	Short: "Pull a service template from an inventory to a local file",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceTemplateName := args[0]
@@ -29,6 +30,6 @@ func PullServiceTemplate(serviceTemplateName string, path string) {
 	util.FailOnError(err)
 	defer file.Close()
 	imageName := clientpkg.InventoryImageNameForServiceTemplateName(serviceTemplateName)
-	err = tools.PullLayerFromRegistry(imageName, file, NewClient().Spooler())
+	err = tools.PullLayerFromRegistry(imageName, file, NewClient().Turandot().Spooler(inventory))
 	util.FailOnError(err)
 }

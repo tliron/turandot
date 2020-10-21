@@ -6,6 +6,7 @@ import (
 
 func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, mode string, site string, urlContext *urlpkg.Context) error {
 	// hacky ;)
+	inventoryName := "default"
 	var serviceTemplateName string
 	switch nodeTemplateName {
 	case "central-pbx":
@@ -17,7 +18,7 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 	}
 	serviceName := serviceTemplateName
 
-	if url, err := self.Client.GetInventoryServiceTemplateURL(namespace, serviceTemplateName, urlContext); err == nil {
+	if url, err := self.Client.GetInventoryServiceTemplateURL(namespace, inventoryName, serviceTemplateName, urlContext); err == nil {
 		if (site == "") || (site == self.Site) {
 			// Local
 			if _, err := self.Client.CreateService(namespace, serviceName, url, inputs, mode); err != nil {
@@ -26,12 +27,12 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 		} else {
 			// Delegate
 			self.Log.Infof("delegating %q to: %s", serviceTemplateName, site)
-			if client, spooler, err := self.NewDelegate(site); err == nil {
+			if client, err := self.NewDelegate(site); err == nil {
 				if err := client.InstallOperator(site, "docker.io", true); err != nil {
 					return err
 				}
 
-				if err := client.CreateServiceFromContent(namespace, serviceName, spooler, url, inputs, mode, urlContext); err != nil {
+				if err := client.CreateServiceFromContent(namespace, serviceName, inventoryName, client.Spooler(inventoryName), url, inputs, mode, urlContext); err != nil {
 					return err
 				}
 			} else {

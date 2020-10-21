@@ -68,8 +68,8 @@ topology_template:
                 # a URL for the Turandot inventory *after* the container image is pushed to it
                 image: { get_artifact: [ SELF, image ] }
                 imagePullPolicy: Always
-              imagePullScrets:
-              - name: turandot-inventory 
+              #imagePullSecrets:
+              #- name: turandot-inventory 
         web:
           properties:
             ports:

@@ -33,24 +33,28 @@ func (self *Controller) UpdateServiceInstantiationState(service *resources.Servi
 func (self *Controller) UpdateServiceStatusClout(service *resources.Service, cloutPath string, cloutHash string) (*resources.Service, error) {
 	self.Log.Infof("updating Clout status for service: %s/%s", service.Namespace, service.Name)
 
-	for {
-		service = service.DeepCopy()
-		service.Status.ServiceTemplateURL = service.Spec.ServiceTemplateURL
-		if service.Spec.Inputs != nil {
-			service.Status.Inputs = make(map[string]string)
-			for key, input := range service.Spec.Inputs {
-				service.Status.Inputs[key] = input
+	if serviceTemplateUrl, err := self.Client.GetServiceTemplateURL(service); err == nil {
+		for {
+			service = service.DeepCopy()
+			service.Status.ServiceTemplateURL = serviceTemplateUrl
+			if service.Spec.Inputs != nil {
+				service.Status.Inputs = make(map[string]string)
+				for key, input := range service.Spec.Inputs {
+					service.Status.Inputs[key] = input
+				}
+			}
+			service.Status.CloutPath = cloutPath
+			service.Status.CloutHash = cloutHash
+
+			service_, err, retry := self.updateServiceStatus(service)
+			if retry {
+				service = service_
+			} else {
+				return service_, err
 			}
 		}
-		service.Status.CloutPath = cloutPath
-		service.Status.CloutHash = cloutHash
-
-		service_, err, retry := self.updateServiceStatus(service)
-		if retry {
-			service = service_
-		} else {
-			return service_, err
-		}
+	} else {
+		return service, err
 	}
 }
 
@@ -163,6 +167,11 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 		return false, err
 	}
 
+	var serviceTemplateUrl string
+	if serviceTemplateUrl, err = self.Client.GetServiceTemplateURL(service); err != nil {
+		return false, err
+	}
+
 	cloutPath := service.Status.CloutPath
 	if cloutPath == "" {
 		cloutPath = fmt.Sprintf("%s-%s-%s.yaml", service.Namespace, service.Name, service.UID)
@@ -173,9 +182,15 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
+	if roundTripper, err := self.Client.GetServiceTemplateHTTPRoundTripper(service); err == nil {
+		urlContext.SetHTTPRoundTripper(roundTripper)
+	} else {
+		return false, err
+	}
+
 	// Compile
 	var cloutHash string
-	if cloutHash, err = self.CompileServiceTemplate(service.Spec.ServiceTemplateURL, service.Spec.Inputs, cloutPath, urlContext); err == nil {
+	if cloutHash, err = self.CompileServiceTemplate(serviceTemplateUrl, service.Spec.Inputs, cloutPath, urlContext); err == nil {
 		lock := flock.New(cloutPath)
 		if err := lock.Lock(); err == nil {
 			defer lock.Unlock()
@@ -220,6 +235,12 @@ func (self *Controller) updateService(service *resources.Service) error {
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
+	if roundTripper, err := self.Client.GetServiceTemplateHTTPRoundTripper(service); err == nil {
+		urlContext.SetHTTPRoundTripper(roundTripper)
+	} else {
+		return err
+	}
+
 	if _, err := self.updateClout(service, urlContext); err == nil {
 		return nil
 	} else {
@@ -229,13 +250,19 @@ func (self *Controller) updateService(service *resources.Service) error {
 }
 
 func (self *Controller) isServiceInstanceOfCurrentClout(service *resources.Service) (bool, error) {
+	var serviceTemplateUrl string
+	var err error
+	if serviceTemplateUrl, err = self.Client.GetServiceTemplateURL(service); err != nil {
+		return false, err
+	}
+
 	if service.Status.InstantiationState != resources.ServiceInstantiated {
 		return false, nil
 	} else if service.Status.CloutPath == "" {
 		self.Log.Infof("no Clout for service %s/%s", service.Namespace, service.Name)
 		return false, nil
-	} else if service.Spec.ServiceTemplateURL != service.Status.ServiceTemplateURL {
-		self.Log.Infof("service template URL has changed for service %s/%s: from %q to %q", service.Namespace, service.Name, service.Status.ServiceTemplateURL, service.Spec.ServiceTemplateURL)
+	} else if serviceTemplateUrl != service.Status.ServiceTemplateURL {
+		self.Log.Infof("service template URL has changed for service %s/%s: from %q to %q", service.Namespace, service.Name, service.Status.ServiceTemplateURL, serviceTemplateUrl)
 		return false, nil
 	} else if !reflect.DeepEqual(service.Spec.Inputs, service.Status.Inputs) {
 		self.Log.Infof("inputs have changed for service %s/%s", service.Namespace, service.Name)

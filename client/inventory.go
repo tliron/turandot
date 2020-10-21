@@ -1,12 +1,15 @@
 package client
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"net/http"
 	neturlpkg "net/url"
 	"strings"
 
-	//"github.com/tliron/kutil/kubernetes"
 	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/util"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +42,7 @@ func (self *Client) ListInventories() (*resources.InventoryList, error) {
 	return self.Turandot.TurandotV1alpha1().Inventories(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) CreateInventory(namespace string, inventoryName string, url string, serviceName string) (*resources.Inventory, error) {
+func (self *Client) CreateInventory(namespace string, inventoryName string, url string, serviceName string, secretName string) (*resources.Inventory, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -53,6 +56,7 @@ func (self *Client) CreateInventory(namespace string, inventoryName string, url 
 		Spec: resources.InventorySpec{
 			URL:     url,
 			Service: serviceName,
+			Secret:  secretName,
 		},
 	}
 
@@ -95,8 +99,30 @@ func (self *Client) GetInventoryURL(namespace string, inventoryName string) (str
 	}
 }
 
-func (self *Client) GetInventoryURLForCSAR(namespace string, imageName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
-	if url, err := self.GetInventoryURL(namespace, "default"); err == nil {
+func (self *Client) GetInventoryCertificate(namespace string, inventoryName string) (*x509.Certificate, error) {
+	if inventory, err := self.GetInventory(namespace, inventoryName); err == nil {
+		return self.GetSecretCertificate(namespace, inventory.Spec.Secret)
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) GetInventoryHTTPRoundTripper(namespace string, inventoryName string) (http.RoundTripper, error) {
+	if certificate, err := self.GetInventoryCertificate(namespace, inventoryName); err == nil {
+		certPool := x509.NewCertPool()
+		certPool.AddCert(certificate)
+		return util.NewForceHTTPSRoundTripper(&http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: certPool,
+			},
+		}), nil
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) GetInventoryURLForCSAR(namespace string, inventoryName string, imageName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
+	if url, err := self.GetInventoryURL(namespace, inventoryName); err == nil {
 		url := fmt.Sprintf("docker://%s/%s?format=csar", url, imageName)
 		if url_, err := neturlpkg.ParseRequestURI(url); err == nil {
 			return urlpkg.NewDockerURL(url_, urlContext), nil
@@ -127,8 +153,8 @@ func (self *Client) GetInventoryURLForCSAR(namespace string, imageName string, u
 	*/
 }
 
-func (self *Client) GetInventoryServiceTemplateURL(namespace string, serviceTemplateName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
-	return self.GetInventoryURLForCSAR(namespace, InventoryImageNameForServiceTemplateName(serviceTemplateName), urlContext)
+func (self *Client) GetInventoryServiceTemplateURL(namespace string, inventoryName string, serviceTemplateName string, urlContext *urlpkg.Context) (*urlpkg.DockerURL, error) {
+	return self.GetInventoryURLForCSAR(namespace, inventoryName, InventoryImageNameForServiceTemplateName(serviceTemplateName), urlContext)
 }
 
 func InventoryImageNameForServiceTemplateName(serviceTemplateName string) string {

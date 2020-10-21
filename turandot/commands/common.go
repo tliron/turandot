@@ -18,6 +18,7 @@ var filePath string
 var directoryPath string
 var url string
 var component string
+var inventory string
 var tail int
 var follow bool
 var all bool

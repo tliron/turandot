@@ -125,3 +125,7 @@ func (self *Client) createServiceAccount() (*core.ServiceAccount, error) {
 		return nil, err
 	}
 }
+
+func (self *Client) getServiceAccount() (*core.ServiceAccount, error) {
+	return self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
+}

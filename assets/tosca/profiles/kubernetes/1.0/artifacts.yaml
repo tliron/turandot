@@ -7,12 +7,22 @@ artifact_types:
       Object specification
     file_ext: [ yaml, yml, json ]
 
-  ContainerImage:
+  Image:
     description: >-
-      OCI container image
-    file_ext: [ tar, tar.gz, tgz ]
+      Inventory image
     properties:
       tag:
         description: >-
           Tag of image on registry
         type: string
+      inventory:
+        description: >-
+          Inventory name
+        type: string
+        default: default
+
+  ContainerImage:
+    description: >-
+      OCI container image
+    derived_from: Image
+    file_ext: [ tar, tar.gz, tgz ]

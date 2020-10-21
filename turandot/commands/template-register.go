@@ -10,13 +10,14 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templateRegisterCommand)
+	templateRegisterCommand.Flags().StringVarP(&inventory, "inventory", "w", "default", "name of inventory")
 	templateRegisterCommand.Flags().StringVarP(&filePath, "file", "f", "", "path to a local CSAR or TOSCA YAML file (will be uploaded)")
 	templateRegisterCommand.Flags().StringVarP(&directoryPath, "directory", "d", "", "path to a local directory of TOSCA YAML files (will be uploaded)")
 }
 
 var templateRegisterCommand = &cobra.Command{
 	Use:   "register [SERVICE TEMPLATE NAME]",
-	Short: "Register a service template in the inventory from CSAR or TOSCA YAML content",
+	Short: "Register a service template in an inventory from CSAR or TOSCA YAML content",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceTemplateName := args[0]
@@ -40,7 +41,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		util.FailOnError(err)
 
 		imageName := clientpkg.InventoryImageNameForServiceTemplateName(serviceTemplateName)
-		err = tools.PublishOnRegistry(imageName, url, NewClient().Spooler())
+		err = tools.PublishOnRegistry(imageName, url, NewClient().Turandot().Spooler(inventory))
 		util.FailOnError(err)
 	} else if directoryPath != "" {
 		if (filePath != "") || (url != "") {

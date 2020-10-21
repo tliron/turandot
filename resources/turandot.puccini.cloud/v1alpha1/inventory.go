@@ -34,9 +34,9 @@ type Inventory struct {
 }
 
 type InventorySpec struct {
-	URL              string `json:"url"`
-	Service          string `json:"service"`
-	ImagePullSecrets string `json:"imagePullSecrets"`
+	URL     string `json:"url"`
+	Service string `json:"service"`
+	Secret  string `json:"secret"`
 }
 
 type InventoryStatus struct {
@@ -104,7 +104,7 @@ var InventoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 									"service": {
 										Type: "string",
 									},
-									"imagePullSecrets": {
+									"secret": {
 										Type: "string",
 									},
 								},

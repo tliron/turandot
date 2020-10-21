@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/kutil/ard"
 	formatpkg "github.com/tliron/kutil/format"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
@@ -28,14 +27,36 @@ func DescribeService(serviceName string) {
 	// TODO: in cluster mode we must specify the namespace
 	namespace := ""
 
-	service, err := NewClient().Turandot().GetService(namespace, serviceName)
+	turandot := NewClient().Turandot()
+
+	service, err := turandot.GetService(namespace, serviceName)
 	util.FailOnError(err)
 
 	if format != "" {
-		formatpkg.Print(ServiceToARD(service), format, terminal.Stdout, strict, pretty)
+		formatpkg.Print(resources.ServiceToARD(service), format, terminal.Stdout, strict, pretty)
 	} else {
 		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Name"), terminal.ColorValue(service.Name))
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("ServiceTemplateURL"), terminal.ColorValue(service.Spec.ServiceTemplateURL))
+		fmt.Fprintf(terminal.Stdout, "%s:\n", terminal.ColorTypeName("ServiceTemplate"))
+
+		if (service.Spec.ServiceTemplate.Direct.URL != "") || (service.Spec.ServiceTemplate.Direct.Secret != "") {
+			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Direct"))
+			if service.Spec.ServiceTemplate.Direct.URL != "" {
+				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("URL"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.URL))
+			}
+			if service.Spec.ServiceTemplate.Direct.Secret != "" {
+				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Secret"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.Secret))
+			}
+		}
+
+		if (service.Spec.ServiceTemplate.Indirect.Inventory != "") || (service.Spec.ServiceTemplate.Indirect.Name != "") {
+			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Indirect"))
+			if service.Spec.ServiceTemplate.Indirect.Inventory != "" {
+				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Inventory"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Inventory))
+			}
+			if service.Spec.ServiceTemplate.Indirect.Name != "" {
+				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Name"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Name))
+			}
+		}
 
 		if (service.Spec.Inputs != nil) && (len(service.Spec.Inputs) > 0) {
 			fmt.Fprintf(terminal.Stdout, "%s:\n", terminal.ColorTypeName("Inputs"))
@@ -66,28 +87,4 @@ func DescribeService(serviceName string) {
 			}
 		}
 	}
-}
-
-func ServiceToARD(service *resources.Service) ard.StringMap {
-	map_ := make(ard.StringMap)
-	map_["Name"] = service.Name
-	map_["ServiceTemplateURL"] = service.Spec.ServiceTemplateURL
-	map_["Inputs"] = service.Spec.Inputs
-	map_["Outputs"] = service.Status.Outputs
-	map_["InstantiationState"] = service.Status.InstantiationState
-	map_["CloutPath"] = service.Status.CloutPath
-	map_["CloutHash"] = service.Status.CloutHash
-	map_["Mode"] = service.Status.Mode
-	nodeStates := make(ard.StringMap)
-	if service.Status.NodeStates != nil {
-		for node, nodeState := range service.Status.NodeStates {
-			nodeStates[node] = ard.StringMap{
-				"Mode":    nodeState.Mode,
-				"State":   nodeState.State,
-				"Message": nodeState.Message,
-			}
-		}
-	}
-	map_["NodeStates"] = nodeStates
-	return map_
 }

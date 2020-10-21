@@ -10,16 +10,16 @@ func (self *Controller) publishArtifactsToInventory(artifacts parser.KubernetesA
 	if len(artifacts) > 0 {
 		artifactMappings := make(map[string]string)
 
-		if inventoryUrl, err := self.Client.GetInventoryURL(service.Namespace, "default"); err == nil {
-			for _, artifact := range artifacts {
-				if name, err := self.PublishOnInventory(artifact.Name, artifact.SourcePath, inventoryUrl, urlContext); err == nil {
+		for _, artifact := range artifacts {
+			if inventoryUrl, err := self.Client.GetInventoryURL(service.Namespace, artifact.Inventory); err == nil {
+				if name, err := self.PublishOnInventory(artifact.Tag, artifact.SourcePath, inventoryUrl, urlContext); err == nil {
 					artifactMappings[artifact.SourcePath] = name
 				} else {
 					return nil, err
 				}
+			} else {
+				return nil, err
 			}
-		} else {
-			return nil, err
 		}
 
 		/*

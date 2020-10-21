@@ -1,9 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
-	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
 	kubernetesutil "github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/util"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
@@ -74,21 +71,5 @@ func (self *Client) Turandot() *clientpkg.Client {
 		controller.InventoryImageName,
 		controller.InventorySpoolerImageName,
 		controller.CacheDirectory,
-		controller.SpoolDirectory,
-	)
-}
-
-func (self *Client) Spooler() *spoolerpkg.Client {
-	appName := fmt.Sprintf("%s-inventory-%s-spooler", controller.NamePrefix, "default")
-
-	return spoolerpkg.NewClient(
-		self.kubernetes,
-		self.rest,
-		self.config,
-		self.namespace,
-		//controller.SpoolerAppName,
-		appName,
-		controller.SpoolerContainerName,
-		controller.SpoolDirectory,
 	)
 }

@@ -88,7 +88,6 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		InventoryImageName,
 		InventorySpoolerImageName,
 		CacheDirectory,
-		SpoolDirectory,
 	)
 
 	if cluster {

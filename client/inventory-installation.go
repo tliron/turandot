@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	certmanagermeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	"github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/version"
 	apps "k8s.io/api/apps/v1"
@@ -19,16 +21,8 @@ func (self *Client) InstallInventory(registry string, wait bool) error {
 		return err
 	}
 
-	if _, err = self.createNamespace(); err != nil {
-		return err
-	}
-
 	var serviceAccount *core.ServiceAccount
-	if serviceAccount, err = self.createServiceAccount(); err != nil {
-		return err
-	}
-
-	if _, err = self.createInventoryTlsSecret(); err != nil {
+	if serviceAccount, err = self.getServiceAccount(); err != nil {
 		return err
 	}
 
@@ -37,12 +31,26 @@ func (self *Client) InstallInventory(registry string, wait bool) error {
 		return err
 	}
 
-	if _, err = self.createInventoryService(); err != nil {
+	var service *core.Service
+	if service, err = self.createInventoryService(); err != nil {
 		return err
 	}
 
+	if err = self.EnsureCertManager(); err == nil {
+		var issuer *certmanager.Issuer
+		if issuer, err = self.createInventoryCertificateIssuer(); err != nil {
+			return err
+		}
+
+		if _, err = self.createInventoryCertificate(issuer, service); err != nil {
+			return err
+		}
+	} else {
+		self.Log.Warningf("%s", err)
+	}
+
 	if wait {
-		if _, err := self.waitForDeployment(inventoryDeployment.Name); err != nil {
+		if _, err := self.WaitForDeployment(self.Namespace, inventoryDeployment.Name); err != nil {
 			return err
 		}
 	}
@@ -56,39 +64,64 @@ func (self *Client) UninstallInventory(wait bool) {
 		GracePeriodSeconds: &gracePeriodSeconds,
 	}
 
-	// Inventory service
-	if err := self.Kubernetes.CoreV1().Services(self.Namespace).Delete(self.Context, fmt.Sprintf("%s-inventory", self.NamePrefix), deleteOptions); err != nil {
+	name := fmt.Sprintf("%s-inventory", self.NamePrefix)
+
+	// Service
+	if err := self.Kubernetes.CoreV1().Services(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
 		self.Log.Warningf("%s", err)
 	}
 
-	// Inventory deployment
-	if err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Delete(self.Context, fmt.Sprintf("%s-inventory", self.NamePrefix), deleteOptions); err != nil {
+	// Deployment
+	if err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
 		self.Log.Warningf("%s", err)
 	}
 
-	// Inventory secret
-	if err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Delete(self.Context, fmt.Sprintf("%s-inventory", self.NamePrefix), deleteOptions); err != nil {
-		self.Log.Warningf("%s", err)
-	}
+	certManager := false
+	if err := self.EnsureCertManager(); err == nil {
+		certManager = true
 
-	// Service account
-	if err := self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Delete(self.Context, self.NamePrefix, deleteOptions); err != nil {
+		// Certificate
+		if err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
+			self.Log.Warningf("%s", err)
+		}
+
+		// Issuer
+		if err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
+			self.Log.Warningf("%s", err)
+		}
+
+		// Secret (deleting the Certificate will not delete the Secret!)
+		if err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
+			self.Log.Warningf("%s", err)
+		}
+	} else {
 		self.Log.Warningf("%s", err)
 	}
 
 	if wait {
+		getOptions := meta.GetOptions{}
 		self.WaitForDeletion("inventory service", func() bool {
-			_, err := self.Kubernetes.CoreV1().Services(self.Namespace).Get(self.Context, fmt.Sprintf("%s-inventory", self.NamePrefix), meta.GetOptions{})
+			_, err := self.Kubernetes.CoreV1().Services(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
 		self.WaitForDeletion("inventory deployment", func() bool {
-			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, fmt.Sprintf("%s-inventory", self.NamePrefix), meta.GetOptions{})
+			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
-		self.WaitForDeletion("service account", func() bool {
-			_, err := self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
-			return err == nil
-		})
+		if certManager {
+			self.WaitForDeletion("inventory certificate", func() bool {
+				_, err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Get(self.Context, name, getOptions)
+				return err == nil
+			})
+			self.WaitForDeletion("inventory issuer", func() bool {
+				_, err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Get(self.Context, name, getOptions)
+				return err == nil
+			})
+			self.WaitForDeletion("inventory secret", func() bool {
+				_, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, name, getOptions)
+				return err == nil
+			})
+		}
 	}
 }
 
@@ -260,70 +293,28 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 									Value: "true",
 								},
 								{
-									Name:  "_REGISTRY_HTTP_TLS_CERTIFICATE",
+									Name:  "REGISTRY_HTTP_TLS_CERTIFICATE",
 									Value: "/secret/tls.crt",
 								},
 								{
-									Name:  "_REGISTRY_HTTP_TLS_KEY",
+									Name:  "REGISTRY_HTTP_TLS_KEY",
 									Value: "/secret/tls.key",
 								},
 							},
+							// Note: Probes skip certificate validation for HTTPS
 							LivenessProbe: &core.Probe{
 								Handler: core.Handler{
 									HTTPGet: &core.HTTPGetAction{
-										Port: intstr.FromInt(5000),
+										Port:   intstr.FromInt(5000),
+										Scheme: "HTTPS",
 									},
 								},
 							},
 							ReadinessProbe: &core.Probe{
 								Handler: core.Handler{
 									HTTPGet: &core.HTTPGetAction{
-										Port: intstr.FromInt(5000),
-									},
-								},
-							},
-						},
-						{
-							Name:            "spooler",
-							Image:           fmt.Sprintf("%s/%s", registry, self.InventorySpoolerImageName),
-							ImagePullPolicy: core.PullAlways,
-							VolumeMounts: []core.VolumeMount{
-								{
-									Name:      "spool",
-									MountPath: self.SpoolPath,
-								},
-							},
-							Env: []core.EnvVar{
-								{
-									Name:  "REGISTRY_SPOOLER_directory",
-									Value: self.SpoolPath,
-								},
-								{
-									Name:  "REGISTRY_SPOOLER_registry",
-									Value: "localhost:5000",
-								},
-								{
-									Name:  "REGISTRY_SPOOLER_verbose",
-									Value: "2",
-								},
-							},
-							// TODO: next version of API?
-							// See: https://github.com/kubernetes/enhancements/blob/master/keps/sig-apps/sidecarcontainers.md
-							//      https://banzaicloud.com/blog/k8s-sidecars/
-							// Lifecycle: &core.Lifecycle{Type: "sidecar"},
-							LivenessProbe: &core.Probe{
-								Handler: core.Handler{
-									HTTPGet: &core.HTTPGetAction{
-										Port: intstr.FromInt(8086),
-										Path: "/live",
-									},
-								},
-							},
-							ReadinessProbe: &core.Probe{
-								Handler: core.Handler{
-									HTTPGet: &core.HTTPGetAction{
-										Port: intstr.FromInt(8086),
-										Path: "/ready",
+										Port:   intstr.FromInt(5000),
+										Scheme: "HTTPS",
 									},
 								},
 							},
@@ -340,10 +331,6 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 						},
 						{
 							Name:         "registry",
-							VolumeSource: self.CreateVolumeSource("1Gi"),
-						},
-						{
-							Name:         "spool",
 							VolumeSource: self.CreateVolumeSource("1Gi"),
 						},
 					},
@@ -395,6 +382,77 @@ func (self *Client) createInventoryService() (*core.Service, error) {
 	} else if errors.IsAlreadyExists(err) {
 		self.Log.Infof("%s", err.Error())
 		return self.Kubernetes.CoreV1().Services(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) createInventoryCertificateIssuer() (*certmanager.Issuer, error) {
+	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+
+	issuer := &certmanager.Issuer{
+		ObjectMeta: meta.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       appName,
+				"app.kubernetes.io/instance":   instanceName,
+				"app.kubernetes.io/version":    version.GitVersion,
+				"app.kubernetes.io/component":  "certificate-issuer",
+				"app.kubernetes.io/part-of":    self.PartOf,
+				"app.kubernetes.io/managed-by": self.ManagedBy,
+			},
+		},
+		Spec: certmanager.IssuerSpec{
+			IssuerConfig: certmanager.IssuerConfig{
+				SelfSigned: &certmanager.SelfSignedIssuer{},
+			},
+		},
+	}
+
+	if issuer, err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Create(self.Context, issuer, meta.CreateOptions{}); err == nil {
+		return issuer, nil
+	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
+		return self.CertManager.CertmanagerV1().Issuers(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) createInventoryCertificate(issuer *certmanager.Issuer, service *core.Service) (*certmanager.Certificate, error) {
+	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+
+	ipAddress := service.Spec.ClusterIP
+
+	certificate := &certmanager.Certificate{
+		ObjectMeta: meta.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       appName,
+				"app.kubernetes.io/instance":   instanceName,
+				"app.kubernetes.io/version":    version.GitVersion,
+				"app.kubernetes.io/component":  "certificate",
+				"app.kubernetes.io/part-of":    self.PartOf,
+				"app.kubernetes.io/managed-by": self.ManagedBy,
+			},
+		},
+		Spec: certmanager.CertificateSpec{
+			SecretName:  appName,
+			IPAddresses: []string{ipAddress},
+			URIs:        []string{"https://turandot.puccini.cloud"},
+			IssuerRef: certmanagermeta.ObjectReference{
+				Name: issuer.Name,
+			},
+		},
+	}
+
+	if certificate, err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Create(self.Context, certificate, meta.CreateOptions{}); err == nil {
+		return certificate, nil
+	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
+		return self.CertManager.CertmanagerV1().Certificates(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
 	} else {
 		return nil, err
 	}

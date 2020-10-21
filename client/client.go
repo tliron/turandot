@@ -3,6 +3,7 @@ package client
 import (
 	contextpkg "context"
 
+	certmanagerpkg "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	"github.com/op/go-logging"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -19,6 +20,7 @@ type Client struct {
 	APIExtensions apiextensionspkg.Interface
 	Turandot      turandotpkg.Interface
 	REST          restpkg.Interface
+	CertManager   certmanagerpkg.Interface
 	Config        *restpkg.Config
 
 	Cluster                   bool
@@ -30,13 +32,12 @@ type Client struct {
 	InventoryImageName        string
 	InventorySpoolerImageName string
 	CachePath                 string
-	SpoolPath                 string
 
 	Context contextpkg.Context
 	Log     *logging.Logger
 }
 
-func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, rest restpkg.Interface, config *restpkg.Config, cluster bool, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, inventoryImageName string, inventorySpoolerImageName string, cachePath string, spoolPath string) *Client {
+func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, rest restpkg.Interface, config *restpkg.Config, cluster bool, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, inventoryImageName string, inventorySpoolerImageName string, cachePath string) *Client {
 	return &Client{
 		Kubernetes:                kubernetes,
 		APIExtensions:             apiExtensions,
@@ -52,8 +53,20 @@ func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensi
 		InventoryImageName:        inventoryImageName,
 		InventorySpoolerImageName: inventorySpoolerImageName,
 		CachePath:                 cachePath,
-		SpoolPath:                 spoolPath,
 		Context:                   contextpkg.TODO(),
 		Log:                       logging.MustGetLogger(loggerName),
+	}
+}
+
+func (self *Client) EnsureCertManager() error {
+	if self.CertManager == nil {
+		var err error
+		if self.CertManager, err = certmanagerpkg.NewForConfig(self.Config); err == nil {
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return nil
 	}
 }

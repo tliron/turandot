@@ -1,6 +1,7 @@
 package client
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/google/uuid"
@@ -36,20 +37,15 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) ListServicesForImage(imageName string, urlContext *urlpkg.Context) ([]string, error) {
-	if serviceTemplateUrl, err := self.GetInventoryURLForCSAR(self.Namespace, imageName, urlContext); err == nil {
-		serviceTemplateUrl_ := serviceTemplateUrl.String()
-		if services, err := self.ListServices(); err == nil {
-			var serviceNames []string
-			for _, service := range services.Items {
-				if service.Spec.ServiceTemplateURL == serviceTemplateUrl_ {
-					serviceNames = append(serviceNames, service.Name)
-				}
+func (self *Client) ListServicesForImage(inventoryName string, imageName string, urlContext *urlpkg.Context) ([]string, error) {
+	if services, err := self.ListServices(); err == nil {
+		var serviceNames []string
+		for _, service := range services.Items {
+			if (service.Spec.ServiceTemplate.Indirect.Inventory == inventoryName) && (service.Spec.ServiceTemplate.Indirect.Name == imageName) {
+				serviceNames = append(serviceNames, service.Name)
 			}
-			return serviceNames, nil
-		} else {
-			return nil, err
 		}
+		return serviceNames, nil
 	} else {
 		return nil, err
 	}
@@ -81,9 +77,13 @@ func (self *Client) CreateService(namespace string, serviceName string, url urlp
 			Namespace: namespace,
 		},
 		Spec: resources.ServiceSpec{
-			ServiceTemplateURL: url.String(),
-			Inputs:             inputs_,
-			Mode:               mode,
+			ServiceTemplate: resources.ServiceTemplate{
+				Direct: resources.ServiceTemplateDirect{
+					URL: url.String(),
+				},
+			},
+			Inputs: inputs_,
+			Mode:   mode,
 		},
 	}
 
@@ -96,8 +96,8 @@ func (self *Client) CreateService(namespace string, serviceName string, url urlp
 	}
 }
 
-func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, serviceTemplateName string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	if url, err := self.GetInventoryServiceTemplateURL(namespace, serviceTemplateName, urlContext); err == nil {
+func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, inventoryName string, serviceTemplateName string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
+	if url, err := self.GetInventoryServiceTemplateURL(namespace, inventoryName, serviceTemplateName, urlContext); err == nil {
 		_, err := self.CreateService(namespace, serviceName, url, inputs, mode)
 		return err
 	} else {
@@ -114,14 +114,22 @@ func (self *Client) CreateServiceFromURL(namespace string, serviceName string, u
 	}
 }
 
-func (self *Client) CreateServiceFromContent(namespace string, serviceName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
+func (self *Client) CreateServiceFromContent(namespace string, serviceName string, inventoryName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
 	serviceTemplateName := uuid.New().String()
 	imageName := InventoryImageNameForServiceTemplateName(serviceTemplateName)
 	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
-		return self.CreateServiceFromTemplate(namespace, serviceName, serviceTemplateName, inputs, mode, urlContext)
+		return self.CreateServiceFromTemplate(namespace, serviceName, inventoryName, serviceTemplateName, inputs, mode, urlContext)
 	} else {
 		return err
 	}
+}
+
+func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, error) {
+	return service.Spec.ServiceTemplate.Direct.URL, nil
+}
+
+func (self *Client) GetServiceTemplateHTTPRoundTripper(service *resources.Service) (http.RoundTripper, error) {
+	return self.GetInventoryHTTPRoundTripper(service.Namespace, "default")
 }
 
 func (self *Client) UpdateServiceSpec(service *resources.Service) (*resources.Service, error) {

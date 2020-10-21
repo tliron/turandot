@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 
+	"github.com/tliron/kutil/ard"
 	group "github.com/tliron/turandot/resources/turandot.puccini.cloud"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,9 +48,24 @@ type Service struct {
 }
 
 type ServiceSpec struct {
-	ServiceTemplateURL string            `json:"serviceTemplateUrl"`
-	Inputs             map[string]string `json:"inputs"`
-	Mode               string            `json:"mode"`
+	ServiceTemplate ServiceTemplate   `json:"serviceTemplate"`
+	Inputs          map[string]string `json:"inputs"`
+	Mode            string            `json:"mode"`
+}
+
+type ServiceTemplate struct {
+	Direct   ServiceTemplateDirect   `json:"direct"`
+	Indirect ServiceTemplateIndirect `json:"indirect"`
+}
+
+type ServiceTemplateDirect struct {
+	URL    string `json:"url"`
+	Secret string `json:"secret"`
+}
+
+type ServiceTemplateIndirect struct {
+	Inventory string `json:"inventory"`
+	Name      string `json:"name"`
 }
 
 type ServiceStatus struct {
@@ -91,6 +107,8 @@ type ServiceList struct {
 
 var ServiceResourcesName = fmt.Sprintf("%s.%s", ServicePlural, group.GroupName)
 
+var one int64 = 1
+
 var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 	ObjectMeta: meta.ObjectMeta{
 		Name: ServiceResourcesName,
@@ -125,10 +143,63 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 						Properties: map[string]apiextensions.JSONSchemaProps{
 							"spec": {
 								Type:     "object",
-								Required: []string{"serviceTemplateUrl"},
+								Required: []string{"serviceTemplate"},
 								Properties: map[string]apiextensions.JSONSchemaProps{
-									"serviceTemplateUrl": {
-										Type: "string",
+									"serviceTemplate": {
+										Type: "object",
+										OneOf: []apiextensions.JSONSchemaProps{
+											{
+												Properties: map[string]apiextensions.JSONSchemaProps{
+													"direct": {
+														Properties: map[string]apiextensions.JSONSchemaProps{
+															"url": {
+																MinLength: &one,
+															},
+														},
+													},
+												},
+											},
+											{
+												Properties: map[string]apiextensions.JSONSchemaProps{
+													"indirect": {
+														Properties: map[string]apiextensions.JSONSchemaProps{
+															"inventory": {
+																MinLength: &one,
+															},
+															"name": {
+																MinLength: &one,
+															},
+														},
+													},
+												},
+											},
+										},
+										Properties: map[string]apiextensions.JSONSchemaProps{
+											"direct": {
+												Type: "object",
+												//Required: []string{"url"},
+												Properties: map[string]apiextensions.JSONSchemaProps{
+													"url": {
+														Type: "string",
+													},
+													"secret": {
+														Type: "string",
+													},
+												},
+											},
+											"indirect": {
+												Type: "object",
+												//Required: []string{"inventory", "name"},
+												Properties: map[string]apiextensions.JSONSchemaProps{
+													"inventory": {
+														Type: "string",
+													},
+													"name": {
+														Type: "string",
+													},
+												},
+											},
+										},
 									},
 									"inputs": {
 										Type:     "object",
@@ -219,4 +290,37 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 			},
 		},
 	},
+}
+
+func ServiceToARD(service *Service) ard.StringMap {
+	map_ := make(ard.StringMap)
+	map_["Name"] = service.Name
+	map_["ServiceTemplate"] = ard.StringMap{
+		"Direct": ard.StringMap{
+			"URL":    service.Spec.ServiceTemplate.Direct.URL,
+			"Secret": service.Spec.ServiceTemplate.Direct.Secret,
+		},
+		"Indirect": ard.StringMap{
+			"Inventory": service.Spec.ServiceTemplate.Indirect.Inventory,
+			"Name":      service.Spec.ServiceTemplate.Indirect.Name,
+		},
+	}
+	map_["Inputs"] = service.Spec.Inputs
+	map_["Outputs"] = service.Status.Outputs
+	map_["InstantiationState"] = service.Status.InstantiationState
+	map_["CloutPath"] = service.Status.CloutPath
+	map_["CloutHash"] = service.Status.CloutHash
+	map_["Mode"] = service.Status.Mode
+	nodeStates := make(ard.StringMap)
+	if service.Status.NodeStates != nil {
+		for node, nodeState := range service.Status.NodeStates {
+			nodeStates[node] = ard.StringMap{
+				"Mode":    nodeState.Mode,
+				"State":   nodeState.State,
+				"Message": nodeState.Message,
+			}
+		}
+	}
+	map_["NodeStates"] = nodeStates
+	return map_
 }

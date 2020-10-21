@@ -26,12 +26,18 @@ func (self *Controller) PublishOnInventory(imageName string, sourceUrl string, i
 		self.Log.Infof("publishing image %q at %q on %q", imageName, sourceUrl_, inventoryUrl)
 
 		name := fmt.Sprintf("%s/%s", inventoryUrl, imageName)
-		//name := fmt.Sprintf("%s:5000/%s", inventoryUrl, imageName)
 
 		if contentTag, err := namepkg.NewTag("portable"); err == nil {
 			if tag, err := namepkg.NewTag(name); err == nil {
 				if image, err := tarball.Image(opener, &contentTag); err == nil {
-					if err := remote.Write(tag, image); err == nil {
+					httpRoundTripper := urlContext.GetHTTPRoundTripper()
+					if httpRoundTripper != nil {
+						err = remote.Write(tag, image, remote.WithTransport(httpRoundTripper))
+					} else {
+						err = remote.Write(tag, image)
+					}
+
+					if err == nil {
 						self.Log.Infof("published image %q at %q on %q", imageName, sourceUrl_, inventoryUrl)
 						return name, nil
 					} else {
@@ -52,7 +58,7 @@ func (self *Controller) PublishOnInventory(imageName string, sourceUrl string, i
 }
 
 func (self *Controller) UpdateInventorySpoolerPod(inventory *resources.Inventory, spoolerPod string) (*resources.Inventory, error) {
-	self.Log.Infof("updating inventory spooler pod to %q for service: %s/%s", spoolerPod, inventory.Namespace, inventory.Name)
+	self.Log.Infof("updating spooler pod to %q for inventory: %s/%s", spoolerPod, inventory.Namespace, inventory.Name)
 
 	for {
 		inventory = inventory.DeepCopy()
@@ -83,7 +89,7 @@ func (self *Controller) updateInventoryStatus(inventory *resources.Inventory) (*
 
 func (self *Controller) processInventory(inventory *resources.Inventory) (bool, error) {
 	// Create spooler
-	if pod, err := self.CreateSpooler(inventory); err == nil {
+	if pod, err := self.Client.CreateInventorySpooler(inventory); err == nil {
 		if _, err := self.UpdateInventorySpoolerPod(inventory, pod.Name); err == nil {
 			return true, nil
 		} else {

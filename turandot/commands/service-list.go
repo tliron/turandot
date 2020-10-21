@@ -8,6 +8,7 @@ import (
 	formatpkg "github.com/tliron/kutil/format"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
+	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
 func init() {
@@ -71,7 +72,7 @@ func ListServices() {
 	default:
 		list := make(ard.List, len(services.Items))
 		for index, service := range services.Items {
-			list[index] = ServiceToARD(&service)
+			list[index] = resources.ServiceToARD(&service)
 		}
 		formatpkg.Print(list, format, terminal.Stdout, strict, pretty)
 	}

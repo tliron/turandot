@@ -58,7 +58,7 @@ func (self *Client) InstallOperator(site string, registry string, wait bool) err
 	}
 
 	if wait {
-		if _, err := self.waitForDeployment(operatorDeployment.Name); err != nil {
+		if _, err := self.WaitForDeployment(self.Namespace, operatorDeployment.Name); err != nil {
 			return err
 		}
 	}
@@ -72,8 +72,10 @@ func (self *Client) UninstallOperator(wait bool) {
 		GracePeriodSeconds: &gracePeriodSeconds,
 	}
 
-	// Operator deployment
-	if err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Delete(self.Context, fmt.Sprintf("%s-operator", self.NamePrefix), deleteOptions); err != nil {
+	name := fmt.Sprintf("%s-operator", self.NamePrefix)
+
+	// Deployment
+	if err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
 		self.Log.Warningf("%s", err)
 	}
 
@@ -110,31 +112,36 @@ func (self *Client) UninstallOperator(wait bool) {
 	}
 
 	if wait {
+		getOptions := meta.GetOptions{}
 		self.WaitForDeletion("operator deployment", func() bool {
-			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, fmt.Sprintf("%s-operator", self.NamePrefix), meta.GetOptions{})
+			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
 		if self.Cluster {
 			self.WaitForDeletion("cluster role binding", func() bool {
-				_, err := self.Kubernetes.RbacV1().ClusterRoleBindings().Get(self.Context, self.NamePrefix, meta.GetOptions{})
+				_, err := self.Kubernetes.RbacV1().ClusterRoleBindings().Get(self.Context, self.NamePrefix, getOptions)
 				return err == nil
 			})
 		} else {
 			self.WaitForDeletion("role binding", func() bool {
-				_, err := self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
+				_, err := self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Get(self.Context, self.NamePrefix, getOptions)
 				return err == nil
 			})
 			self.WaitForDeletion("role", func() bool {
-				_, err := self.Kubernetes.RbacV1().Roles(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
+				_, err := self.Kubernetes.RbacV1().Roles(self.Namespace).Get(self.Context, self.NamePrefix, getOptions)
 				return err == nil
 			})
 		}
 		self.WaitForDeletion("service account", func() bool {
-			_, err := self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
+			_, err := self.Kubernetes.CoreV1().ServiceAccounts(self.Namespace).Get(self.Context, self.NamePrefix, getOptions)
 			return err == nil
 		})
-		self.WaitForDeletion("custom resource definition", func() bool {
-			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.ServiceCustomResourceDefinition.Name, meta.GetOptions{})
+		self.WaitForDeletion("service custom resource definition", func() bool {
+			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.ServiceCustomResourceDefinition.Name, getOptions)
+			return err == nil
+		})
+		self.WaitForDeletion("inventory custom resource definition", func() bool {
+			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.InventoryCustomResourceDefinition.Name, getOptions)
 			return err == nil
 		})
 	}

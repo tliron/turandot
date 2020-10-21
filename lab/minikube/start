@@ -31,10 +31,9 @@ fi
 # See: https://github.com/kubernetes/minikube/issues/6982
 # Note: With CNI + Docker cannot access the registry externally
 # Note: if changing the default --service-cluster-ip-range, then must also change --insecure-registry
-# Note: settings --dns-domain will break external access to registry
+# Note: setting --dns-domain will break external access to registry
 # This error? "Unable to get host boot time: No such process"
 # See: https://www.spinics.net/lists/virt-tools/msg13886.html
-# --kubernetes-version="$KUBERNETES_VERSION" \
 
 minikube start \
 	--profile="$PROFILE" \
@@ -46,9 +45,11 @@ minikube start \
 	--cpus=4 \
 	--memory="$MEMORY" \
 	--disk-size="$DISK_SIZE" \
-	--service-cluster-ip-range="$IP_RANGE" \
-	--insecure-registry="$IP_RANGE" \
-	--insecure-registry=10.1.0.0/16
+	--service-cluster-ip-range="$IP_RANGE"
+
+#	--kubernetes-version="$KUBERNETES_VERSION" \
+#	--insecure-registry="$IP_RANGE" \
+#	--insecure-registry=10.1.0.0/16
 
 minikube profile "$PROFILE"
 
