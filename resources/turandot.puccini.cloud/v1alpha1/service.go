@@ -64,8 +64,8 @@ type ServiceTemplateDirect struct {
 }
 
 type ServiceTemplateIndirect struct {
-	Inventory string `json:"inventory"`
-	Name      string `json:"name"`
+	Repository string `json:"repository"`
+	Name       string `json:"name"`
 }
 
 type ServiceStatus struct {
@@ -163,7 +163,7 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 												Properties: map[string]apiextensions.JSONSchemaProps{
 													"indirect": {
 														Properties: map[string]apiextensions.JSONSchemaProps{
-															"inventory": {
+															"repository": {
 																MinLength: &one,
 															},
 															"name": {
@@ -189,9 +189,9 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 											},
 											"indirect": {
 												Type: "object",
-												//Required: []string{"inventory", "name"},
+												//Required: []string{"repository", "name"},
 												Properties: map[string]apiextensions.JSONSchemaProps{
-													"inventory": {
+													"repository": {
 														Type: "string",
 													},
 													"name": {
@@ -301,8 +301,8 @@ func ServiceToARD(service *Service) ard.StringMap {
 			"Secret": service.Spec.ServiceTemplate.Direct.Secret,
 		},
 		"Indirect": ard.StringMap{
-			"Inventory": service.Spec.ServiceTemplate.Indirect.Inventory,
-			"Name":      service.Spec.ServiceTemplate.Indirect.Name,
+			"Repository": service.Spec.ServiceTemplate.Indirect.Repository,
+			"Name":       service.Spec.ServiceTemplate.Indirect.Name,
 		},
 	}
 	map_["Inputs"] = service.Spec.Inputs

@@ -10,7 +10,7 @@ import (
 
 type TurandotV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	InventoriesGetter
+	RepositoriesGetter
 	ServicesGetter
 }
 
@@ -19,8 +19,8 @@ type TurandotV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *TurandotV1alpha1Client) Inventories(namespace string) InventoryInterface {
-	return newInventories(c, namespace)
+func (c *TurandotV1alpha1Client) Repositories(namespace string) RepositoryInterface {
+	return newRepositories(c, namespace)
 }
 
 func (c *TurandotV1alpha1Client) Services(namespace string) ServiceInterface {

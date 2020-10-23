@@ -8,74 +8,74 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var InventoryGVK = SchemeGroupVersion.WithKind(InventoryKind)
+var RepositoryGVK = SchemeGroupVersion.WithKind(RepositoryKind)
 
 const (
-	InventoryKind     = "Inventory"
-	InventoryListKind = "InventoryList"
+	RepositoryKind     = "Repository"
+	RepositoryListKind = "RepositoryList"
 
-	InventorySingular  = "inventory"
-	InventoryPlural    = "inventories"
-	InventoryShortName = "inv"
+	RepositorySingular  = "repository"
+	RepositoryPlural    = "repositories"
+	RepositoryShortName = "repo"
 )
 
 //
-// Inventory
+// Repository
 //
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type Inventory struct {
+type Repository struct {
 	meta.TypeMeta   `json:",inline"`
 	meta.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   InventorySpec   `json:"spec"`
-	Status InventoryStatus `json:"status"`
+	Spec   RepositorySpec   `json:"spec"`
+	Status RepositoryStatus `json:"status"`
 }
 
-type InventorySpec struct {
+type RepositorySpec struct {
 	URL     string `json:"url"`
 	Service string `json:"service"`
 	Secret  string `json:"secret"`
 }
 
-type InventoryStatus struct {
+type RepositoryStatus struct {
 	SpoolerPod string `json:"spoolerPod"`
 }
 
 //
-// InventoryList
+// RepositoryList
 //
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type InventoryList struct {
+type RepositoryList struct {
 	meta.TypeMeta `json:",inline"`
 	meta.ListMeta `json:"metadata"`
 
-	Items []Inventory `json:"items"`
+	Items []Repository `json:"items"`
 }
 
 //
-// InventoryCustomResourceDefinition
+// RepositoryCustomResourceDefinition
 //
 
 // See: assets/custom-resource-definitions.yaml
 
-var InventoryResourcesName = fmt.Sprintf("%s.%s", InventoryPlural, group.GroupName)
+var RepositoryResourcesName = fmt.Sprintf("%s.%s", RepositoryPlural, group.GroupName)
 
-var InventoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
+var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 	ObjectMeta: meta.ObjectMeta{
-		Name: InventoryResourcesName,
+		Name: RepositoryResourcesName,
 	},
 	Spec: apiextensions.CustomResourceDefinitionSpec{
 		Group: group.GroupName,
 		Names: apiextensions.CustomResourceDefinitionNames{
-			Singular: InventorySingular,
-			Plural:   InventoryPlural,
-			Kind:     InventoryKind,
-			ListKind: InventoryListKind,
+			Singular: RepositorySingular,
+			Plural:   RepositoryPlural,
+			Kind:     RepositoryKind,
+			ListKind: RepositoryListKind,
 			ShortNames: []string{
-				InventoryShortName,
+				RepositoryShortName,
 			},
 			Categories: []string{
 				"all", // will appear in "kubectl get all"

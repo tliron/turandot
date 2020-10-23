@@ -11,7 +11,7 @@ func (self *Client) Shell(appNameSuffix string, containerName string, stdin io.R
 	appName := fmt.Sprintf("%s-%s", self.NamePrefix, appNameSuffix)
 
 	if podName, err := kubernetes.GetFirstPodName(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
-		return kubernetes.Shell(self.REST, self.Config, self.Namespace, podName, containerName, "sh", stdin, stdout, stderr)
+		return kubernetes.Exec(self.REST, self.Config, self.Namespace, podName, containerName, stdin, stdout, stderr, true, "sh")
 	} else {
 		return err
 	}

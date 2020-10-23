@@ -38,9 +38,9 @@ func SetMode(serviceName string, mode string) {
 	// TODO: in cluster mode we must specify the namespace
 	namespace := ""
 
-	client := NewClient().Turandot()
-	service, err := client.GetService(namespace, serviceName)
+	turandot := NewClient().Turandot()
+	service, err := turandot.GetService(namespace, serviceName)
 	util.FailOnError(err)
-	_, err = client.UpdateServiceMode(service, mode)
+	_, err = turandot.UpdateServiceMode(service, mode)
 	util.FailOnError(err)
 }

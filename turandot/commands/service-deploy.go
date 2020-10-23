@@ -21,8 +21,8 @@ var inputValues = make(map[string]interface{})
 
 func init() {
 	serviceCommand.AddCommand(serviceDeployCommand)
-	serviceDeployCommand.Flags().StringVarP(&inventory, "inventory", "w", "default", "name of inventory")
-	serviceDeployCommand.Flags().StringVarP(&template, "template", "t", "", "name of service template (must be registered in inventory)")
+	serviceDeployCommand.Flags().StringVarP(&repository, "repository", "w", "default", "name of repository")
+	serviceDeployCommand.Flags().StringVarP(&template, "template", "t", "", "name of service template (must be registered in repository)")
 	serviceDeployCommand.Flags().StringVarP(&filePath, "file", "f", "", "path to a local CSAR or TOSCA YAML file (will be uploaded)")
 	serviceDeployCommand.Flags().StringVarP(&directoryPath, "directory", "d", "", "path to a local directory of TOSCA YAML files (will be uploaded)")
 	serviceDeployCommand.Flags().StringVarP(&url, "url", "u", "", "URL to a CSAR or TOSCA YAML file (must be accessible from cluster)")
@@ -47,17 +47,16 @@ func DeployService(serviceName string) {
 
 	ParseInputs()
 
-	client := NewClient()
-
-	urlContext := urlpkg.NewContext()
-	defer urlContext.Release()
+	turandot := NewClient().Turandot()
 
 	if template != "" {
 		if (filePath != "") || (directoryPath != "") || (url != "") {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().CreateServiceFromTemplate(namespace, serviceName, inventory, template, inputValues, mode, urlContext)
+		repository_, err := turandot.GetRepository(namespace, repository)
+		util.FailOnError(err)
+		_, err = turandot.CreateServiceFromTemplate(namespace, serviceName, repository_, template, inputValues, mode)
 		util.FailOnError(err)
 	} else if filePath != "" {
 		if (template != "") || (directoryPath != "") || (url != "") {
@@ -73,9 +72,10 @@ func DeployService(serviceName string) {
 		}
 		util.FailOnError(err)
 
-		turandot := client.Turandot()
-		spooler := turandot.Spooler(inventory)
-		err = turandot.CreateServiceFromContent(namespace, serviceName, inventory, spooler, url_, inputValues, mode, urlContext)
+		repository_, err := turandot.GetRepository(namespace, repository)
+		util.FailOnError(err)
+		spooler := turandot.Spooler(repository_)
+		_, err = turandot.CreateServiceFromContent(namespace, serviceName, repository_, spooler, url_, inputValues, mode)
 		util.FailOnError(err)
 	} else if directoryPath != "" {
 		if (template != "") || (filePath != "") || (url != "") {
@@ -88,7 +88,10 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		err := client.Turandot().CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
+		urlContext := urlpkg.NewContext()
+		defer urlContext.Release()
+
+		_, err := turandot.CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
 		util.FailOnError(err)
 	} else {
 		deployFailOnlyOneOf()

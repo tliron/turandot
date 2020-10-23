@@ -10,5 +10,5 @@ func init() {
 
 var templateCommand = &cobra.Command{
 	Use:   "template",
-	Short: "Work with service templates in the inventory",
+	Short: "Work with service templates in the repository",
 }

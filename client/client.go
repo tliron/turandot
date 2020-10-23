@@ -23,38 +23,38 @@ type Client struct {
 	CertManager   certmanagerpkg.Interface
 	Config        *restpkg.Config
 
-	Cluster                   bool
-	Namespace                 string
-	NamePrefix                string
-	PartOf                    string
-	ManagedBy                 string
-	OperatorImageName         string
-	InventoryImageName        string
-	InventorySpoolerImageName string
-	CachePath                 string
+	Cluster                    bool
+	Namespace                  string
+	NamePrefix                 string
+	PartOf                     string
+	ManagedBy                  string
+	OperatorImageName          string
+	RepositoryImageName        string
+	RepositorySpoolerImageName string
+	CachePath                  string
 
 	Context contextpkg.Context
 	Log     *logging.Logger
 }
 
-func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, rest restpkg.Interface, config *restpkg.Config, cluster bool, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, inventoryImageName string, inventorySpoolerImageName string, cachePath string) *Client {
+func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, rest restpkg.Interface, config *restpkg.Config, cluster bool, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, repositoryImageName string, repositorySpoolerImageName string, cachePath string) *Client {
 	return &Client{
-		Kubernetes:                kubernetes,
-		APIExtensions:             apiExtensions,
-		Turandot:                  turandot,
-		REST:                      rest,
-		Config:                    config,
-		Cluster:                   cluster,
-		Namespace:                 namespace,
-		NamePrefix:                namePrefix,
-		PartOf:                    partOf,
-		ManagedBy:                 managedBy,
-		OperatorImageName:         operatorImageName,
-		InventoryImageName:        inventoryImageName,
-		InventorySpoolerImageName: inventorySpoolerImageName,
-		CachePath:                 cachePath,
-		Context:                   contextpkg.TODO(),
-		Log:                       logging.MustGetLogger(loggerName),
+		Kubernetes:                 kubernetes,
+		APIExtensions:              apiExtensions,
+		Turandot:                   turandot,
+		REST:                       rest,
+		Config:                     config,
+		Cluster:                    cluster,
+		Namespace:                  namespace,
+		NamePrefix:                 namePrefix,
+		PartOf:                     partOf,
+		ManagedBy:                  managedBy,
+		OperatorImageName:          operatorImageName,
+		RepositoryImageName:        repositoryImageName,
+		RepositorySpoolerImageName: repositorySpoolerImageName,
+		CachePath:                  cachePath,
+		Context:                    contextpkg.TODO(),
+		Log:                        logging.MustGetLogger(loggerName),
 	}
 }
 

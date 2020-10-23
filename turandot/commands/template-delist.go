@@ -8,13 +8,13 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templateDelistCommand)
-	templateDelistCommand.Flags().StringVarP(&inventory, "inventory", "w", "default", "name of inventory")
+	templateDelistCommand.Flags().StringVarP(&repository, "repository", "p", "default", "name of repository")
 	templateDelistCommand.Flags().BoolVarP(&all, "all", "a", false, "delist all templates")
 }
 
 var templateDelistCommand = &cobra.Command{
 	Use:   "delist [SERVICE TEMPLATE NAME]",
-	Short: "Delist a service template from an inventory",
+	Short: "Delist a service template from a repository",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
@@ -27,15 +27,24 @@ var templateDelistCommand = &cobra.Command{
 }
 
 func DelistServiceTemplate(serviceTemplateName string) {
-	imageName := clientpkg.InventoryImageNameForServiceTemplateName(serviceTemplateName)
-	err := NewClient().Turandot().Spooler(inventory).Delete(imageName)
+	turandot := NewClient().Turandot()
+	repository_, err := turandot.GetRepository(namespace, repository)
+	util.FailOnError(err)
+	spooler := turandot.Spooler(repository_)
+
+	imageName := clientpkg.RepositoryImageNameForServiceTemplateName(serviceTemplateName)
+	err = spooler.Delete(imageName)
 	util.FailOnError(err)
 }
 
 func DelistAllTemplates() {
-	spooler := NewClient().Turandot().Spooler(inventory)
-	images, err := spooler.List()
+	turandot := NewClient().Turandot()
+	repository_, err := turandot.GetRepository(namespace, repository)
 	util.FailOnError(err)
+	images, err := turandot.SpoolerCommand(repository_).List()
+	util.FailOnError(err)
+	spooler := turandot.Spooler(repository_)
+
 	for _, image := range images {
 		log.Infof("deleting template: %s", image)
 		err := spooler.Delete(image)

@@ -41,20 +41,20 @@ func DescribeService(serviceName string) {
 		if (service.Spec.ServiceTemplate.Direct.URL != "") || (service.Spec.ServiceTemplate.Direct.Secret != "") {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Direct"))
 			if service.Spec.ServiceTemplate.Direct.URL != "" {
-				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("URL"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.URL))
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("URL"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.URL))
 			}
 			if service.Spec.ServiceTemplate.Direct.Secret != "" {
-				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Secret"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.Secret))
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Secret"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.Secret))
 			}
 		}
 
-		if (service.Spec.ServiceTemplate.Indirect.Inventory != "") || (service.Spec.ServiceTemplate.Indirect.Name != "") {
+		if (service.Spec.ServiceTemplate.Indirect.Repository != "") || (service.Spec.ServiceTemplate.Indirect.Name != "") {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Indirect"))
-			if service.Spec.ServiceTemplate.Indirect.Inventory != "" {
-				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Inventory"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Inventory))
+			if service.Spec.ServiceTemplate.Indirect.Repository != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Repository"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Repository))
 			}
 			if service.Spec.ServiceTemplate.Indirect.Name != "" {
-				fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Name"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Name))
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Name"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Name))
 			}
 		}
 

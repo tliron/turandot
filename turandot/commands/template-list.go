@@ -16,20 +16,24 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templateListCommand)
-	templateListCommand.Flags().StringVarP(&inventory, "inventory", "w", "default", "name of inventory")
+	templateListCommand.Flags().StringVarP(&repository, "repository", "p", "default", "name of repository")
 }
 
 var templateListCommand = &cobra.Command{
 	Use:   "list",
-	Short: "List service templates registered in an inventory",
+	Short: "List service templates registered in a repository",
 	Run: func(cmd *cobra.Command, args []string) {
 		ListServiceTemplates()
 	},
 }
 
 func ListServiceTemplates() {
-	images, err := NewClient().Turandot().Spooler(inventory).List()
+	turandot := NewClient().Turandot()
+	repository_, err := turandot.GetRepository(namespace, repository)
 	util.FailOnError(err)
+	images, err := turandot.SpoolerCommand(repository_).List()
+	util.FailOnError(err)
+
 	if len(images) == 0 {
 		return
 	}
@@ -37,14 +41,13 @@ func ListServiceTemplates() {
 
 	switch format {
 	case "":
-		client := NewClient().Turandot()
 		urlContext := urlpkg.NewContext()
 		defer urlContext.Release()
 
 		table := terminal.NewTable(maxWidth, "Name", "Services")
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForInventoryImageName(image); ok {
-				services, err := client.ListServicesForImage(inventory, image, urlContext)
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryImageName(image); ok {
+				services, err := turandot.ListServicesForImage(repository, image, urlContext)
 				util.FailOnError(err)
 				sort.Strings(services)
 				table.Add(serviceTemplateName, strings.Join(services, "\n"))
@@ -54,22 +57,21 @@ func ListServiceTemplates() {
 
 	case "bare":
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryImageName(image); ok {
 				fmt.Fprintln(terminal.Stdout, serviceTemplateName)
 			}
 		}
 
 	default:
-		client := NewClient().Turandot()
 		urlContext := urlpkg.NewContext()
 		defer urlContext.Release()
 
 		list := make(ard.List, 0, len(images))
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForInventoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryImageName(image); ok {
 				map_ := make(ard.StringMap)
 				map_["Name"] = serviceTemplateName
-				map_["Services"], err = client.ListServicesForImage(inventory, image, urlContext)
+				map_["Services"], err = turandot.ListServicesForImage(repository, image, urlContext)
 				util.FailOnError(err)
 				list = append(list, map_)
 			}

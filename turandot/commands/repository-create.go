@@ -14,48 +14,48 @@ var provider string
 var secret string
 
 func init() {
-	inventoryCommand.AddCommand(inventoryCreateCommand)
-	inventoryCreateCommand.Flags().StringVarP(&url, "url", "u", "", "registry URL")
-	inventoryCreateCommand.Flags().StringVarP(&service, "service", "s", "", "registry service name")
-	inventoryCreateCommand.Flags().StringVarP(&provider, "provider", "p", "", "registry provider (\"turandot\", \"minikube\", or \"openshift\")")
-	inventoryCreateCommand.Flags().StringVarP(&secret, "secret", "t", "", "registry TLS secret name")
-	inventoryCreateCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for inventory spooler to come up")
+	repositoryCommand.AddCommand(repositoryCreateCommand)
+	repositoryCreateCommand.Flags().StringVarP(&url, "url", "u", "", "registry URL")
+	repositoryCreateCommand.Flags().StringVarP(&service, "service", "s", "", "registry service name")
+	repositoryCreateCommand.Flags().StringVarP(&provider, "provider", "p", "", "registry provider (\"turandot\", \"minikube\", or \"openshift\")")
+	repositoryCreateCommand.Flags().StringVarP(&secret, "secret", "t", "", "registry TLS secret name")
+	repositoryCreateCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for registry spooler to come up")
 }
 
-var inventoryCreateCommand = &cobra.Command{
+var repositoryCreateCommand = &cobra.Command{
 	Use:   "create [INVENTORY NAME]",
-	Short: "Create an inventory",
+	Short: "Create a repository",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		inventoryName := args[0]
+		repositoryName := args[0]
 
 		var client *Client
 
 		if (url == "") && (service == "") && (provider == "") {
-			failInventoryCreate()
+			failRepositoryCreate()
 		}
 
 		if url != "" {
 			if (service != "") || (provider != "") {
-				failInventoryCreate()
+				failRepositoryCreate()
 			}
 		} else if service != "" {
 			if (url != "") || (provider != "") {
-				failInventoryCreate()
+				failRepositoryCreate()
 			}
 		} else if provider != "" {
 			if (url != "") || (service != "") {
-				failInventoryCreate()
+				failRepositoryCreate()
 			}
 
 			switch provider {
 			case "turandot":
 				client = NewClient()
-				service_, err := client.kubernetes.CoreV1().Services(namespace).Get(contextpkg.TODO(), "turandot-inventory", meta.GetOptions{})
+				service_, err := client.kubernetes.CoreV1().Services(namespace).Get(contextpkg.TODO(), "turandot-repository", meta.GetOptions{})
 				util.FailOnError(err)
 				url = fmt.Sprintf("%s:5000", service_.Spec.ClusterIP)
 				if secret == "" {
-					secret = "turandot-inventory"
+					secret = "turandot-repository"
 				}
 
 			case "minikube":
@@ -80,15 +80,15 @@ var inventoryCreateCommand = &cobra.Command{
 		}
 		turandotClient := client.Turandot()
 
-		_, err := turandotClient.CreateInventory(namespace, inventoryName, url, service, secret)
+		_, err := turandotClient.CreateRepository(namespace, repositoryName, url, service, secret)
 		util.FailOnError(err)
 		if wait {
-			_, err = turandotClient.WaitForInventorySpooler(namespace, inventoryName)
+			_, err = turandotClient.WaitForRepositorySpooler(namespace, repositoryName)
 			util.FailOnError(err)
 		}
 	},
 }
 
-func failInventoryCreate() {
+func failRepositoryCreate() {
 	util.Fail("must specify only one of \"--url\", \"--service\", or \"--provider\"")
 }

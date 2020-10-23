@@ -11,15 +11,15 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (self *Client) CreateInventorySpooler(inventory *resources.Inventory) (*core.Pod, error) {
+func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*core.Pod, error) {
 	registry := "docker.io"
-	appName := self.GetInventorySpoolerAppName(inventory.Name)
-	instanceName := fmt.Sprintf("%s-%s", appName, inventory.Namespace)
+	appName := self.GetRepositorySpoolerAppName(repository.Name)
+	instanceName := fmt.Sprintf("%s-%s", appName, repository.Namespace)
 
 	pod := &core.Pod{
 		ObjectMeta: meta.ObjectMeta{
 			Name:      appName,
-			Namespace: inventory.Namespace,
+			Namespace: repository.Namespace,
 			Labels: map[string]string{
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
@@ -33,7 +33,7 @@ func (self *Client) CreateInventorySpooler(inventory *resources.Inventory) (*cor
 			Containers: []core.Container{
 				{
 					Name:            "spooler",
-					Image:           fmt.Sprintf("%s/%s", registry, self.InventorySpoolerImageName),
+					Image:           fmt.Sprintf("%s/%s", registry, self.RepositorySpoolerImageName),
 					ImagePullPolicy: core.PullAlways,
 					VolumeMounts: []core.VolumeMount{
 						{
@@ -49,7 +49,7 @@ func (self *Client) CreateInventorySpooler(inventory *resources.Inventory) (*cor
 					Env: []core.EnvVar{
 						{
 							Name:  "REGISTRY_SPOOLER_registry",
-							Value: inventory.Spec.URL,
+							Value: repository.Spec.URL,
 						},
 						{
 							Name:  "REGISTRY_SPOOLER_certificate",
@@ -83,7 +83,7 @@ func (self *Client) CreateInventorySpooler(inventory *resources.Inventory) (*cor
 					Name: "secret",
 					VolumeSource: core.VolumeSource{
 						Secret: &core.SecretVolumeSource{
-							SecretName: inventory.Spec.Secret,
+							SecretName: repository.Spec.Secret,
 						},
 					},
 				},
@@ -96,32 +96,43 @@ func (self *Client) CreateInventorySpooler(inventory *resources.Inventory) (*cor
 	}
 
 	ownerReferences := pod.GetOwnerReferences()
-	ownerReferences = append(ownerReferences, *meta.NewControllerRef(inventory, inventory.GroupVersionKind()))
+	ownerReferences = append(ownerReferences, *meta.NewControllerRef(repository, repository.GroupVersionKind()))
 	pod.SetOwnerReferences(ownerReferences)
 
 	return self.CreatePod(pod)
 }
 
-func (self *Client) WaitForInventorySpooler(namespace string, inventoryName string) (*core.Pod, error) {
-	appName := self.GetInventorySpoolerAppName(inventoryName)
+func (self *Client) WaitForRepositorySpooler(namespace string, repositoryName string) (*core.Pod, error) {
+	appName := self.GetRepositorySpoolerAppName(repositoryName)
 	return self.WaitForPod(namespace, appName)
 }
 
-func (self *Client) GetInventorySpoolerAppName(inventoryName string) string {
-	return fmt.Sprintf("%s-inventory-%s-spooler", self.NamePrefix, inventoryName)
+func (self *Client) GetRepositorySpoolerAppName(repositoryName string) string {
+	return fmt.Sprintf("%s-repository-%s-spooler", self.NamePrefix, repositoryName)
 }
 
-func (self *Client) Spooler(inventoryName string) *spoolerpkg.Client {
-	appName := self.GetInventorySpoolerAppName(inventoryName)
+func (self *Client) Spooler(repository *resources.Repository) *spoolerpkg.Client {
+	appName := self.GetRepositorySpoolerAppName(repository.Name)
 
 	return spoolerpkg.NewClient(
 		self.Kubernetes,
 		self.REST,
 		self.Config,
+		self.Context,
+		nil,
 		self.Namespace,
 		appName,
 		"spooler",
 		"/spool",
+	)
+}
+
+func (self *Client) SpoolerCommand(repository *resources.Repository) *spoolerpkg.CommandClient {
+	spooler := self.Spooler(repository)
+
+	return spoolerpkg.NewCommandClient(
+		spooler,
+		repository.Spec.URL,
 		"/secret/tls.crt",
 	)
 }

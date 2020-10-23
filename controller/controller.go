@@ -42,8 +42,8 @@ type Controller struct {
 	KubernetesInformerFactory informers.SharedInformerFactory
 	TurandotInformerFactory   turandotinformers.SharedInformerFactory
 
-	Services    turandotlisters.ServiceLister
-	Inventories turandotlisters.InventoryLister
+	Services     turandotlisters.ServiceLister
+	Repositories turandotlisters.RepositoryLister
 
 	Context contextpkg.Context
 	Log     *logging.Logger
@@ -85,8 +85,8 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		PartOf,
 		ManagedBy,
 		OperatorImageName,
-		InventoryImageName,
-		InventorySpoolerImageName,
+		RepositoryImageName,
+		RepositorySpoolerImageName,
 		CacheDirectory,
 	)
 
@@ -100,11 +100,11 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 
 	// Informers
 	serviceInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Services()
-	inventoryInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Inventories()
+	repositoryInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Repositories()
 
 	// Listers
 	self.Services = serviceInformer.Lister()
-	self.Inventories = inventoryInformer.Lister()
+	self.Repositories = repositoryInformer.Lister()
 
 	// Processors
 
@@ -123,16 +123,16 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		},
 	))
 
-	self.Processors.Add(turandotresources.InventoryGVK, kubernetesutil.NewProcessor(
+	self.Processors.Add(turandotresources.RepositoryGVK, kubernetesutil.NewProcessor(
 		toolName,
-		"inventories",
-		inventoryInformer.Informer(),
+		"repositories",
+		repositoryInformer.Informer(),
 		processorPeriod,
 		func(name string, namespace string) (interface{}, error) {
-			return self.Client.GetInventory(namespace, name)
+			return self.Client.GetRepository(namespace, name)
 		},
 		func(object interface{}) (bool, error) {
-			return self.processInventory(object.(*turandotresources.Inventory))
+			return self.processRepository(object.(*turandotresources.Repository))
 		},
 	))
 

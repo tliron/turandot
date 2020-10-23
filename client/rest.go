@@ -1,68 +1,15 @@
 package client
 
 import (
-	"fmt"
 	"io"
-	"path/filepath"
-	"strconv"
-	"strings"
 
-	core "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/tools/remotecommand"
+	kubernetesutil "github.com/tliron/kutil/kubernetes"
 )
 
 func (self *Client) WriteToContainer(namespace string, podName string, containerName string, reader io.Reader, targetPath string, permissions *int64) error {
-	dir := filepath.Dir(targetPath)
-	if err := self.Exec(namespace, podName, containerName, nil, nil, "mkdir", "--parents", dir); err == nil {
-		if err := self.Exec(namespace, podName, containerName, reader, nil, "cp", "/dev/stdin", targetPath); err == nil {
-			if permissions != nil {
-				return self.Exec(namespace, podName, containerName, nil, nil, "chmod", strconv.FormatInt(*permissions, 8), targetPath)
-			} else {
-				return nil
-			}
-		} else {
-			return err
-		}
-	} else {
-		return err
-	}
+	return kubernetesutil.WriteToContainer(self.REST, self.Config, namespace, podName, containerName, reader, targetPath, permissions)
 }
 
 func (self *Client) Exec(namespace string, podName string, containerName string, stdin io.Reader, stdout io.Writer, command ...string) error {
-	var stderr strings.Builder
-
-	execOptions := core.PodExecOptions{
-		Container: containerName,
-		Command:   command,
-		Stderr:    true,
-		TTY:       false,
-	}
-
-	streamOptions := remotecommand.StreamOptions{
-		Stderr: &stderr,
-		Tty:    false,
-	}
-
-	if stdin != nil {
-		execOptions.Stdin = true
-		streamOptions.Stdin = stdin
-	}
-
-	if stdout != nil {
-		execOptions.Stdout = true
-		streamOptions.Stdout = stdout
-	}
-
-	request := self.REST.Post().Namespace(namespace).Resource("pods").Name(podName).SubResource("exec").VersionedParams(&execOptions, scheme.ParameterCodec)
-
-	if executor, err := remotecommand.NewSPDYExecutor(self.Config, "POST", request.URL()); err == nil {
-		if err = executor.Stream(streamOptions); err == nil {
-			return nil
-		} else {
-			return fmt.Errorf("%s\n%s", err.Error(), stderr.String())
-		}
-	} else {
-		return err
-	}
+	return kubernetesutil.Exec(self.REST, self.Config, namespace, podName, containerName, stdin, stdout, nil, false, command...)
 }

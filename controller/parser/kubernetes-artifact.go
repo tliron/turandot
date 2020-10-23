@@ -10,16 +10,16 @@ import (
 
 type KubernetesArtifact struct {
 	Tag        string
-	Inventory  string
+	Repository string
 	SourcePath string
 }
 
 func ParseKubernetesArtifact(value ard.Value) (*KubernetesArtifact, bool) {
 	artifact := ard.NewNode(value)
 	if tag, ok := artifact.Get("tag").String(false); ok {
-		if inventory, ok := artifact.Get("inventory").String(false); ok {
+		if repository, ok := artifact.Get("repository").String(false); ok {
 			if sourcePath, ok := artifact.Get("sourcePath").String(false); ok {
-				return &KubernetesArtifact{tag, inventory, sourcePath}, true
+				return &KubernetesArtifact{tag, repository, sourcePath}, true
 			} else {
 				return nil, false
 			}

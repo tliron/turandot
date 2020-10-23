@@ -25,7 +25,7 @@ func (self *Client) InstallOperator(site string, registry string, wait bool) err
 		return err
 	}
 
-	if _, err = self.createInventoryCustomResourceDefinition(); err != nil {
+	if _, err = self.createRepositoryCustomResourceDefinition(); err != nil {
 		return err
 	}
 
@@ -106,8 +106,8 @@ func (self *Client) UninstallOperator(wait bool) {
 		self.Log.Warningf("%s", err)
 	}
 
-	// Inventory custom resource definition
-	if err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Delete(self.Context, resources.InventoryCustomResourceDefinition.Name, deleteOptions); err != nil {
+	// Repository custom resource definition
+	if err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Delete(self.Context, resources.RepositoryCustomResourceDefinition.Name, deleteOptions); err != nil {
 		self.Log.Warningf("%s", err)
 	}
 
@@ -140,8 +140,8 @@ func (self *Client) UninstallOperator(wait bool) {
 			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.ServiceCustomResourceDefinition.Name, getOptions)
 			return err == nil
 		})
-		self.WaitForDeletion("inventory custom resource definition", func() bool {
-			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.InventoryCustomResourceDefinition.Name, getOptions)
+		self.WaitForDeletion("repository custom resource definition", func() bool {
+			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.RepositoryCustomResourceDefinition.Name, getOptions)
 			return err == nil
 		})
 	}
@@ -151,8 +151,8 @@ func (self *Client) createServiceCustomResourceDefinition() (*apiextensions.Cust
 	return self.createCustomResourceDefinition(&resources.ServiceCustomResourceDefinition)
 }
 
-func (self *Client) createInventoryCustomResourceDefinition() (*apiextensions.CustomResourceDefinition, error) {
-	return self.createCustomResourceDefinition(&resources.InventoryCustomResourceDefinition)
+func (self *Client) createRepositoryCustomResourceDefinition() (*apiextensions.CustomResourceDefinition, error) {
+	return self.createCustomResourceDefinition(&resources.RepositoryCustomResourceDefinition)
 }
 
 func (self *Client) createCustomResourceDefinition(customResourceDefinition *apiextensions.CustomResourceDefinition) (*apiextensions.CustomResourceDefinition, error) {

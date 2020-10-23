@@ -16,7 +16,7 @@ type Client struct {
 	*clientpkg.Client
 }
 
-func NewClient(kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, rest restpkg.Interface, config *restpkg.Config, cluster bool, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, inventoryImageName string, inventorySpoolerImageName string, cachePath string) *Client {
+func NewClient(kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, rest restpkg.Interface, config *restpkg.Config, cluster bool, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, repositoryImageName string, repositorySpoolerImageName string, cachePath string) *Client {
 	return &Client{
 		Client: clientpkg.NewClient(
 			"turandot.client",
@@ -31,8 +31,8 @@ func NewClient(kubernetes kubernetespkg.Interface, apiExtensions apiextensionspk
 			partOf,
 			managedBy,
 			operatorImageName,
-			inventoryImageName,
-			inventorySpoolerImageName,
+			repositoryImageName,
+			repositorySpoolerImageName,
 			cachePath,
 		),
 	}

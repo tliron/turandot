@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (self *Client) InstallInventory(registry string, wait bool) error {
+func (self *Client) InstallRepository(registry string, wait bool) error {
 	var err error
 
 	if registry, err = self.GetRegistry(registry); err != nil {
@@ -26,23 +26,23 @@ func (self *Client) InstallInventory(registry string, wait bool) error {
 		return err
 	}
 
-	var inventoryDeployment *apps.Deployment
-	if inventoryDeployment, err = self.createInventoryDeployment(registry, serviceAccount, 1); err != nil {
+	var repositoryDeployment *apps.Deployment
+	if repositoryDeployment, err = self.createRepositoryDeployment(registry, serviceAccount, 1); err != nil {
 		return err
 	}
 
 	var service *core.Service
-	if service, err = self.createInventoryService(); err != nil {
+	if service, err = self.createRepositoryService(); err != nil {
 		return err
 	}
 
 	if err = self.EnsureCertManager(); err == nil {
 		var issuer *certmanager.Issuer
-		if issuer, err = self.createInventoryCertificateIssuer(); err != nil {
+		if issuer, err = self.createRepositoryCertificateIssuer(); err != nil {
 			return err
 		}
 
-		if _, err = self.createInventoryCertificate(issuer, service); err != nil {
+		if _, err = self.createRepositoryCertificate(issuer, service); err != nil {
 			return err
 		}
 	} else {
@@ -50,7 +50,7 @@ func (self *Client) InstallInventory(registry string, wait bool) error {
 	}
 
 	if wait {
-		if _, err := self.WaitForDeployment(self.Namespace, inventoryDeployment.Name); err != nil {
+		if _, err := self.WaitForDeployment(self.Namespace, repositoryDeployment.Name); err != nil {
 			return err
 		}
 	}
@@ -58,13 +58,13 @@ func (self *Client) InstallInventory(registry string, wait bool) error {
 	return nil
 }
 
-func (self *Client) UninstallInventory(wait bool) {
+func (self *Client) UninstallRepository(wait bool) {
 	var gracePeriodSeconds int64 = 0
 	deleteOptions := meta.DeleteOptions{
 		GracePeriodSeconds: &gracePeriodSeconds,
 	}
 
-	name := fmt.Sprintf("%s-inventory", self.NamePrefix)
+	name := fmt.Sprintf("%s-repository", self.NamePrefix)
 
 	// Service
 	if err := self.Kubernetes.CoreV1().Services(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
@@ -100,24 +100,24 @@ func (self *Client) UninstallInventory(wait bool) {
 
 	if wait {
 		getOptions := meta.GetOptions{}
-		self.WaitForDeletion("inventory service", func() bool {
+		self.WaitForDeletion("repository service", func() bool {
 			_, err := self.Kubernetes.CoreV1().Services(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
-		self.WaitForDeletion("inventory deployment", func() bool {
+		self.WaitForDeletion("repository deployment", func() bool {
 			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
 		if certManager {
-			self.WaitForDeletion("inventory certificate", func() bool {
+			self.WaitForDeletion("repository certificate", func() bool {
 				_, err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Get(self.Context, name, getOptions)
 				return err == nil
 			})
-			self.WaitForDeletion("inventory issuer", func() bool {
+			self.WaitForDeletion("repository issuer", func() bool {
 				_, err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Get(self.Context, name, getOptions)
 				return err == nil
 			})
-			self.WaitForDeletion("inventory secret", func() bool {
+			self.WaitForDeletion("repository secret", func() bool {
 				_, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, name, getOptions)
 				return err == nil
 			})
@@ -125,8 +125,8 @@ func (self *Client) UninstallInventory(wait bool) {
 	}
 }
 
-func (self *Client) createInventoryConfigMap() (*core.ConfigMap, error) {
-	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+func (self *Client) createRepositoryConfigMap() (*core.ConfigMap, error) {
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
 	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	configMap := &core.ConfigMap{
@@ -136,7 +136,7 @@ func (self *Client) createInventoryConfigMap() (*core.ConfigMap, error) {
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
 				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "inventory",
+				"app.kubernetes.io/component":  "repository",
 				"app.kubernetes.io/part-of":    self.PartOf,
 				"app.kubernetes.io/managed-by": self.ManagedBy,
 			},
@@ -153,12 +153,12 @@ func (self *Client) createInventoryConfigMap() (*core.ConfigMap, error) {
 	}
 }
 
-func (self *Client) createInventoryImagePullSecret(server string, username string, password string) (*core.Secret, error) {
+func (self *Client) createRepositoryImagePullSecret(server string, username string, password string) (*core.Secret, error) {
 	// See: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
 	//      https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 	//      https://docs.docker.com/engine/reference/commandline/cli/#configjson-properties
 
-	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
 	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	secret := &core.Secret{
@@ -168,7 +168,7 @@ func (self *Client) createInventoryImagePullSecret(server string, username strin
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
 				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "inventory",
+				"app.kubernetes.io/component":  "repository",
 				"app.kubernetes.io/part-of":    self.PartOf,
 				"app.kubernetes.io/managed-by": self.ManagedBy,
 			},
@@ -192,8 +192,8 @@ func (self *Client) createInventoryImagePullSecret(server string, username strin
 // See: https://nip.io/
 //      https://cert-manager.io/docs/
 
-func (self *Client) createInventoryTlsSecret() (*core.Secret, error) {
-	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+func (self *Client) createRepositoryTlsSecret() (*core.Secret, error) {
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
 	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	var crt []byte
@@ -206,7 +206,7 @@ func (self *Client) createInventoryTlsSecret() (*core.Secret, error) {
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
 				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "inventory",
+				"app.kubernetes.io/component":  "repository",
 				"app.kubernetes.io/part-of":    self.PartOf,
 				"app.kubernetes.io/managed-by": self.ManagedBy,
 			},
@@ -228,12 +228,12 @@ func (self *Client) createInventoryTlsSecret() (*core.Secret, error) {
 	}
 }
 
-func (self *Client) createInventoryDeployment(registry string, serviceAccount *core.ServiceAccount, replicas int32) (*apps.Deployment, error) {
+func (self *Client) createRepositoryDeployment(registry string, serviceAccount *core.ServiceAccount, replicas int32) (*apps.Deployment, error) {
 	// https://hub.docker.com/_/registry
 	// https://github.com/ContainerSolutions/trow
 	// https://github.com/google/go-containerregistry
 
-	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
 	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	deployment := &apps.Deployment{
@@ -243,7 +243,7 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
 				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "inventory",
+				"app.kubernetes.io/component":  "repository",
 				"app.kubernetes.io/part-of":    self.PartOf,
 				"app.kubernetes.io/managed-by": self.ManagedBy,
 			},
@@ -255,7 +255,7 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 					"app.kubernetes.io/name":      appName,
 					"app.kubernetes.io/instance":  instanceName,
 					"app.kubernetes.io/version":   version.GitVersion,
-					"app.kubernetes.io/component": "inventory",
+					"app.kubernetes.io/component": "repository",
 				},
 			},
 			Template: core.PodTemplateSpec{
@@ -264,7 +264,7 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 						"app.kubernetes.io/name":       appName,
 						"app.kubernetes.io/instance":   instanceName,
 						"app.kubernetes.io/version":    version.GitVersion,
-						"app.kubernetes.io/component":  "inventory",
+						"app.kubernetes.io/component":  "repository",
 						"app.kubernetes.io/part-of":    self.PartOf,
 						"app.kubernetes.io/managed-by": self.ManagedBy,
 					},
@@ -273,7 +273,7 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 					Containers: []core.Container{
 						{
 							Name:            "registry",
-							Image:           fmt.Sprintf("%s/%s", registry, self.InventoryImageName),
+							Image:           fmt.Sprintf("%s/%s", registry, self.RepositoryImageName),
 							ImagePullPolicy: core.PullAlways,
 							VolumeMounts: []core.VolumeMount{
 								{
@@ -342,8 +342,8 @@ func (self *Client) createInventoryDeployment(registry string, serviceAccount *c
 	return self.CreateDeployment(deployment)
 }
 
-func (self *Client) createInventoryService() (*core.Service, error) {
-	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+func (self *Client) createRepositoryService() (*core.Service, error) {
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
 	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	service := &core.Service{
@@ -353,7 +353,7 @@ func (self *Client) createInventoryService() (*core.Service, error) {
 				"app.kubernetes.io/name":       appName,
 				"app.kubernetes.io/instance":   instanceName,
 				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "inventory",
+				"app.kubernetes.io/component":  "repository",
 				"app.kubernetes.io/part-of":    self.PartOf,
 				"app.kubernetes.io/managed-by": self.ManagedBy,
 			},
@@ -364,7 +364,7 @@ func (self *Client) createInventoryService() (*core.Service, error) {
 				"app.kubernetes.io/name":      appName,
 				"app.kubernetes.io/instance":  instanceName,
 				"app.kubernetes.io/version":   version.GitVersion,
-				"app.kubernetes.io/component": "inventory",
+				"app.kubernetes.io/component": "repository",
 			},
 			Ports: []core.ServicePort{
 				{
@@ -387,8 +387,8 @@ func (self *Client) createInventoryService() (*core.Service, error) {
 	}
 }
 
-func (self *Client) createInventoryCertificateIssuer() (*certmanager.Issuer, error) {
-	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+func (self *Client) createRepositoryCertificateIssuer() (*certmanager.Issuer, error) {
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
 	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	issuer := &certmanager.Issuer{
@@ -420,8 +420,8 @@ func (self *Client) createInventoryCertificateIssuer() (*certmanager.Issuer, err
 	}
 }
 
-func (self *Client) createInventoryCertificate(issuer *certmanager.Issuer, service *core.Service) (*certmanager.Certificate, error) {
-	appName := fmt.Sprintf("%s-inventory", self.NamePrefix)
+func (self *Client) createRepositoryCertificate(issuer *certmanager.Issuer, service *core.Service) (*certmanager.Certificate, error) {
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
 	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	ipAddress := service.Spec.ClusterIP

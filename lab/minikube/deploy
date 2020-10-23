@@ -7,12 +7,12 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 #minikube profile edge
 #turandot operator uninstall --namespace=workspace --wait -v
-#turandot inventory uninstall --namespace=workspace --wait -v
+#turandot repository uninstall --namespace=workspace --wait -v
 #kubectl delete events --all --namespace=workspace
 
 minikube profile central
 turandot operator uninstall --namespace=workspace --wait -v
-turandot inventory uninstall --namespace=workspace --wait -v
+turandot repository uninstall --namespace=workspace --wait -v
 kubectl delete events --all --namespace=workspace
 
 if [ "$1" == -b ]; then
@@ -25,9 +25,9 @@ kubectl config set-context central --namespace=workspace
 kubectl config set-context edge --namespace=workspace
 
 turandot operator install --site=central --wait -v
-turandot inventory install --wait -v
-turandot inventory create default --provider=turandot --namespace=workspace --wait -v
-#turandot inventory create default --provider=minikube --wait -v
+turandot repository install --wait -v
+turandot repository create default --provider=turandot --namespace=workspace --wait -v
+#turandot repository create default --provider=minikube --wait -v
 
 turandot service deploy hello-world --file=dist/hello-world.csar -v
 turandot operator logs --follow

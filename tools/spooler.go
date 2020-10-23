@@ -30,6 +30,7 @@ func PublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Cli
 	}
 }
 
+/*
 func PullLayerFromRegistry(imageName string, writer io.Writer, spooler *spoolerpkg.Client) error {
 	pipeReader, pipeWriter := io.Pipe()
 
@@ -48,6 +49,7 @@ func PullLayerFromRegistry(imageName string, writer io.Writer, spooler *spoolerp
 		return err
 	}
 }
+*/
 
 // TODO: unused. unnecessary?
 func TarAndPublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {

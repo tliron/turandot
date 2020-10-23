@@ -37,11 +37,11 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) ListServicesForImage(inventoryName string, imageName string, urlContext *urlpkg.Context) ([]string, error) {
+func (self *Client) ListServicesForImage(repositoryName string, imageName string, urlContext *urlpkg.Context) ([]string, error) {
 	if services, err := self.ListServices(); err == nil {
 		var serviceNames []string
 		for _, service := range services.Items {
-			if (service.Spec.ServiceTemplate.Indirect.Inventory == inventoryName) && (service.Spec.ServiceTemplate.Indirect.Name == imageName) {
+			if (service.Spec.ServiceTemplate.Indirect.Repository == repositoryName) && (service.Spec.ServiceTemplate.Indirect.Name == imageName) {
 				serviceNames = append(serviceNames, service.Name)
 			}
 		}
@@ -51,7 +51,7 @@ func (self *Client) ListServicesForImage(inventoryName string, imageName string,
 	}
 }
 
-func (self *Client) CreateService(namespace string, serviceName string, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceDirect(namespace string, serviceName string, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -59,16 +59,9 @@ func (self *Client) CreateService(namespace string, serviceName string, url urlp
 
 	// Encode inputs
 	var inputs_ map[string]string
-	if (inputs != nil) && len(inputs) > 0 {
-		inputs_ = make(map[string]string)
-		for key, input := range inputs {
-			var err error
-			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
-				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
-			} else {
-				return nil, err
-			}
-		}
+	var err error
+	if inputs_, err = encodeServiceInputs(inputs); err != nil {
+		return nil, err
 	}
 
 	service := &resources.Service{
@@ -87,6 +80,66 @@ func (self *Client) CreateService(namespace string, serviceName string, url urlp
 		},
 	}
 
+	return self.createService(namespace, serviceName, service)
+}
+
+func (self *Client) CreateServiceIndirect(namespace string, serviceName string, repositoryName string, imageName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+	// Default to same namespace as operator
+	if namespace == "" {
+		namespace = self.Namespace
+	}
+
+	// Encode inputs
+	var inputs_ map[string]string
+	var err error
+	if inputs_, err = encodeServiceInputs(inputs); err != nil {
+		return nil, err
+	}
+
+	service := &resources.Service{
+		ObjectMeta: meta.ObjectMeta{
+			Name:      serviceName,
+			Namespace: namespace,
+		},
+		Spec: resources.ServiceSpec{
+			ServiceTemplate: resources.ServiceTemplate{
+				Indirect: resources.ServiceTemplateIndirect{
+					Repository: repositoryName,
+					Name:       imageName,
+				},
+			},
+			Inputs: inputs_,
+			Mode:   mode,
+		},
+	}
+
+	return self.createService(namespace, serviceName, service)
+}
+
+func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) (*resources.Service, error) {
+	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
+		return self.CreateServiceDirect(namespace, serviceName, url_, inputs, mode)
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, repository *resources.Repository, serviceTemplateName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+	imageName := RepositoryImageNameForServiceTemplateName(serviceTemplateName)
+	return self.CreateServiceIndirect(namespace, serviceName, repository.Name, imageName, inputs, mode)
+}
+
+func (self *Client) CreateServiceFromContent(namespace string, serviceName string, repository *resources.Repository, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+	serviceTemplateName := uuid.New().String()
+	imageName := RepositoryImageNameForServiceTemplateName(serviceTemplateName)
+	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
+		return self.CreateServiceIndirect(namespace, serviceName, repository.Name, imageName, inputs, mode)
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) createService(namespace string, serviceName string, service *resources.Service) (*resources.Service, error) {
 	if service, err := self.Turandot.TurandotV1alpha1().Services(namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
 		return service, nil
 	} else if errors.IsAlreadyExists(err) {
@@ -96,40 +149,36 @@ func (self *Client) CreateService(namespace string, serviceName string, url urlp
 	}
 }
 
-func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, inventoryName string, serviceTemplateName string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	if url, err := self.GetInventoryServiceTemplateURL(namespace, inventoryName, serviceTemplateName, urlContext); err == nil {
-		_, err := self.CreateService(namespace, serviceName, url, inputs, mode)
-		return err
+func (self *Client) GetServiceRepository(service *resources.Service) (*resources.Repository, error) {
+	if service.Spec.ServiceTemplate.Indirect.Repository != "" {
+		return self.GetRepository(service.Namespace, service.Spec.ServiceTemplate.Indirect.Repository)
 	} else {
-		return err
-	}
-}
-
-func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-		_, err = self.CreateService(namespace, serviceName, url_, inputs, mode)
-		return err
-	} else {
-		return err
-	}
-}
-
-func (self *Client) CreateServiceFromContent(namespace string, serviceName string, inventoryName string, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) error {
-	serviceTemplateName := uuid.New().String()
-	imageName := InventoryImageNameForServiceTemplateName(serviceTemplateName)
-	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
-		return self.CreateServiceFromTemplate(namespace, serviceName, inventoryName, serviceTemplateName, inputs, mode, urlContext)
-	} else {
-		return err
+		return nil, nil
 	}
 }
 
 func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, error) {
-	return service.Spec.ServiceTemplate.Direct.URL, nil
+	if repository, err := self.GetServiceRepository(service); err == nil {
+		if repository != nil {
+			return GetRepositoryURLForCSAR(repository, service.Spec.ServiceTemplate.Indirect.Name), nil
+		} else {
+			return service.Spec.ServiceTemplate.Direct.URL, nil
+		}
+	} else {
+		return "", err
+	}
 }
 
 func (self *Client) GetServiceTemplateHTTPRoundTripper(service *resources.Service) (http.RoundTripper, error) {
-	return self.GetInventoryHTTPRoundTripper(service.Namespace, "default")
+	if repository, err := self.GetServiceRepository(service); err == nil {
+		if repository != nil {
+			return self.GetRepositoryHTTPRoundTripper(repository)
+		} else {
+			return nil, nil
+		}
+	} else {
+		return nil, err
+	}
 }
 
 func (self *Client) UpdateServiceSpec(service *resources.Service) (*resources.Service, error) {
@@ -175,4 +224,22 @@ func (self *Client) DeleteService(namespace string, serviceName string) error {
 	}
 
 	return self.Turandot.TurandotV1alpha1().Services(namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
+}
+
+// Utils
+
+func encodeServiceInputs(inputs map[string]interface{}) (map[string]string, error) {
+	var inputs_ map[string]string
+	if (inputs != nil) && len(inputs) > 0 {
+		inputs_ = make(map[string]string)
+		for key, input := range inputs {
+			var err error
+			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
+				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
+			} else {
+				return nil, err
+			}
+		}
+	}
+	return inputs_, nil
 }

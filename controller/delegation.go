@@ -49,8 +49,8 @@ func (self *Controller) NewDelegate(name string) (*clientpkg.Client, error) {
 			PartOf,
 			ManagedBy,
 			OperatorImageName,
-			InventoryImageName,
-			InventorySpoolerImageName,
+			RepositoryImageName,
+			RepositorySpoolerImageName,
 			CacheDirectory,
 		), nil
 	} else {

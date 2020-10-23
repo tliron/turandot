@@ -63,7 +63,7 @@ is the case with Minikube), use `--delegate-context`:
 
     turandot delegate set edge --delegate-context=edge
 
-Let's register all our CSARs in the inventory:
+Let's register all our CSARs in the repository:
 
     turandot template register telephony-network-service --file=dist/telephony-network-service.csar
     turandot template register simple-data-plane --file=dist/simple-data-plane.csar

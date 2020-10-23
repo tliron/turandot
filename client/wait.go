@@ -92,6 +92,7 @@ func (self *Client) WaitForDeployment(namespace string, appName string) (*apps.D
 }
 
 // TODO: not used
+/*
 func (self *Client) waitForPodContainers(appName string, deployment *apps.Deployment) error {
 	self.Log.Infof("waiting for pods for %q", appName)
 
@@ -117,7 +118,6 @@ func (self *Client) waitForPodContainers(appName string, deployment *apps.Deploy
 	})
 }
 
-// TODO: not used
 func (self *Client) waitForAPod(appName string, deployment *apps.Deployment) error {
 	self.Log.Infof("waiting for a pod for %q", appName)
 
@@ -151,7 +151,6 @@ func (self *Client) waitForAPod(appName string, deployment *apps.Deployment) err
 	})
 }
 
-// TODO: not used
 func (self *Client) isPodOwnedBy(pod *core.Pod, deployment *apps.Deployment) bool {
 	for _, owner := range pod.OwnerReferences {
 		if (owner.APIVersion == "apps/v1") && (owner.Kind == "ReplicaSet") {
@@ -165,7 +164,6 @@ func (self *Client) isPodOwnedBy(pod *core.Pod, deployment *apps.Deployment) boo
 	return false
 }
 
-// TODO: not used
 func (self *Client) isReplicaSetOwnedBy(replicaSet *apps.ReplicaSet, deployment *apps.Deployment) bool {
 	for _, owner := range replicaSet.OwnerReferences {
 		if owner.UID == deployment.UID {
@@ -174,3 +172,4 @@ func (self *Client) isReplicaSetOwnedBy(replicaSet *apps.ReplicaSet, deployment 
 	}
 	return false
 }
+*/

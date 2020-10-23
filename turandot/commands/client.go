@@ -68,8 +68,8 @@ func (self *Client) Turandot() *clientpkg.Client {
 		controller.PartOf,
 		controller.ManagedBy,
 		controller.OperatorImageName,
-		controller.InventoryImageName,
-		controller.InventorySpoolerImageName,
+		controller.RepositoryImageName,
+		controller.RepositorySpoolerImageName,
 		controller.CacheDirectory,
 	)
 }

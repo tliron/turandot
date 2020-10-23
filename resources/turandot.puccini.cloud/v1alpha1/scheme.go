@@ -33,8 +33,8 @@ var schemeBuilder = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error 
 		SchemeGroupVersion,
 		&Service{},
 		&ServiceList{},
-		&Inventory{},
-		&InventoryList{},
+		&Repository{},
+		&RepositoryList{},
 	)
 	meta.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

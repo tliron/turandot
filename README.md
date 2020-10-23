@@ -40,7 +40,7 @@ on a single cluster or on multi-cluster clouds. Virtual machines are supported v
 [KubeVirt](https://kubevirt.io/).
 
 **Service composition**: Turandot implements TOSCA substitution mappings via policy-based service
-composition based on service templates selected from an inventory. 
+composition based on service templates selected from a repository. 
 
 **Plugins**: [Helm charts](https://helm.sh/) and external orchestrators, such as
 [Ansible](https://www.ansible.com/), are supported via custom artifacts encapsulated as TOSCA
@@ -67,7 +67,7 @@ Turandot is an in-cluster Kubernetes operator that:
 
 1. Handles custom resources called "services".
    ([here is the CRD](assets/kubernetes/custom-resource-definition.yaml))
-2. Can work with an internal (built-in) or external inventories to retrieve CSAR-packaged service
+2. Can work with an internal (built-in) or external repositories to retrieve CSAR-packaged service
    templates. A CSAR
    ([Cloud Service Archive](https://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.3/os/TOSCA-Simple-Profile-YAML-v1.3-os.html#_Toc26969474))
    is a zip file containing a TOSCA service template, TOSCA profiles, and other files ("artifacts")
@@ -211,17 +211,17 @@ to allow for declarative dependency graphs.
 
 (Note: We are working on an TOSCA profile for Argo, which will include a workflow example.)
 
-### Why is there a built-in inventory? Shouldn't the inventory be managed externally?
+### Why is there a built-in repository? Shouldn't the repository be managed externally?
 
-Surely, for production systems a robust inventory is necessary. Turandot can work with various
-inventory backends, as well as any container image repository adhering to the
+Surely, for production systems a robust repository is necessary. Turandot can work with various
+repository backends, as well as any container image repository adhering to the
 [OCI](https://www.opencontainers.org/) or Docker standards, e.g.
 [Quay](https://www.projectquay.io/) and [Harbor](https://goharbor.io/). Indeed, the internal
 repository is implemented via the reference Docker repository. (Note that Turandot can store and
 retrieve CSAR files from such repositories even though they are not container images.)
 
-The built-in inventory does not have to be used in production, but it can be useful as a local cache
-in cases in which the main inventories are slow to access or if access is unreliable, e.g. on cloud
+The built-in repository does not have to be used in production, but it can be useful as a local cache
+in cases in which the main repositories are slow to access or if access is unreliable, e.g. on cloud
 edge datacenters.
 
 ### Why use TOSCA and CSARs instead of packaged Helm charts?

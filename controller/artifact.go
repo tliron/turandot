@@ -6,14 +6,19 @@ import (
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) publishArtifactsToInventory(artifacts parser.KubernetesArtifacts, service *resources.Service, urlContext *urlpkg.Context) (map[string]string, error) {
+func (self *Controller) publishArtifactsToRepository(artifacts parser.KubernetesArtifacts, service *resources.Service, urlContext *urlpkg.Context) (map[string]string, error) {
 	if len(artifacts) > 0 {
 		artifactMappings := make(map[string]string)
 
 		for _, artifact := range artifacts {
-			if inventoryUrl, err := self.Client.GetInventoryURL(service.Namespace, artifact.Inventory); err == nil {
-				if name, err := self.PublishOnInventory(artifact.Tag, artifact.SourcePath, inventoryUrl, urlContext); err == nil {
-					artifactMappings[artifact.SourcePath] = name
+			if repository, err := self.Client.GetRepository(service.Namespace, artifact.Repository); err == nil {
+				if roundTripper, err := self.Client.GetRepositoryHTTPRoundTripper(repository); err == nil {
+					urlContext.SetHTTPRoundTripper(roundTripper)
+					if name, err := self.PublishOnRepository(artifact.Tag, artifact.SourcePath, repository.Spec.URL, urlContext); err == nil {
+						artifactMappings[artifact.SourcePath] = name
+					} else {
+						return nil, err
+					}
 				} else {
 					return nil, err
 				}
@@ -23,9 +28,9 @@ func (self *Controller) publishArtifactsToInventory(artifacts parser.KubernetesA
 		}
 
 		/*
-			if ips, err := kubernetes.GetServiceIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-inventory"); err == nil {
+			if ips, err := kubernetes.GetServiceIPs(self.Context, self.Kubernetes, service.Namespace, "turandot-repository"); err == nil {
 				for _, artifact := range artifacts {
-					if name, err := self.PublishOnInventory(artifact.Name, artifact.SourcePath, ips, urlContext); err == nil {
+					if name, err := self.PublishOnRepository(artifact.Name, artifact.SourcePath, ips, urlContext); err == nil {
 						artifactMappings[artifact.SourcePath] = name
 					} else {
 						return nil, err

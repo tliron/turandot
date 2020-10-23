@@ -15,9 +15,9 @@ artifact_types:
         description: >-
           Tag of image on registry
         type: string
-      inventory:
+      repository:
         description: >-
-          Inventory name
+          Repository name
         type: string
         default: default
 
