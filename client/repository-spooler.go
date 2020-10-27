@@ -12,6 +12,12 @@ import (
 )
 
 func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*core.Pod, error) {
+	var url string
+	url, err := self.GetRepositoryURL(repository)
+	if err != nil {
+		return nil, err
+	}
+
 	registry := "docker.io"
 	appName := self.GetRepositorySpoolerAppName(repository.Name)
 	instanceName := fmt.Sprintf("%s-%s", appName, repository.Namespace)
@@ -37,11 +43,6 @@ func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*
 					ImagePullPolicy: core.PullAlways,
 					VolumeMounts: []core.VolumeMount{
 						{
-							Name:      "secret",
-							MountPath: "/secret",
-							ReadOnly:  true,
-						},
-						{
 							Name:      "spool",
 							MountPath: "/spool",
 						},
@@ -49,11 +50,7 @@ func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*
 					Env: []core.EnvVar{
 						{
 							Name:  "REGISTRY_SPOOLER_registry",
-							Value: repository.Spec.URL,
-						},
-						{
-							Name:  "REGISTRY_SPOOLER_certificate",
-							Value: "/secret/tls.crt",
+							Value: url,
 						},
 						{
 							Name:  "REGISTRY_SPOOLER_verbose",
@@ -80,19 +77,33 @@ func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*
 			},
 			Volumes: []core.Volume{
 				{
-					Name: "secret",
-					VolumeSource: core.VolumeSource{
-						Secret: &core.SecretVolumeSource{
-							SecretName: repository.Spec.Secret,
-						},
-					},
-				},
-				{
 					Name:         "spool",
 					VolumeSource: self.CreateVolumeSource("1Gi"),
 				},
 			},
 		},
+	}
+
+	if repository.Spec.Secret != "" {
+		pod.Spec.Containers[0].VolumeMounts = append(pod.Spec.Containers[0].VolumeMounts, core.VolumeMount{
+			Name:      "secret",
+			MountPath: "/secret",
+			ReadOnly:  true,
+		})
+
+		pod.Spec.Containers[0].Env = append(pod.Spec.Containers[0].Env, core.EnvVar{
+			Name:  "REGISTRY_SPOOLER_certificate",
+			Value: "/secret/tls.crt",
+		})
+
+		pod.Spec.Volumes = append(pod.Spec.Volumes, core.Volume{
+			Name: "secret",
+			VolumeSource: core.VolumeSource{
+				Secret: &core.SecretVolumeSource{
+					SecretName: repository.Spec.Secret,
+				},
+			},
+		})
 	}
 
 	ownerReferences := pod.GetOwnerReferences()
@@ -127,12 +138,21 @@ func (self *Client) Spooler(repository *resources.Repository) *spoolerpkg.Client
 	)
 }
 
-func (self *Client) SpoolerCommand(repository *resources.Repository) *spoolerpkg.CommandClient {
+func (self *Client) SpoolerCommand(repository *resources.Repository) (*spoolerpkg.CommandClient, error) {
 	spooler := self.Spooler(repository)
 
-	return spoolerpkg.NewCommandClient(
-		spooler,
-		repository.Spec.URL,
-		"/secret/tls.crt",
-	)
+	certificate := ""
+	if repository.Spec.Secret != "" {
+		certificate = "/secret/tls.crt"
+	}
+
+	if url, err := self.GetRepositoryURL(repository); err == nil {
+		return spoolerpkg.NewCommandClient(
+			spooler,
+			url,
+			certificate,
+		), nil
+	} else {
+		return nil, err
+	}
 }

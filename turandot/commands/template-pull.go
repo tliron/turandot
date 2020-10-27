@@ -28,12 +28,14 @@ func PullServiceTemplate(serviceTemplateName string, path string) {
 	turandot := NewClient().Turandot()
 	repository_, err := turandot.GetRepository(namespace, repository)
 	util.FailOnError(err)
+	spoolerCommand, err := turandot.SpoolerCommand(repository_)
+	util.FailOnError(err)
 
 	file, err := os.Create(path)
 	util.FailOnError(err)
 	defer file.Close()
 
 	imageName := clientpkg.RepositoryImageNameForServiceTemplateName(serviceTemplateName)
-	err = turandot.SpoolerCommand(repository_).PullTarball(imageName, file)
+	err = spoolerCommand.PullTarball(imageName, file)
 	util.FailOnError(err)
 }

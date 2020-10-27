@@ -1,35 +1,33 @@
 package commands
 
 import (
-	contextpkg "context"
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/util"
-	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var serviceNamespace string
 var service string
+var port uint64
 var provider string
 var secret string
 
 func init() {
 	repositoryCommand.AddCommand(repositoryCreateCommand)
 	repositoryCreateCommand.Flags().StringVarP(&url, "url", "u", "", "registry URL")
+	repositoryCreateCommand.Flags().StringVarP(&serviceNamespace, "service-namespace", "", "", "registry service namespace name (defaults to repository namespace)")
 	repositoryCreateCommand.Flags().StringVarP(&service, "service", "s", "", "registry service name")
-	repositoryCreateCommand.Flags().StringVarP(&provider, "provider", "p", "", "registry provider (\"turandot\", \"minikube\", or \"openshift\")")
+	repositoryCreateCommand.Flags().Uint64VarP(&port, "port", "p", 5000, "registry service port")
+	repositoryCreateCommand.Flags().StringVarP(&provider, "provider", "d", "", "registry provider (\"turandot\", \"minikube\", or \"openshift\")")
 	repositoryCreateCommand.Flags().StringVarP(&secret, "secret", "t", "", "registry TLS secret name")
 	repositoryCreateCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for registry spooler to come up")
 }
 
 var repositoryCreateCommand = &cobra.Command{
-	Use:   "create [INVENTORY NAME]",
+	Use:   "create [REPOSITORY NAME]",
 	Short: "Create a repository",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repositoryName := args[0]
-
-		var client *Client
 
 		if (url == "") && (service == "") && (provider == "") {
 			failRepositoryCreate()
@@ -50,10 +48,7 @@ var repositoryCreateCommand = &cobra.Command{
 
 			switch provider {
 			case "turandot":
-				client = NewClient()
-				service_, err := client.kubernetes.CoreV1().Services(namespace).Get(contextpkg.TODO(), "turandot-repository", meta.GetOptions{})
-				util.FailOnError(err)
-				url = fmt.Sprintf("%s:5000", service_.Spec.ClusterIP)
+				service = "turandot-repository"
 				if secret == "" {
 					secret = "turandot-repository"
 				}
@@ -62,26 +57,29 @@ var repositoryCreateCommand = &cobra.Command{
 				// Note: The Docker container runtime always treats the registry at "127.0.0.1" as insecure
 				// However CRI-O does not, thus the most compatible approach is to use the service
 				// See: https://github.com/kubernetes/minikube/issues/6982
-				client = NewClient()
-				service_, err := client.kubernetes.CoreV1().Services("kube-system").Get(contextpkg.TODO(), "registry", meta.GetOptions{})
-				util.FailOnError(err)
+				serviceNamespace = "kube-system"
+				service = "registry"
 				// Insecure on port 80
-				url = fmt.Sprintf("%s:80", service_.Spec.ClusterIP)
+				port = 80
 
 			case "openshift":
+			// TODO
 
 			default:
 				util.Fail("unsupported \"--provider\": must be \"turandot\", \"minikube\", or \"openshift\"")
 			}
 		}
 
-		if client == nil {
-			client = NewClient()
-		}
-		turandotClient := client.Turandot()
+		turandotClient := NewClient().Turandot()
 
-		_, err := turandotClient.CreateRepository(namespace, repositoryName, url, service, secret)
+		var err error
+		if service != "" {
+			_, err = turandotClient.CreateRepositoryIndirect(namespace, repositoryName, serviceNamespace, service, port, secret)
+		} else {
+			_, err = turandotClient.CreateRepositoryDirect(namespace, repositoryName, url, secret)
+		}
 		util.FailOnError(err)
+
 		if wait {
 			_, err = turandotClient.WaitForRepositorySpooler(namespace, repositoryName)
 			util.FailOnError(err)

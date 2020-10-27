@@ -11,7 +11,7 @@ func init() {
 }
 
 var repositoryDeleteCommand = &cobra.Command{
-	Use:   "delete [[INVENTORY NAME]]",
+	Use:   "delete [[REPOSITORY NAME]]",
 	Short: "Delete a repository",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {

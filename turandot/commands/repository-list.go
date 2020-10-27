@@ -8,6 +8,7 @@ import (
 	formatpkg "github.com/tliron/kutil/format"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
+	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
 func init() {
@@ -32,9 +33,9 @@ func ListRepositories() {
 
 	switch format {
 	case "":
-		table := terminal.NewTable(maxWidth, "Name", "URL", "SpoolerPod")
+		table := terminal.NewTable(maxWidth, "Name", "URL", "Namespace", "Service", "Port", "Secret", "SpoolerPod")
 		for _, repository := range repositories.Items {
-			table.Add(repository.Name, repository.Spec.URL, repository.Status.SpoolerPod)
+			table.Add(repository.Name, repository.Spec.Direct.URL, repository.Spec.Indirect.Namespace, repository.Spec.Indirect.Service, fmt.Sprintf("%d", repository.Spec.Indirect.Port), repository.Spec.Secret, repository.Status.SpoolerPod)
 		}
 		table.Print()
 
@@ -46,7 +47,7 @@ func ListRepositories() {
 	default:
 		list := make(ard.List, len(repositories.Items))
 		for index, repository := range repositories.Items {
-			list[index] = RepositoryToARD(&repository)
+			list[index] = resources.RepositoryToARD(&repository)
 		}
 		formatpkg.Print(list, format, terminal.Stdout, strict, pretty)
 	}

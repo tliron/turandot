@@ -209,6 +209,8 @@ github.com/digitalocean/godo v1.29.0/go.mod h1:iJnN9rVu6K5LioLxLimlq0uRI+y/eAQjR
 github.com/dimchansky/utfbom v1.1.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQvIirEdv+8=
 github.com/dlclark/regexp2 v1.2.1 h1:Ff/S0snjr1oZHUNOkvA/gP6KUaMg5vDDl3Qnhjnwgm8=
 github.com/dlclark/regexp2 v1.2.1/go.mod h1:2pZnwuY/m+8K6iRw6wQdMtk+rH5tNGR1i55kozfMjCc=
+github.com/dlclark/regexp2 v1.4.0 h1:F1rxgk7p4uKjwIQxBs9oAXe5CqrXlCduYEJvrF4u93E=
+github.com/dlclark/regexp2 v1.4.0/go.mod h1:2pZnwuY/m+8K6iRw6wQdMtk+rH5tNGR1i55kozfMjCc=
 github.com/dnaeon/go-vcr v1.0.1/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
 github.com/docker/cli v0.0.0-20191017083524-a8ff7f821017 h1:2HQmlpI3yI9deH18Q6xiSOIjXD4sLI55Y/gfpa8/558=
 github.com/docker/cli v0.0.0-20191017083524-a8ff7f821017/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
@@ -228,6 +230,8 @@ github.com/dop251/goja v0.0.0-20200824171909-536f9d946569 h1:AxkwZ0s3TcKY72KTv9l
 github.com/dop251/goja v0.0.0-20200824171909-536f9d946569/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
 github.com/dop251/goja v0.0.0-20200831102558-9af81ddcf0e1 h1:/nXYAXRvBtojzc2bKSC5/pdu47O70ExaZ3lGipQFleA=
 github.com/dop251/goja v0.0.0-20200831102558-9af81ddcf0e1/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
+github.com/dop251/goja v0.0.0-20201022115936-e21ccf39bfce h1:zOwsa3ulKs2V6SR3//1UyPpzlPmvhKCBSHq5ITp2Ugw=
+github.com/dop251/goja v0.0.0-20201022115936-e21ccf39bfce/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
 github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/elazarl/goproxy v0.0.0-20170405201442-c4fc26588b6e/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
@@ -463,6 +467,7 @@ github.com/googleapis/gnostic v0.4.1 h1:DLJCy1n/vrD4HPjOvYcT8aYQXpPIzoRZONaYwyyc
 github.com/googleapis/gnostic v0.4.1/go.mod h1:LRhVm6pbyptWbWbuZ38d1eyptfvIytN3ir6b65WBswg=
 github.com/googleapis/gnostic v0.5.1 h1:A8Yhf6EtqTv9RMsU6MQTyrtV1TjWlR6xU9BsZIwuTCM=
 github.com/googleapis/gnostic v0.5.2 h1:YVUUPsHTL1setd3iy+OvO3cToQBzLmYat6N9iIh++Gc=
+github.com/googleapis/gnostic v0.5.3 h1:2qsuRm+bzgwSIKikigPASa2GhW8H2Dn4Qq7UxD8K/48=
 github.com/gookit/color v1.2.4/go.mod h1:AhIE+pS6D4Ql0SQWbBeXPHw7gY0/sjHoA4s/n1KB7xg=
 github.com/gophercloud/gophercloud v0.1.0 h1:P/nh25+rzXouhytV2pUHBb65fnds26Ghl8/391+sT5o=
 github.com/gophercloud/gophercloud v0.1.0/go.mod h1:vxM41WHh5uqHVBMZHzuwNOHh8XEoIEcSTewFxm1c5g8=
@@ -827,8 +832,12 @@ github.com/tj/go-kinesis v0.0.0-20171128231115-08b17f58cb1b/go.mod h1:/yhzCV0xPf
 github.com/tj/go-spin v1.1.0/go.mod h1:Mg1mzmePZm4dva8Qz60H2lHwmJ2loum4VIrLgVnKwh4=
 github.com/tliron/kubernetes-registry-spooler v1.0.9 h1:C1aJztGWEiAro2HnswoElmzJX11KcCcUAQUjVBo0vds=
 github.com/tliron/kubernetes-registry-spooler v1.0.9/go.mod h1:hCC0kxcrUscNSE3ZAul6oOKLw2+54lkxescor/NOMtk=
+github.com/tliron/kubernetes-registry-spooler v1.0.10 h1:kzy5YXH2M0NcsHlzG9cZCaGGwIHOaKZbT2DWH9NzR1c=
+github.com/tliron/kubernetes-registry-spooler v1.0.10/go.mod h1:rURtfgdTzjlkdAXdR3Y9TYEXDYrxEst02xAkQxhkFOE=
 github.com/tliron/kutil v0.1.3 h1:6HNsh4CYq8isj0X2V7gZlXSiTCszwspAUbdix4xLZMM=
 github.com/tliron/kutil v0.1.3/go.mod h1:SiDk3vuXJ41qL0sPDktc9FvbH81QSiwsv6RQ3Mh4Nc8=
+github.com/tliron/kutil v0.1.4 h1:iVUCpJRxG8z+oxq7oZvxvZPcfcZHQpLqlj4jG+dgUDo=
+github.com/tliron/kutil v0.1.4/go.mod h1:KcjhNuSQB7Eb+t8kbSe+cwZ80Aly2ayCqbGgqYgE/70=
 github.com/tliron/puccini v0.15.0 h1:nXBp6kf1ln8vxjY7aiZ8PqZKd8WuW/3Li0hDoBgWiKM=
 github.com/tliron/puccini v0.15.0/go.mod h1:v/nt/BJchSvE7hefMEojikO4aeltuyC0kftfWkpwsX8=
 github.com/tliron/yamlkeys v1.3.4 h1:LOIV2nj78WhfFoFXtxgCASse7zzsd0rC2jD6de90Oic=

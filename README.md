@@ -5,6 +5,7 @@ Turandot
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Latest Release](https://img.shields.io/github/release/tliron/turandot.svg)](https://github.com/tliron/turandot/releases/latest)
+[![Open in Gitpod](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/tliron/turandot)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tliron/turandot)](https://goreportcard.com/report/github.com/tliron/turandot)
 
 Orchestrate and compose [Kubernetes](https://kubernetes.io/) workloads using
@@ -26,8 +27,8 @@ Features
 --------
 
 **Complex workloads**: Turandot targets complex, large-scale workloads. Moreover, it intends to
-handle the orchestration aspect of
-[NFV MANO (Network Function Virtualization Management and Orchestration)](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29),
+implement part of the
+[NFV MANO (Network Function Virtualization Management and Orchestration) specification](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29),
 which is a crucial component for deploying heterogeneous network services on clouds at scale.
 Included is a comprehensive example of a multi-cluster
 [telephony network service](examples/telephony-network-service/) modeled entirely in TOSCA.
@@ -174,7 +175,7 @@ runtime orchestration decisions.
 FAQ
 ---
 
-### Is this a lifecycle manager (LCM) for Kubernetes workloads?
+### Is Turandot a lifecycle manager (LCM) for Kubernetes workloads?
 
 No, or not exactly. In Kubernetes, LCM is hardcoded behind the scheduling paradigm. Of course work
 is done by built-in and custom controllers to provision containers, wire up the networking, run init
@@ -188,6 +189,16 @@ atomic transactions that can be rolled back. Changes are expected to be dynamic,
 
 This is so different from "legacy" LCM that it's probably best not to use that term in this
 scenario. Kubernetes introduces a new, cloud-native orchestration paradigm.
+
+### Is Turandot a replacement for full-blown NFV orchestrators like [ONAP](https://www.onap.org/)?
+
+Absolutely not. Turandot's scope is purposely limited and focused only on managing Kubernetes
+workloads. The point is not to replace full-blown orchestrators but rather to make their job much
+easier by allowing them delegate the actual work of orchestrating Kubernetes workloads to Kubernetes
+itself, thus completing the cloud-native paradigm. All the orchestrator would need to do is tell
+Turandot to deploy a workload packaged as a CSAR file, and to provide it with inputs and to process
+its outputs. The orchestrator would not have to concern itself with the complex internal composition
+of these workloads.
 
 ### Why doesn't Turandot include a workflow engine?
 
@@ -211,7 +222,7 @@ to allow for declarative dependency graphs.
 
 (Note: We are working on an TOSCA profile for Argo, which will include a workflow example.)
 
-### Why is there a built-in repository? Shouldn't the repository be managed externally?
+### Why does Turandot include a built-in repository? Shouldn't the repository be managed externally?
 
 Surely, for production systems a robust repository is necessary. Turandot can work with various
 repository backends, as well as any container image repository adhering to the
@@ -220,9 +231,9 @@ repository backends, as well as any container image repository adhering to the
 repository is implemented via the reference Docker repository. (Note that Turandot can store and
 retrieve CSAR files from such repositories even though they are not container images.)
 
-The built-in repository does not have to be used in production, but it can be useful as a local cache
-in cases in which the main repositories are slow to access or if access is unreliable, e.g. on cloud
-edge datacenters.
+The built-in repository does not have to be used in production, but it can be useful as a local
+cache in cases in which the main repositories are slow to access or if access is unreliable, e.g. on
+cloud edge datacenters.
 
 ### Why use TOSCA and CSARs instead of packaged Helm charts?
 

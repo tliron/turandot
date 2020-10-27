@@ -160,7 +160,7 @@ func (self *Client) GetServiceRepository(service *resources.Service) (*resources
 func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, error) {
 	if repository, err := self.GetServiceRepository(service); err == nil {
 		if repository != nil {
-			return GetRepositoryURLForCSAR(repository, service.Spec.ServiceTemplate.Indirect.Name), nil
+			return self.GetRepositoryURLForCSAR(repository, service.Spec.ServiceTemplate.Indirect.Name)
 		} else {
 			return service.Spec.ServiceTemplate.Direct.URL, nil
 		}

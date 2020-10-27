@@ -2,7 +2,7 @@ package controller
 
 import (
 	urlpkg "github.com/tliron/kutil/url"
-	clientpkg "github.com/tliron/turandot/client"
+	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
 func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, mode string, site string, urlContext *urlpkg.Context) error {
@@ -36,12 +36,16 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 				return err
 			}
 
-			if err := remoteClient.InstallRepository(site, true); err != nil {
+			if err := remoteClient.InstallRepository("docker.io", true); err != nil {
 				return err
 			}
 
-			if remoteRepository, err := remoteClient.GetRepository(namespace, "default"); err != nil {
-				url := clientpkg.GetRepositoryServiceTemplateURL(remoteRepository, serviceTemplateName)
+			var remoteRepository *resources.Repository
+			if remoteRepository, err = remoteClient.CreateRepositoryIndirect(namespace, "default", "", "turandot-repository", 5000, "turandot-repository"); err != nil {
+				return err
+			}
+
+			if url, err := remoteClient.GetRepositoryServiceTemplateURL(remoteRepository, serviceTemplateName); err == nil {
 				if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
 					if _, err := remoteClient.CreateServiceFromContent(namespace, serviceName, remoteRepository, remoteClient.Spooler(remoteRepository), url_, inputs, mode); err != nil {
 						return err

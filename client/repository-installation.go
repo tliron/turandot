@@ -5,7 +5,6 @@ import (
 
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	certmanagermeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
-	"github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/version"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -17,6 +16,13 @@ import (
 func (self *Client) InstallRepository(registry string, wait bool) error {
 	var err error
 
+	secure := false
+	if err = self.EnsureCertManager(); err == nil {
+		secure = true
+	} else {
+		self.Log.Warningf("%s", err)
+	}
+
 	if registry, err = self.GetRegistry(registry); err != nil {
 		return err
 	}
@@ -27,7 +33,7 @@ func (self *Client) InstallRepository(registry string, wait bool) error {
 	}
 
 	var repositoryDeployment *apps.Deployment
-	if repositoryDeployment, err = self.createRepositoryDeployment(registry, serviceAccount, 1); err != nil {
+	if repositoryDeployment, err = self.createRepositoryDeployment(registry, serviceAccount, 1, secure); err != nil {
 		return err
 	}
 
@@ -36,7 +42,7 @@ func (self *Client) InstallRepository(registry string, wait bool) error {
 		return err
 	}
 
-	if err = self.EnsureCertManager(); err == nil {
+	if secure {
 		var issuer *certmanager.Issuer
 		if issuer, err = self.createRepositoryCertificateIssuer(); err != nil {
 			return err
@@ -45,8 +51,6 @@ func (self *Client) InstallRepository(registry string, wait bool) error {
 		if _, err = self.createRepositoryCertificate(issuer, service); err != nil {
 			return err
 		}
-	} else {
-		self.Log.Warningf("%s", err)
 	}
 
 	if wait {
@@ -76,9 +80,9 @@ func (self *Client) UninstallRepository(wait bool) {
 		self.Log.Warningf("%s", err)
 	}
 
-	certManager := false
+	secure := false
 	if err := self.EnsureCertManager(); err == nil {
-		certManager = true
+		secure = true
 
 		// Certificate
 		if err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
@@ -108,7 +112,7 @@ func (self *Client) UninstallRepository(wait bool) {
 			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
-		if certManager {
+		if secure {
 			self.WaitForDeletion("repository certificate", func() bool {
 				_, err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Get(self.Context, name, getOptions)
 				return err == nil
@@ -125,110 +129,7 @@ func (self *Client) UninstallRepository(wait bool) {
 	}
 }
 
-func (self *Client) createRepositoryConfigMap() (*core.ConfigMap, error) {
-	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
-
-	configMap := &core.ConfigMap{
-		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "repository",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
-		},
-	}
-
-	if configMap, err := self.Kubernetes.CoreV1().ConfigMaps(self.Namespace).Create(self.Context, configMap, meta.CreateOptions{}); err == nil {
-		return configMap, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.Kubernetes.CoreV1().ConfigMaps(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
-}
-
-func (self *Client) createRepositoryImagePullSecret(server string, username string, password string) (*core.Secret, error) {
-	// See: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
-	//      https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-	//      https://docs.docker.com/engine/reference/commandline/cli/#configjson-properties
-
-	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
-
-	secret := &core.Secret{
-		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "repository",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
-		},
-	}
-
-	if err := kubernetes.SetSecretDockerConfigJson(secret, server, username, password); err != nil {
-		return nil, err
-	}
-
-	if secret, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Create(self.Context, secret, meta.CreateOptions{}); err == nil {
-		return secret, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
-}
-
-// See: https://nip.io/
-//      https://cert-manager.io/docs/
-
-func (self *Client) createRepositoryTlsSecret() (*core.Secret, error) {
-	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
-
-	var crt []byte
-	var key []byte
-
-	secret := &core.Secret{
-		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "repository",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
-		},
-		Type: core.SecretTypeTLS,
-		Data: map[string][]byte{
-			core.TLSCertKey:       crt,
-			core.TLSPrivateKeyKey: key,
-		},
-	}
-
-	if secret, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Create(self.Context, secret, meta.CreateOptions{}); err == nil {
-		return secret, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
-}
-
-func (self *Client) createRepositoryDeployment(registry string, serviceAccount *core.ServiceAccount, replicas int32) (*apps.Deployment, error) {
+func (self *Client) createRepositoryDeployment(registry string, serviceAccount *core.ServiceAccount, replicas int32, secure bool) (*apps.Deployment, error) {
 	// https://hub.docker.com/_/registry
 	// https://github.com/ContainerSolutions/trow
 	// https://github.com/google/go-containerregistry
@@ -277,11 +178,6 @@ func (self *Client) createRepositoryDeployment(registry string, serviceAccount *
 							ImagePullPolicy: core.PullAlways,
 							VolumeMounts: []core.VolumeMount{
 								{
-									Name:      "secret",
-									MountPath: "/secret",
-									ReadOnly:  true,
-								},
-								{
 									Name:      "registry",
 									MountPath: "/var/lib/registry",
 								},
@@ -292,43 +188,25 @@ func (self *Client) createRepositoryDeployment(registry string, serviceAccount *
 									Name:  "REGISTRY_STORAGE_DELETE_ENABLED",
 									Value: "true",
 								},
-								{
-									Name:  "REGISTRY_HTTP_TLS_CERTIFICATE",
-									Value: "/secret/tls.crt",
-								},
-								{
-									Name:  "REGISTRY_HTTP_TLS_KEY",
-									Value: "/secret/tls.key",
-								},
 							},
 							// Note: Probes skip certificate validation for HTTPS
 							LivenessProbe: &core.Probe{
 								Handler: core.Handler{
 									HTTPGet: &core.HTTPGetAction{
-										Port:   intstr.FromInt(5000),
-										Scheme: "HTTPS",
+										Port: intstr.FromInt(5000),
 									},
 								},
 							},
 							ReadinessProbe: &core.Probe{
 								Handler: core.Handler{
 									HTTPGet: &core.HTTPGetAction{
-										Port:   intstr.FromInt(5000),
-										Scheme: "HTTPS",
+										Port: intstr.FromInt(5000),
 									},
 								},
 							},
 						},
 					},
 					Volumes: []core.Volume{
-						{
-							Name: "secret",
-							VolumeSource: core.VolumeSource{
-								Secret: &core.SecretVolumeSource{
-									SecretName: appName,
-								},
-							},
-						},
 						{
 							Name:         "registry",
 							VolumeSource: self.CreateVolumeSource("1Gi"),
@@ -337,6 +215,37 @@ func (self *Client) createRepositoryDeployment(registry string, serviceAccount *
 				},
 			},
 		},
+	}
+
+	if secure {
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
+			Name:      "secret",
+			MountPath: "/secret",
+			ReadOnly:  true,
+		})
+
+		deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env,
+			core.EnvVar{
+				Name:  "REGISTRY_HTTP_TLS_CERTIFICATE",
+				Value: "/secret/tls.crt",
+			},
+			core.EnvVar{
+				Name:  "REGISTRY_HTTP_TLS_KEY",
+				Value: "/secret/tls.key",
+			},
+		)
+
+		deployment.Spec.Template.Spec.Containers[0].LivenessProbe.Handler.HTTPGet.Scheme = "HTTPS"
+		deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.Handler.HTTPGet.Scheme = "HTTPS"
+
+		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, core.Volume{
+			Name: "secret",
+			VolumeSource: core.VolumeSource{
+				Secret: &core.SecretVolumeSource{
+					SecretName: appName,
+				},
+			},
+		})
 	}
 
 	return self.CreateDeployment(deployment)
@@ -457,3 +366,108 @@ func (self *Client) createRepositoryCertificate(issuer *certmanager.Issuer, serv
 		return nil, err
 	}
 }
+
+/*
+func (self *Client) createRepositoryConfigMap() (*core.ConfigMap, error) {
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
+	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+
+	configMap := &core.ConfigMap{
+		ObjectMeta: meta.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       appName,
+				"app.kubernetes.io/instance":   instanceName,
+				"app.kubernetes.io/version":    version.GitVersion,
+				"app.kubernetes.io/component":  "repository",
+				"app.kubernetes.io/part-of":    self.PartOf,
+				"app.kubernetes.io/managed-by": self.ManagedBy,
+			},
+		},
+	}
+
+	if configMap, err := self.Kubernetes.CoreV1().ConfigMaps(self.Namespace).Create(self.Context, configMap, meta.CreateOptions{}); err == nil {
+		return configMap, nil
+	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
+		return self.Kubernetes.CoreV1().ConfigMaps(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
+	} else {
+		return nil, err
+	}
+}
+
+func (self *Client) createRepositoryImagePullSecret(server string, username string, password string) (*core.Secret, error) {
+	// See: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+	//      https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+	//      https://docs.docker.com/engine/reference/commandline/cli/#configjson-properties
+
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
+	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+
+	secret := &core.Secret{
+		ObjectMeta: meta.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       appName,
+				"app.kubernetes.io/instance":   instanceName,
+				"app.kubernetes.io/version":    version.GitVersion,
+				"app.kubernetes.io/component":  "repository",
+				"app.kubernetes.io/part-of":    self.PartOf,
+				"app.kubernetes.io/managed-by": self.ManagedBy,
+			},
+		},
+	}
+
+	if err := kubernetes.SetSecretDockerConfigJson(secret, server, username, password); err != nil {
+		return nil, err
+	}
+
+	if secret, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Create(self.Context, secret, meta.CreateOptions{}); err == nil {
+		return secret, nil
+	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
+		return self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
+	} else {
+		return nil, err
+	}
+}
+
+// See: https://nip.io/
+//      https://cert-manager.io/docs/
+
+func (self *Client) createRepositoryTlsSecret() (*core.Secret, error) {
+	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
+	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+
+	var crt []byte
+	var key []byte
+
+	secret := &core.Secret{
+		ObjectMeta: meta.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       appName,
+				"app.kubernetes.io/instance":   instanceName,
+				"app.kubernetes.io/version":    version.GitVersion,
+				"app.kubernetes.io/component":  "repository",
+				"app.kubernetes.io/part-of":    self.PartOf,
+				"app.kubernetes.io/managed-by": self.ManagedBy,
+			},
+		},
+		Type: core.SecretTypeTLS,
+		Data: map[string][]byte{
+			core.TLSCertKey:       crt,
+			core.TLSPrivateKeyKey: key,
+		},
+	}
+
+	if secret, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Create(self.Context, secret, meta.CreateOptions{}); err == nil {
+		return secret, nil
+	} else if errors.IsAlreadyExists(err) {
+		self.Log.Infof("%s", err.Error())
+		return self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
+	} else {
+		return nil, err
+	}
+}
+*/

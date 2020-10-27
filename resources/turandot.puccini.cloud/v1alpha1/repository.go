@@ -3,12 +3,15 @@ package v1alpha1
 import (
 	"fmt"
 
+	"github.com/tliron/kutil/ard"
 	group "github.com/tliron/turandot/resources/turandot.puccini.cloud"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var RepositoryGVK = SchemeGroupVersion.WithKind(RepositoryKind)
+
+type RepositoryType string
 
 const (
 	RepositoryKind     = "Repository"
@@ -17,6 +20,8 @@ const (
 	RepositorySingular  = "repository"
 	RepositoryPlural    = "repositories"
 	RepositoryShortName = "repo"
+
+	RepositoryTypeRegistry RepositoryType = "registry"
 )
 
 //
@@ -34,9 +39,20 @@ type Repository struct {
 }
 
 type RepositorySpec struct {
-	URL     string `json:"url"`
-	Service string `json:"service"`
-	Secret  string `json:"secret"`
+	Type     RepositoryType     `json:"type"`
+	Direct   RepositoryDirect   `json:"direct"`
+	Indirect RepositoryIndirect `json:"indirect"`
+	Secret   string             `json:"secret"`
+}
+
+type RepositoryDirect struct {
+	URL string `json:"url"`
+}
+
+type RepositoryIndirect struct {
+	Namespace string `json:"namespace"`
+	Service   string `json:"service"`
+	Port      uint64 `json:"port"`
 }
 
 type RepositoryStatus struct {
@@ -98,11 +114,33 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 							"spec": {
 								Type: "object",
 								Properties: map[string]apiextensions.JSONSchemaProps{
-									"url": {
+									"type": {
 										Type: "string",
+										Enum: []apiextensions.JSON{
+											{Raw: []byte(fmt.Sprintf("%q", RepositoryTypeRegistry))},
+										},
 									},
-									"service": {
-										Type: "string",
+									"direct": {
+										Type: "object",
+										Properties: map[string]apiextensions.JSONSchemaProps{
+											"url": {
+												Type: "string",
+											},
+										},
+									},
+									"indirect": {
+										Type: "object",
+										Properties: map[string]apiextensions.JSONSchemaProps{
+											"namespace": {
+												Type: "string",
+											},
+											"service": {
+												Type: "string",
+											},
+											"port": {
+												Type: "integer",
+											},
+										},
 									},
 									"secret": {
 										Type: "string",
@@ -123,4 +161,20 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 			},
 		},
 	},
+}
+
+func RepositoryToARD(repository *Repository) ard.StringMap {
+	map_ := make(ard.StringMap)
+	map_["Name"] = repository.Name
+	map_["Direct"] = ard.StringMap{
+		"URL": repository.Spec.Direct.URL,
+	}
+	map_["Indirect"] = ard.StringMap{
+		"Namespace": repository.Spec.Indirect.Namespace,
+		"Service":   repository.Spec.Indirect.Service,
+		"Port":      repository.Spec.Indirect.Port,
+	}
+	map_["Secret"] = repository.Spec.Secret
+	map_["SpoolerPod"] = repository.Status.SpoolerPod
+	return map_
 }

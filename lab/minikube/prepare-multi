@@ -5,6 +5,11 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/../../scripts/_env"
 . "$ROOT/scripts/_trap"
 
+minikube profile edge
+
+"$HERE/../cert-manager/deploy"
+"$HERE/../multus/deploy"
+
 minikube profile central
 
 "$HERE/../cert-manager/deploy"

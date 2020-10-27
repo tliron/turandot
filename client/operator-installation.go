@@ -39,7 +39,7 @@ func (self *Client) InstallOperator(site string, registry string, wait bool) err
 	}
 
 	if self.Cluster {
-		if _, err = self.createClusterRoleBinding(serviceAccount); err != nil {
+		if _, err = self.createAdminClusterRoleBinding(serviceAccount); err != nil {
 			return err
 		}
 	} else {
@@ -48,6 +48,9 @@ func (self *Client) InstallOperator(site string, registry string, wait bool) err
 			return err
 		}
 		if _, err = self.createRoleBinding(serviceAccount, role); err != nil {
+			return err
+		}
+		if _, err = self.createViewClusterRoleBinding(serviceAccount); err != nil {
 			return err
 		}
 	}
@@ -79,12 +82,12 @@ func (self *Client) UninstallOperator(wait bool) {
 		self.Log.Warningf("%s", err)
 	}
 
-	if self.Cluster {
-		// Cluster role binding
-		if err := self.Kubernetes.RbacV1().ClusterRoleBindings().Delete(self.Context, self.NamePrefix, deleteOptions); err != nil {
-			self.Log.Warningf("%s", err)
-		}
-	} else {
+	// Cluster role binding
+	if err := self.Kubernetes.RbacV1().ClusterRoleBindings().Delete(self.Context, self.NamePrefix, deleteOptions); err != nil {
+		self.Log.Warningf("%s", err)
+	}
+
+	if !self.Cluster {
 		// Role binding
 		if err := self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Delete(self.Context, self.NamePrefix, deleteOptions); err != nil {
 			self.Log.Warningf("%s", err)
@@ -117,12 +120,11 @@ func (self *Client) UninstallOperator(wait bool) {
 			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
-		if self.Cluster {
-			self.WaitForDeletion("cluster role binding", func() bool {
-				_, err := self.Kubernetes.RbacV1().ClusterRoleBindings().Get(self.Context, self.NamePrefix, getOptions)
-				return err == nil
-			})
-		} else {
+		self.WaitForDeletion("cluster role binding", func() bool {
+			_, err := self.Kubernetes.RbacV1().ClusterRoleBindings().Get(self.Context, self.NamePrefix, getOptions)
+			return err == nil
+		})
+		if !self.Cluster {
 			self.WaitForDeletion("role binding", func() bool {
 				_, err := self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Get(self.Context, self.NamePrefix, getOptions)
 				return err == nil
@@ -219,7 +221,29 @@ func (self *Client) createRoleBinding(serviceAccount *core.ServiceAccount, role 
 	}
 }
 
-func (self *Client) createClusterRoleBinding(serviceAccount *core.ServiceAccount) (*rbac.ClusterRoleBinding, error) {
+func (self *Client) createViewClusterRoleBinding(serviceAccount *core.ServiceAccount) (*rbac.ClusterRoleBinding, error) {
+	clusterRoleBinding := &rbac.ClusterRoleBinding{
+		ObjectMeta: meta.ObjectMeta{
+			Name: self.NamePrefix,
+		},
+		Subjects: []rbac.Subject{
+			{
+				Kind:      rbac.ServiceAccountKind, // serviceAccount.Kind is empty
+				Name:      serviceAccount.Name,
+				Namespace: self.Namespace, // required
+			},
+		},
+		RoleRef: rbac.RoleRef{
+			APIGroup: rbac.GroupName,
+			Kind:     "ClusterRole",
+			Name:     "view",
+		},
+	}
+
+	return self.createClusterRoleBinding(clusterRoleBinding)
+}
+
+func (self *Client) createAdminClusterRoleBinding(serviceAccount *core.ServiceAccount) (*rbac.ClusterRoleBinding, error) {
 	clusterRoleBinding := &rbac.ClusterRoleBinding{
 		ObjectMeta: meta.ObjectMeta{
 			Name: self.NamePrefix,
@@ -238,6 +262,10 @@ func (self *Client) createClusterRoleBinding(serviceAccount *core.ServiceAccount
 		},
 	}
 
+	return self.createClusterRoleBinding(clusterRoleBinding)
+}
+
+func (self *Client) createClusterRoleBinding(clusterRoleBinding *rbac.ClusterRoleBinding) (*rbac.ClusterRoleBinding, error) {
 	if clusterRoleBinding, err := self.Kubernetes.RbacV1().ClusterRoleBindings().Create(self.Context, clusterRoleBinding, meta.CreateOptions{}); err == nil {
 		return clusterRoleBinding, nil
 	} else if errors.IsAlreadyExists(err) {

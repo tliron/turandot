@@ -31,7 +31,9 @@ func ListServiceTemplates() {
 	turandot := NewClient().Turandot()
 	repository_, err := turandot.GetRepository(namespace, repository)
 	util.FailOnError(err)
-	images, err := turandot.SpoolerCommand(repository_).List()
+	spoolerCommand, err := turandot.SpoolerCommand(repository_)
+	util.FailOnError(err)
+	images, err := spoolerCommand.List()
 	util.FailOnError(err)
 
 	if len(images) == 0 {
