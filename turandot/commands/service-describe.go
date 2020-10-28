@@ -38,7 +38,7 @@ func DescribeService(serviceName string) {
 		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Name"), terminal.ColorValue(service.Name))
 		fmt.Fprintf(terminal.Stdout, "%s:\n", terminal.ColorTypeName("ServiceTemplate"))
 
-		if (service.Spec.ServiceTemplate.Direct.URL != "") || (service.Spec.ServiceTemplate.Direct.Secret != "") {
+		if service.Spec.ServiceTemplate.Direct != nil {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Direct"))
 			if service.Spec.ServiceTemplate.Direct.URL != "" {
 				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("URL"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.URL))
@@ -48,7 +48,7 @@ func DescribeService(serviceName string) {
 			}
 		}
 
-		if (service.Spec.ServiceTemplate.Indirect.Repository != "") || (service.Spec.ServiceTemplate.Indirect.Name != "") {
+		if service.Spec.ServiceTemplate.Indirect != nil {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Indirect"))
 			if service.Spec.ServiceTemplate.Indirect.Repository != "" {
 				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Repository"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Repository))
@@ -83,7 +83,9 @@ func DescribeService(serviceName string) {
 				fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorName(node))
 				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Mode"), terminal.ColorValue(nodeState.Mode))
 				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("State"), terminal.ColorValue(string(nodeState.State)))
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Message"), terminal.ColorValue(nodeState.Message))
+				if nodeState.Message != "" {
+					fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Message"), terminal.ColorValue(nodeState.Message))
+				}
 			}
 		}
 	}

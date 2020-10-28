@@ -50,6 +50,7 @@ func (self *Client) InstallOperator(site string, registry string, wait bool) err
 		if _, err = self.createRoleBinding(serviceAccount, role); err != nil {
 			return err
 		}
+		// TODO: we only need really this if we want to use registries on other namespaces
 		if _, err = self.createViewClusterRoleBinding(serviceAccount); err != nil {
 			return err
 		}

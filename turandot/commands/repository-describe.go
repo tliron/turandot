@@ -35,19 +35,29 @@ func DescribeRepository(repositoryName string) {
 	} else {
 		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Name"), terminal.ColorValue(repository.Name))
 
-		if repository.Spec.Direct.URL != "" {
+		if repository.Spec.Direct != nil {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Direct"))
-			fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("URL"), terminal.ColorValue(repository.Spec.Direct.URL))
+			if repository.Spec.Direct.Address != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Address"), terminal.ColorValue(repository.Spec.Direct.Address))
+			}
 		}
 
-		if repository.Spec.Indirect.Service != "" {
+		if repository.Spec.Indirect != nil {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Indirect"))
-			fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Namespace"), terminal.ColorValue(repository.Spec.Indirect.Namespace))
-			fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Service"), terminal.ColorValue(repository.Spec.Indirect.Service))
+			if repository.Spec.Indirect.Namespace != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Namespace"), terminal.ColorValue(repository.Spec.Indirect.Namespace))
+			}
+			if repository.Spec.Indirect.Service != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Service"), terminal.ColorValue(repository.Spec.Indirect.Service))
+			}
 			fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Port"), terminal.ColorValue(fmt.Sprintf("%d", repository.Spec.Indirect.Port)))
 		}
 
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Secret"), terminal.ColorValue(repository.Spec.Secret))
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("SpoolerPod"), terminal.ColorValue(repository.Status.SpoolerPod))
+		if repository.Spec.Secret != "" {
+			fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Secret"), terminal.ColorValue(repository.Spec.Secret))
+		}
+		if repository.Status.SpoolerPod != "" {
+			fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("SpoolerPod"), terminal.ColorValue(repository.Status.SpoolerPod))
+		}
 	}
 }

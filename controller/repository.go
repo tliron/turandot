@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	namepkg "github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -13,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (self *Controller) PublishOnRepository(imageName string, sourceUrl string, repositoryUrl string, urlContext *urlpkg.Context) (string, error) {
+func (self *Controller) PublishOnRepository(imageName string, sourceUrl string, repositoryAddress string, urlContext *urlpkg.Context) (string, error) {
 	if sourceUrl_, err := urlpkg.NewURL(sourceUrl, urlContext); err == nil {
 		opener := func() (io.ReadCloser, error) {
 			if reader, err := sourceUrl_.Open(); err == nil {
@@ -23,14 +24,15 @@ func (self *Controller) PublishOnRepository(imageName string, sourceUrl string, 
 			}
 		}
 
-		self.Log.Infof("publishing image %q at %q on %q", imageName, sourceUrl_, repositoryUrl)
+		self.Log.Infof("publishing image %q at %q on %q", imageName, sourceUrl_, repositoryAddress)
 
-		name := fmt.Sprintf("%s/%s", repositoryUrl, imageName)
+		name := fmt.Sprintf("%s/%s", repositoryAddress, imageName)
 
 		if contentTag, err := namepkg.NewTag("portable"); err == nil {
 			if tag, err := namepkg.NewTag(name); err == nil {
 				if image, err := tarball.Image(opener, &contentTag); err == nil {
-					httpRoundTripper := urlContext.GetHTTPRoundTripper()
+					repositoryAddress_ := strings.SplitN(repositoryAddress, ":", 2)
+					httpRoundTripper := urlContext.GetHTTPRoundTripper(repositoryAddress_[0])
 					if httpRoundTripper != nil {
 						err = remote.Write(tag, image, remote.WithTransport(httpRoundTripper))
 					} else {
@@ -38,7 +40,7 @@ func (self *Controller) PublishOnRepository(imageName string, sourceUrl string, 
 					}
 
 					if err == nil {
-						self.Log.Infof("published image %q at %q on %q", imageName, sourceUrl_, repositoryUrl)
+						self.Log.Infof("published image %q at %q on %q", imageName, sourceUrl_, repositoryAddress)
 						return name, nil
 					} else {
 						return "", err

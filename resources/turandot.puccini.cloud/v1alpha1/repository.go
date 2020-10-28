@@ -39,18 +39,18 @@ type Repository struct {
 }
 
 type RepositorySpec struct {
-	Type     RepositoryType     `json:"type"`
-	Direct   RepositoryDirect   `json:"direct"`
-	Indirect RepositoryIndirect `json:"indirect"`
-	Secret   string             `json:"secret"`
+	Type     RepositoryType      `json:"type"`
+	Direct   *RepositoryDirect   `json:"direct,omitempty"`
+	Indirect *RepositoryIndirect `json:"indirect,omitempty"`
+	Secret   string              `json:"secret,omitempty"`
 }
 
 type RepositoryDirect struct {
-	URL string `json:"url"`
+	Address string `json:"address"`
 }
 
 type RepositoryIndirect struct {
-	Namespace string `json:"namespace"`
+	Namespace string `json:"namespace,omitempty"`
 	Service   string `json:"service"`
 	Port      uint64 `json:"port"`
 }
@@ -112,7 +112,8 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 						Required: []string{"spec"},
 						Properties: map[string]apiextensions.JSONSchemaProps{
 							"spec": {
-								Type: "object",
+								Type:     "object",
+								Required: []string{"type"},
 								Properties: map[string]apiextensions.JSONSchemaProps{
 									"type": {
 										Type: "string",
@@ -121,15 +122,17 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										},
 									},
 									"direct": {
-										Type: "object",
+										Type:     "object",
+										Required: []string{"address"},
 										Properties: map[string]apiextensions.JSONSchemaProps{
-											"url": {
+											"address": {
 												Type: "string",
 											},
 										},
 									},
 									"indirect": {
-										Type: "object",
+										Type:     "object",
+										Required: []string{"service", "port"},
 										Properties: map[string]apiextensions.JSONSchemaProps{
 											"namespace": {
 												Type: "string",
@@ -146,6 +149,14 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										Type: "string",
 									},
 								},
+								OneOf: []apiextensions.JSONSchemaProps{
+									{
+										Required: []string{"direct"},
+									},
+									{
+										Required: []string{"indirect"},
+									},
+								},
 							},
 							"status": {
 								Type: "object",
@@ -158,6 +169,18 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 						},
 					},
 				},
+				AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
+					{
+						Name:     "Type",
+						Type:     "string",
+						JSONPath: ".spec.type",
+					},
+					{
+						Name:     "SpoolerPod",
+						Type:     "string",
+						JSONPath: ".status.spoolerPod",
+					},
+				},
 			},
 		},
 	},
@@ -166,13 +189,17 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 func RepositoryToARD(repository *Repository) ard.StringMap {
 	map_ := make(ard.StringMap)
 	map_["Name"] = repository.Name
-	map_["Direct"] = ard.StringMap{
-		"URL": repository.Spec.Direct.URL,
+	if repository.Spec.Direct != nil {
+		map_["Direct"] = ard.StringMap{
+			"Address": repository.Spec.Direct.Address,
+		}
 	}
-	map_["Indirect"] = ard.StringMap{
-		"Namespace": repository.Spec.Indirect.Namespace,
-		"Service":   repository.Spec.Indirect.Service,
-		"Port":      repository.Spec.Indirect.Port,
+	if repository.Spec.Indirect != nil {
+		map_["Indirect"] = ard.StringMap{
+			"Namespace": repository.Spec.Indirect.Namespace,
+			"Service":   repository.Spec.Indirect.Service,
+			"Port":      repository.Spec.Indirect.Port,
+		}
 	}
 	map_["Secret"] = repository.Spec.Secret
 	map_["SpoolerPod"] = repository.Status.SpoolerPod

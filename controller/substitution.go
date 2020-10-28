@@ -36,7 +36,7 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 				return err
 			}
 
-			if err := remoteClient.InstallRepository("docker.io", true); err != nil {
+			if err := remoteClient.InstallRepository("docker.io", true, true); err != nil {
 				return err
 			}
 

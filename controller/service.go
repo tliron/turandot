@@ -182,8 +182,10 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
-	if roundTripper, err := self.Client.GetServiceTemplateHTTPRoundTripper(service); err == nil {
-		urlContext.SetHTTPRoundTripper(roundTripper)
+	if host, roundTripper, err := self.Client.GetServiceTemplateHTTPRoundTripper(service); err == nil {
+		if roundTripper != nil {
+			urlContext.SetHTTPRoundTripper(host, roundTripper)
+		}
 	} else {
 		return false, err
 	}
@@ -235,8 +237,10 @@ func (self *Controller) updateService(service *resources.Service) error {
 	urlContext := urlpkg.NewContext()
 	defer urlContext.Release()
 
-	if roundTripper, err := self.Client.GetServiceTemplateHTTPRoundTripper(service); err == nil {
-		urlContext.SetHTTPRoundTripper(roundTripper)
+	if host, roundTripper, err := self.Client.GetServiceTemplateHTTPRoundTripper(service); err == nil {
+		if roundTripper != nil {
+			urlContext.SetHTTPRoundTripper(host, roundTripper)
+		}
 	} else {
 		return err
 	}

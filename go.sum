@@ -579,6 +579,8 @@ github.com/klauspost/compress v1.4.1 h1:8VMb5+0wMgdBykOV96DwNwKFQ+WTI4pzYURP99Cc
 github.com/klauspost/compress v1.4.1/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/compress v1.11.1 h1:bPb7nMRdOZYDrpPMTA3EInUQrdgoBinqUuSwlGdKDdE=
 github.com/klauspost/compress v1.11.1/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
+github.com/klauspost/compress v1.11.2 h1:MiK62aErc3gIiVEtyzKfeOHgW7atJb5g/KNX5m3c2nQ=
+github.com/klauspost/compress v1.11.2/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
 github.com/klauspost/cpuid v0.0.0-20180405133222-e7e905edc00e/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/klauspost/cpuid v1.2.0 h1:NMpwD2G9JSFOE1/TJjGSo5zG7Yb2bTe7eq1jH+irmeE=
 github.com/klauspost/cpuid v1.2.0/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
@@ -838,6 +840,8 @@ github.com/tliron/kutil v0.1.3 h1:6HNsh4CYq8isj0X2V7gZlXSiTCszwspAUbdix4xLZMM=
 github.com/tliron/kutil v0.1.3/go.mod h1:SiDk3vuXJ41qL0sPDktc9FvbH81QSiwsv6RQ3Mh4Nc8=
 github.com/tliron/kutil v0.1.4 h1:iVUCpJRxG8z+oxq7oZvxvZPcfcZHQpLqlj4jG+dgUDo=
 github.com/tliron/kutil v0.1.4/go.mod h1:KcjhNuSQB7Eb+t8kbSe+cwZ80Aly2ayCqbGgqYgE/70=
+github.com/tliron/kutil v0.1.5 h1:o5AIczMD3ybFg2SASJKKx0m0SFZDaTPatJZ3bY+6qsM=
+github.com/tliron/kutil v0.1.5/go.mod h1:VjPPZycJGREBghOTGh6dK4kQ/lmT7hdl9H0Ag/w9yXE=
 github.com/tliron/puccini v0.15.0 h1:nXBp6kf1ln8vxjY7aiZ8PqZKd8WuW/3Li0hDoBgWiKM=
 github.com/tliron/puccini v0.15.0/go.mod h1:v/nt/BJchSvE7hefMEojikO4aeltuyC0kftfWkpwsX8=
 github.com/tliron/yamlkeys v1.3.4 h1:LOIV2nj78WhfFoFXtxgCASse7zzsd0rC2jD6de90Oic=

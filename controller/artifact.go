@@ -12,10 +12,13 @@ func (self *Controller) publishArtifactsToRepository(artifacts parser.Kubernetes
 
 		for _, artifact := range artifacts {
 			if repository, err := self.Client.GetRepository(service.Namespace, artifact.Repository); err == nil {
-				if url, err := self.Client.GetRepositoryURL(repository); err == nil {
-					if roundTripper, err := self.Client.GetRepositoryHTTPRoundTripper(repository); err == nil {
-						urlContext.SetHTTPRoundTripper(roundTripper)
-						if name, err := self.PublishOnRepository(artifact.Tag, artifact.SourcePath, url, urlContext); err == nil {
+				if repositoryAddress, err := self.Client.GetRepositoryAddress(repository); err == nil {
+					if host, roundTripper, err := self.Client.GetRepositoryHTTPRoundTripper(repository); err == nil {
+						if roundTripper != nil {
+							urlContext.SetHTTPRoundTripper(host, roundTripper)
+						}
+
+						if name, err := self.PublishOnRepository(artifact.Tag, artifact.SourcePath, repositoryAddress, urlContext); err == nil {
 							artifactMappings[artifact.SourcePath] = name
 						} else {
 							return nil, err

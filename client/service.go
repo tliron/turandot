@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -71,7 +72,7 @@ func (self *Client) CreateServiceDirect(namespace string, serviceName string, ur
 		},
 		Spec: resources.ServiceSpec{
 			ServiceTemplate: resources.ServiceTemplate{
-				Direct: resources.ServiceTemplateDirect{
+				Direct: &resources.ServiceTemplateDirect{
 					URL: url.String(),
 				},
 			},
@@ -103,7 +104,7 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 		},
 		Spec: resources.ServiceSpec{
 			ServiceTemplate: resources.ServiceTemplate{
-				Indirect: resources.ServiceTemplateIndirect{
+				Indirect: &resources.ServiceTemplateIndirect{
 					Repository: repositoryName,
 					Name:       imageName,
 				},
@@ -150,7 +151,7 @@ func (self *Client) createService(namespace string, serviceName string, service 
 }
 
 func (self *Client) GetServiceRepository(service *resources.Service) (*resources.Repository, error) {
-	if service.Spec.ServiceTemplate.Indirect.Repository != "" {
+	if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Repository != "") {
 		return self.GetRepository(service.Namespace, service.Spec.ServiceTemplate.Indirect.Repository)
 	} else {
 		return nil, nil
@@ -161,23 +162,25 @@ func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, e
 	if repository, err := self.GetServiceRepository(service); err == nil {
 		if repository != nil {
 			return self.GetRepositoryURLForCSAR(repository, service.Spec.ServiceTemplate.Indirect.Name)
-		} else {
+		} else if (service.Spec.ServiceTemplate.Direct != nil) && (service.Spec.ServiceTemplate.Direct.URL != "") {
 			return service.Spec.ServiceTemplate.Direct.URL, nil
+		} else {
+			return "", fmt.Errorf("malformed service: %s", service.Name)
 		}
 	} else {
 		return "", err
 	}
 }
 
-func (self *Client) GetServiceTemplateHTTPRoundTripper(service *resources.Service) (http.RoundTripper, error) {
+func (self *Client) GetServiceTemplateHTTPRoundTripper(service *resources.Service) (string, http.RoundTripper, error) {
 	if repository, err := self.GetServiceRepository(service); err == nil {
 		if repository != nil {
 			return self.GetRepositoryHTTPRoundTripper(repository)
 		} else {
-			return nil, nil
+			return "", nil, nil
 		}
 	} else {
-		return nil, err
+		return "", nil, err
 	}
 }
 

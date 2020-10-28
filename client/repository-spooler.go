@@ -12,8 +12,8 @@ import (
 )
 
 func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*core.Pod, error) {
-	var url string
-	url, err := self.GetRepositoryURL(repository)
+	var address string
+	address, err := self.GetRepositoryAddress(repository)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*
 					Env: []core.EnvVar{
 						{
 							Name:  "REGISTRY_SPOOLER_registry",
-							Value: url,
+							Value: address,
 						},
 						{
 							Name:  "REGISTRY_SPOOLER_verbose",
@@ -146,10 +146,10 @@ func (self *Client) SpoolerCommand(repository *resources.Repository) (*spoolerpk
 		certificate = "/secret/tls.crt"
 	}
 
-	if url, err := self.GetRepositoryURL(repository); err == nil {
+	if address, err := self.GetRepositoryAddress(repository); err == nil {
 		return spoolerpkg.NewCommandClient(
 			spooler,
-			url,
+			address,
 			certificate,
 		), nil
 	} else {

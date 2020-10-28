@@ -33,9 +33,13 @@ func ListRepositories() {
 
 	switch format {
 	case "":
-		table := terminal.NewTable(maxWidth, "Name", "URL", "Namespace", "Service", "Port", "Secret", "SpoolerPod")
+		table := terminal.NewTable(maxWidth, "Name", "Address", "Namespace", "Service", "Port", "Secret", "SpoolerPod")
 		for _, repository := range repositories.Items {
-			table.Add(repository.Name, repository.Spec.Direct.URL, repository.Spec.Indirect.Namespace, repository.Spec.Indirect.Service, fmt.Sprintf("%d", repository.Spec.Indirect.Port), repository.Spec.Secret, repository.Status.SpoolerPod)
+			if repository.Spec.Direct != nil {
+				table.Add(repository.Name, repository.Spec.Direct.Address, "", "", "", repository.Spec.Secret, repository.Status.SpoolerPod)
+			} else if repository.Spec.Indirect != nil {
+				table.Add(repository.Name, "", repository.Spec.Indirect.Namespace, repository.Spec.Indirect.Service, fmt.Sprintf("%d", repository.Spec.Indirect.Port), repository.Spec.Secret, repository.Status.SpoolerPod)
+			}
 		}
 		table.Print()
 

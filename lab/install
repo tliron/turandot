@@ -22,3 +22,5 @@ install_tool kubectl "$KUBECTL_VERSION" \
 "https://storage.googleapis.com/kubernetes-release/release/v$KUBECTL_VERSION/bin/linux/amd64/kubectl"
 
 "$HERE/kubevirt/install" "$1"
+
+"$HERE/cert-manager/install" "$1"

@@ -28,6 +28,11 @@ function git_version () {
 	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S %Z")
 }
 
+function github_version () {
+	local REPO=$1
+	curl --silent "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'	
+}
+
 # kubectl
 
 function kubectl_apply_template () {
@@ -89,11 +94,14 @@ function kubectl_registry_url () {
 	echo $(kubectl get services registry --namespace=kube-system --output=jsonpath={.spec.clusterIP}):80
 }
 
+# install
+
 function install_tool () {
 	local NAME=$1
 	local VERSION=$2
 	local URL=$3
-	local ARCHIVE_PREFIX=$4
+	local STRIP=${4:-1}
+	local ARCHIVE_PREFIX=$5
 	local EXEC=/usr/bin/$NAME
 
 	if [ -f "$EXEC" ]; then
@@ -109,7 +117,7 @@ function install_tool () {
 	if [ "${URL: -7}" == .tar.gz ] || [ "${URL: -4}" == .tgz ]; then
 		local ARCHIVE=$(mktemp --suffix=.tar.gz)
 		if wget --quiet --output-document="$ARCHIVE" "$URL"; then
-			if tar --extract --file="$ARCHIVE" --directory=/usr/bin --strip=1 "$ARCHIVE_PREFIX$NAME"; then
+			if tar --extract --file="$ARCHIVE" --directory=/usr/bin --strip="$STRIP" "$ARCHIVE_PREFIX$NAME"; then
 				rm --force "$ARCHIVE"
 			else
 				m "could not write to \"$EXEC\"" "$RED"
@@ -128,9 +136,4 @@ function install_tool () {
 
 	chmod a+x "$EXEC"
 	m "installed \"$EXEC\""
-}
-
-function github_version () {
-	local REPO=$1
-	curl --silent "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'	
 }

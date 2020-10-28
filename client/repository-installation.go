@@ -13,15 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (self *Client) InstallRepository(registry string, wait bool) error {
+func (self *Client) InstallRepository(registry string, secure bool, wait bool) error {
 	var err error
-
-	secure := false
-	if err = self.EnsureCertManager(); err == nil {
-		secure = true
-	} else {
-		self.Log.Warningf("%s", err)
-	}
 
 	if registry, err = self.GetRegistry(registry); err != nil {
 		return err
@@ -43,6 +36,10 @@ func (self *Client) InstallRepository(registry string, wait bool) error {
 	}
 
 	if secure {
+		if err = self.EnsureCertManager(); err != nil {
+			self.Log.Warningf("%s", err.Error())
+		}
+
 		var issuer *certmanager.Issuer
 		if issuer, err = self.createRepositoryCertificateIssuer(); err != nil {
 			return err
@@ -80,25 +77,22 @@ func (self *Client) UninstallRepository(wait bool) {
 		self.Log.Warningf("%s", err)
 	}
 
-	secure := false
-	if err := self.EnsureCertManager(); err == nil {
-		secure = true
+	if err := self.EnsureCertManager(); err != nil {
+		self.Log.Warningf("%s", err.Error())
+	}
 
-		// Certificate
-		if err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
-			self.Log.Warningf("%s", err)
-		}
+	// Certificate
+	if err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
+		self.Log.Warningf("%s", err)
+	}
 
-		// Issuer
-		if err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
-			self.Log.Warningf("%s", err)
-		}
+	// Issuer
+	if err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
+		self.Log.Warningf("%s", err)
+	}
 
-		// Secret (deleting the Certificate will not delete the Secret!)
-		if err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
-			self.Log.Warningf("%s", err)
-		}
-	} else {
+	// Secret (deleting the Certificate will not delete the Secret!)
+	if err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Delete(self.Context, name, deleteOptions); err != nil {
 		self.Log.Warningf("%s", err)
 	}
 
@@ -112,20 +106,18 @@ func (self *Client) UninstallRepository(wait bool) {
 			_, err := self.Kubernetes.AppsV1().Deployments(self.Namespace).Get(self.Context, name, getOptions)
 			return err == nil
 		})
-		if secure {
-			self.WaitForDeletion("repository certificate", func() bool {
-				_, err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Get(self.Context, name, getOptions)
-				return err == nil
-			})
-			self.WaitForDeletion("repository issuer", func() bool {
-				_, err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Get(self.Context, name, getOptions)
-				return err == nil
-			})
-			self.WaitForDeletion("repository secret", func() bool {
-				_, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, name, getOptions)
-				return err == nil
-			})
-		}
+		self.WaitForDeletion("repository certificate", func() bool {
+			_, err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Get(self.Context, name, getOptions)
+			return err == nil
+		})
+		self.WaitForDeletion("repository issuer", func() bool {
+			_, err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Get(self.Context, name, getOptions)
+			return err == nil
+		})
+		self.WaitForDeletion("repository secret", func() bool {
+			_, err := self.Kubernetes.CoreV1().Secrets(self.Namespace).Get(self.Context, name, getOptions)
+			return err == nil
+		})
 	}
 }
 

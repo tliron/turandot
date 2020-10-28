@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+if [ "$EUID" -ne 0 ]; then
+	echo "Run this script as root"
+	exit 1
+fi
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/../../scripts/_env"
+. "$HERE/../_env"
+
+FORCE=false
+if [ "$1" == -f ]; then
+	FORCE=true
+fi
+
+install_tool kubectl-cert_manager "$CERT_MANAGER_VERSION" \
+"https://github.com/jetstack/cert-manager/releases/download/v$CERT_MANAGER_VERSION/kubectl-cert_manager-linux-amd64.tar.gz" 0

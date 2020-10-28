@@ -40,7 +40,7 @@ func (self *Client) ListRepositories() (*resources.RepositoryList, error) {
 	return self.Turandot.TurandotV1alpha1().Repositories(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) CreateRepositoryDirect(namespace string, repositoryName string, url string, secretName string) (*resources.Repository, error) {
+func (self *Client) CreateRepositoryDirect(namespace string, repositoryName string, address string, secretName string) (*resources.Repository, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -53,8 +53,8 @@ func (self *Client) CreateRepositoryDirect(namespace string, repositoryName stri
 		},
 		Spec: resources.RepositorySpec{
 			Type: resources.RepositoryTypeRegistry,
-			Direct: resources.RepositoryDirect{
-				URL: url,
+			Direct: &resources.RepositoryDirect{
+				Address: address,
 			},
 			Secret: secretName,
 		},
@@ -76,7 +76,7 @@ func (self *Client) CreateRepositoryIndirect(namespace string, repositoryName st
 		},
 		Spec: resources.RepositorySpec{
 			Type: resources.RepositoryTypeRegistry,
-			Indirect: resources.RepositoryIndirect{
+			Indirect: &resources.RepositoryIndirect{
 				Namespace: serviceNamespace,
 				Service:   serviceName,
 				Port:      port,
@@ -120,10 +120,10 @@ func (self *Client) DeleteRepository(namespace string, repositoryName string) er
 	return self.Turandot.TurandotV1alpha1().Repositories(namespace).Delete(self.Context, repositoryName, meta.DeleteOptions{})
 }
 
-func (self *Client) GetRepositoryURL(repository *resources.Repository) (string, error) {
-	if repository.Spec.Direct.URL != "" {
-		return repository.Spec.Direct.URL, nil
-	} else if repository.Spec.Indirect.Service != "" {
+func (self *Client) GetRepositoryAddress(repository *resources.Repository) (string, error) {
+	if (repository.Spec.Direct != nil) && (repository.Spec.Direct.Address != "") {
+		return repository.Spec.Direct.Address, nil
+	} else if (repository.Spec.Indirect != nil) && (repository.Spec.Indirect.Service != "") {
 		serviceNamespace := repository.Spec.Indirect.Namespace
 		if serviceNamespace == "" {
 			// Default to repository namespace
@@ -148,27 +148,33 @@ func (self *Client) GetRepositoryCertificate(repository *resources.Repository) (
 	}
 }
 
-func (self *Client) GetRepositoryHTTPRoundTripper(repository *resources.Repository) (http.RoundTripper, error) {
+func (self *Client) GetRepositoryHTTPRoundTripper(repository *resources.Repository) (string, http.RoundTripper, error) {
 	if certificate, err := self.GetRepositoryCertificate(repository); err == nil {
 		if certificate != nil {
-			certPool := x509.NewCertPool()
-			certPool.AddCert(certificate)
-			return util.NewForceHTTPSRoundTripper(&http.Transport{
-				TLSClientConfig: &tls.Config{
-					RootCAs: certPool,
-				},
-			}), nil
+			if address, err := self.GetRepositoryAddress(repository); err == nil {
+				address_ := strings.SplitN(address, ":", 2)
+				certPool := x509.NewCertPool()
+				certPool.AddCert(certificate)
+				roundTripper := util.NewForceHTTPSRoundTripper(&http.Transport{
+					TLSClientConfig: &tls.Config{
+						RootCAs: certPool,
+					},
+				})
+				return address_[0], roundTripper, nil
+			} else {
+				return "", nil, err
+			}
 		} else {
-			return nil, nil
+			return "", nil, nil
 		}
 	} else {
-		return nil, err
+		return "", nil, err
 	}
 }
 
 func (self *Client) GetRepositoryURLForCSAR(repository *resources.Repository, imageName string) (string, error) {
-	if url, err := self.GetRepositoryURL(repository); err == nil {
-		return fmt.Sprintf("docker://%s/%s?format=csar", url, imageName), nil
+	if address, err := self.GetRepositoryAddress(repository); err == nil {
+		return fmt.Sprintf("docker://%s/%s?format=csar", address, imageName), nil
 	} else {
 		return "", err
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/tliron/kutil/util"
 )
 
+var address string
 var serviceNamespace string
 var service string
 var port uint64
@@ -13,7 +14,7 @@ var secret string
 
 func init() {
 	repositoryCommand.AddCommand(repositoryCreateCommand)
-	repositoryCreateCommand.Flags().StringVarP(&url, "url", "u", "", "registry URL")
+	repositoryCreateCommand.Flags().StringVarP(&url, "address", "a", "", "registry address (\"host\" or \"host:port\")")
 	repositoryCreateCommand.Flags().StringVarP(&serviceNamespace, "service-namespace", "", "", "registry service namespace name (defaults to repository namespace)")
 	repositoryCreateCommand.Flags().StringVarP(&service, "service", "s", "", "registry service name")
 	repositoryCreateCommand.Flags().Uint64VarP(&port, "port", "p", 5000, "registry service port")
@@ -88,5 +89,5 @@ var repositoryCreateCommand = &cobra.Command{
 }
 
 func failRepositoryCreate() {
-	util.Fail("must specify only one of \"--url\", \"--service\", or \"--provider\"")
+	util.Fail("must specify only one of \"--address\", \"--service\", or \"--provider\"")
 }

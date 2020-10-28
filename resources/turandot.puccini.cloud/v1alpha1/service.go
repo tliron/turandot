@@ -54,13 +54,13 @@ type ServiceSpec struct {
 }
 
 type ServiceTemplate struct {
-	Direct   ServiceTemplateDirect   `json:"direct"`
-	Indirect ServiceTemplateIndirect `json:"indirect"`
+	Direct   *ServiceTemplateDirect   `json:"direct,omitempty"`
+	Indirect *ServiceTemplateIndirect `json:"indirect,omitempty"`
 }
 
 type ServiceTemplateDirect struct {
 	URL    string `json:"url"`
-	Secret string `json:"secret"`
+	Secret string `json:"secret,omitempty"`
 }
 
 type ServiceTemplateIndirect struct {
@@ -107,8 +107,6 @@ type ServiceList struct {
 
 var ServiceResourcesName = fmt.Sprintf("%s.%s", ServicePlural, group.GroupName)
 
-var one int64 = 1
-
 var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 	ObjectMeta: meta.ObjectMeta{
 		Name: ServiceResourcesName,
@@ -147,37 +145,10 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 								Properties: map[string]apiextensions.JSONSchemaProps{
 									"serviceTemplate": {
 										Type: "object",
-										OneOf: []apiextensions.JSONSchemaProps{
-											{
-												Properties: map[string]apiextensions.JSONSchemaProps{
-													"direct": {
-														Properties: map[string]apiextensions.JSONSchemaProps{
-															"url": {
-																MinLength: &one,
-															},
-														},
-													},
-												},
-											},
-											{
-												Properties: map[string]apiextensions.JSONSchemaProps{
-													"indirect": {
-														Properties: map[string]apiextensions.JSONSchemaProps{
-															"repository": {
-																MinLength: &one,
-															},
-															"name": {
-																MinLength: &one,
-															},
-														},
-													},
-												},
-											},
-										},
 										Properties: map[string]apiextensions.JSONSchemaProps{
 											"direct": {
-												Type: "object",
-												//Required: []string{"url"},
+												Type:     "object",
+												Required: []string{"url"},
 												Properties: map[string]apiextensions.JSONSchemaProps{
 													"url": {
 														Type: "string",
@@ -188,8 +159,8 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 												},
 											},
 											"indirect": {
-												Type: "object",
-												//Required: []string{"repository", "name"},
+												Type:     "object",
+												Required: []string{"repository", "name"},
 												Properties: map[string]apiextensions.JSONSchemaProps{
 													"repository": {
 														Type: "string",
@@ -198,6 +169,14 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 														Type: "string",
 													},
 												},
+											},
+										},
+										OneOf: []apiextensions.JSONSchemaProps{
+											{
+												Required: []string{"direct"},
+											},
+											{
+												Required: []string{"indirect"},
 											},
 										},
 									},
@@ -287,6 +266,18 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 						},
 					},
 				},
+				AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
+					{
+						Name:     "ServiceTemplateUrl",
+						Type:     "string",
+						JSONPath: ".status.serviceTemplateUrl",
+					},
+					{
+						Name:     "Mode",
+						Type:     "string",
+						JSONPath: ".status.mode",
+					},
+				},
 			},
 		},
 	},
@@ -295,15 +286,20 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 func ServiceToARD(service *Service) ard.StringMap {
 	map_ := make(ard.StringMap)
 	map_["Name"] = service.Name
-	map_["ServiceTemplate"] = ard.StringMap{
-		"Direct": ard.StringMap{
-			"URL":    service.Spec.ServiceTemplate.Direct.URL,
-			"Secret": service.Spec.ServiceTemplate.Direct.Secret,
-		},
-		"Indirect": ard.StringMap{
-			"Repository": service.Spec.ServiceTemplate.Indirect.Repository,
-			"Name":       service.Spec.ServiceTemplate.Indirect.Name,
-		},
+	if service.Spec.ServiceTemplate.Direct != nil {
+		map_["ServiceTemplate"] = ard.StringMap{
+			"Direct": ard.StringMap{
+				"URL":    service.Spec.ServiceTemplate.Direct.URL,
+				"Secret": service.Spec.ServiceTemplate.Direct.Secret,
+			},
+		}
+	} else if service.Spec.ServiceTemplate.Direct != nil {
+		map_["ServiceTemplate"] = ard.StringMap{
+			"Indirect": ard.StringMap{
+				"Repository": service.Spec.ServiceTemplate.Indirect.Repository,
+				"Name":       service.Spec.ServiceTemplate.Indirect.Name,
+			},
+		}
 	}
 	map_["Inputs"] = service.Spec.Inputs
 	map_["Outputs"] = service.Status.Outputs
