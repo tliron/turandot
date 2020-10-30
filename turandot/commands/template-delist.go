@@ -32,8 +32,8 @@ func DelistServiceTemplate(serviceTemplateName string) {
 	util.FailOnError(err)
 	spooler := turandot.Spooler(repository_)
 
-	imageName := clientpkg.RepositoryImageNameForServiceTemplateName(serviceTemplateName)
-	err = spooler.Delete(imageName)
+	artifactName := clientpkg.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	err = spooler.Delete(artifactName)
 	util.FailOnError(err)
 }
 

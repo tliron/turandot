@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/tliron/kutil/ard"
+	"github.com/tliron/kutil/kubernetes"
 	group "github.com/tliron/turandot/resources/turandot.puccini.cloud"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,7 +22,7 @@ const (
 
 	ServiceSingular  = "service"
 	ServicePlural    = "services"
-	ServiceShortName = "si" // = ServIce? Service Instance?
+	ServiceShortName = "ts" // = Turandot (or TOSCA) Service
 
 	ServiceNotInstantiated ServiceInstantiationState = "NotInstantiated"
 	ServiceInstantiating   ServiceInstantiationState = "Instantiating"
@@ -48,43 +49,44 @@ type Service struct {
 }
 
 type ServiceSpec struct {
-	ServiceTemplate ServiceTemplate   `json:"serviceTemplate"`
-	Inputs          map[string]string `json:"inputs"`
-	Mode            string            `json:"mode"`
+	ServiceTemplate ServiceTemplate   `json:"serviceTemplate"` // Service template used to instantiate this service (can be a direct or indirect reference)
+	Inputs          map[string]string `json:"inputs"`          // TOSCA inputs to apply to the service template during instantiation
+	Mode            string            `json:"mode"`            // Desired service mode
 }
 
 type ServiceTemplate struct {
-	Direct   *ServiceTemplateDirect   `json:"direct,omitempty"`
-	Indirect *ServiceTemplateIndirect `json:"indirect,omitempty"`
+	Direct   *ServiceTemplateDirect   `json:"direct,omitempty"`   // Direct reference to the service template used to instantiate this service
+	Indirect *ServiceTemplateIndirect `json:"indirect,omitempty"` // Indirect reference to the service template used to instantiate this service
 }
 
 type ServiceTemplateDirect struct {
-	URL    string `json:"url"`
-	Secret string `json:"secret,omitempty"`
+	URL    string `json:"url"`              // Full URL of service template (CSAR or YAML file)
+	Secret string `json:"secret,omitempty"` // Name of TLS Secret required for connecting to the URL (optional)
 }
 
 type ServiceTemplateIndirect struct {
-	Repository string `json:"repository"`
-	Name       string `json:"name"`
+	Namespace  string `json:"namespace,omitempty"` // Namespace for Turandot repository resource (optional; defaults to same namespace as this service)
+	Repository string `json:"repository"`          // Name of Turandot repository resource
+	Name       string `json:"name"`                // Name of service template artifact in the repository (CSAR or YAML artifact)
 }
 
 type ServiceStatus struct {
-	CloutPath string `json:"cloutPath"`
-	CloutHash string `json:"cloutHash"`
+	CloutPath string `json:"cloutPath"` // Path to instantiated service's Clout file (local to Turandot operator)
+	CloutHash string `json:"cloutHash"` // Last known hash of service's Clout file
 
-	ServiceTemplateURL string            `json:"serviceTemplateUrl"`
-	Inputs             map[string]string `json:"inputs"`
-	Outputs            map[string]string `json:"outputs"`
+	ServiceTemplateURL string            `json:"serviceTemplateUrl"` // Full URL of service template (CSAR or YAML file)
+	Inputs             map[string]string `json:"inputs"`             // TOSCA inputs that were applied to the service template when instantiatied
+	Outputs            map[string]string `json:"outputs"`            // Last known TOSCA outputs
 
-	InstantiationState ServiceInstantiationState       `json:"instantiationState"`
-	NodeStates         map[string]ServiceNodeModeState `json:"nodeStates"`
-	Mode               string                          `json:"mode"`
+	InstantiationState ServiceInstantiationState       `json:"instantiationState"` // Current service instantiation state
+	Mode               string                          `json:"mode"`               // Current service mode
+	NodeStates         map[string]ServiceNodeModeState `json:"nodeStates"`         // Last known node states
 }
 
 type ServiceNodeModeState struct {
-	Mode    string    `json:"mode"`
-	State   ModeState `json:"state"`
-	Message string    `json:"message"`
+	Mode    string    `json:"mode"`    // Service mode
+	State   ModeState `json:"state"`   // Node state for service mode
+	Message string    `json:"message"` // Human-readable information regarding the node state (optional)
 }
 
 //
@@ -136,37 +138,49 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 				},
 				Schema: &apiextensions.CustomResourceValidation{
 					OpenAPIV3Schema: &apiextensions.JSONSchemaProps{
-						Type:     "object",
-						Required: []string{"spec"},
+						Description: "Turandot service",
+						Type:        "object",
+						Required:    []string{"spec"},
 						Properties: map[string]apiextensions.JSONSchemaProps{
 							"spec": {
 								Type:     "object",
 								Required: []string{"serviceTemplate"},
 								Properties: map[string]apiextensions.JSONSchemaProps{
 									"serviceTemplate": {
-										Type: "object",
+										Description: "Service template used to instantiate this service (can be a direct or indirect reference)",
+										Type:        "object",
 										Properties: map[string]apiextensions.JSONSchemaProps{
 											"direct": {
-												Type:     "object",
-												Required: []string{"url"},
+												Description: "Direct reference to the service template used to instantiate this service",
+												Type:        "object",
+												Required:    []string{"url"},
 												Properties: map[string]apiextensions.JSONSchemaProps{
 													"url": {
-														Type: "string",
+														Description: "Full URL of service template (CSAR or YAML file)",
+														Type:        "string",
 													},
 													"secret": {
-														Type: "string",
+														Description: "Name of TLS Secret required for connecting to the URL (optional)",
+														Type:        "string",
 													},
 												},
 											},
 											"indirect": {
-												Type:     "object",
-												Required: []string{"repository", "name"},
+												Description: "Indirect reference to the service template used to instantiate this service",
+												Type:        "object",
+												Required:    []string{"repository", "name"},
 												Properties: map[string]apiextensions.JSONSchemaProps{
+													"namespace": {
+														Description: "Namespace for Turandot repository resource (optional; defaults to same namespace as this service)",
+														Type:        "string",
+													},
 													"repository": {
-														Type: "string",
+														Description: "Name of Turandot repository resource",
+														Type:        "string",
 													},
 													"name": {
-														Type: "string",
+														Description: "Name of service template artifact in the repository (CSAR or YAML artifact)",
+														Type:        "string",
 													},
 												},
 											},
@@ -181,8 +195,9 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										},
 									},
 									"inputs": {
-										Type:     "object",
-										Nullable: true,
+										Description: "TOSCA inputs to apply to the service template during instantiation",
+										Type:        "object",
+										Nullable:    true,
 										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
 											Schema: &apiextensions.JSONSchemaProps{
 												Type: "string",
@@ -190,7 +205,8 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										},
 									},
 									"mode": {
-										Type: "string",
+										Description: "Desired service mode",
+										Type:        "string",
 									},
 								},
 							},
@@ -198,17 +214,21 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 								Type: "object",
 								Properties: map[string]apiextensions.JSONSchemaProps{
 									"cloutPath": {
-										Type: "string",
+										Description: "Path to instantiated service's Clout file (local to Turandot operator)",
+										Type:        "string",
 									},
 									"cloutHash": {
-										Type: "string",
+										Description: "Last known hash of service's Clout file",
+										Type:        "string",
 									},
 									"serviceTemplateUrl": {
-										Type: "string",
+										Description: "Full URL of service template (CSAR or YAML file)",
+										Type:        "string",
 									},
 									"inputs": {
-										Type:     "object",
-										Nullable: true,
+										Description: "TOSCA inputs that were applied to the service template when instantiatied",
+										Type:        "object",
+										Nullable:    true,
 										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
 											Schema: &apiextensions.JSONSchemaProps{
 												Type: "string",
@@ -216,8 +236,9 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										},
 									},
 									"outputs": {
-										Type:     "object",
-										Nullable: true,
+										Description: "Last known TOSCA outputs",
+										Type:        "object",
+										Nullable:    true,
 										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
 											Schema: &apiextensions.JSONSchemaProps{
 												Type: "string",
@@ -225,41 +246,47 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 										},
 									},
 									"instantiationState": {
-										Type: "string",
+										Description: "Current service instantiation state",
+										Type:        "string",
 										Enum: []apiextensions.JSON{
-											{Raw: []byte(fmt.Sprintf("%q", ServiceNotInstantiated))},
-											{Raw: []byte(fmt.Sprintf("%q", ServiceInstantiating))},
-											{Raw: []byte(fmt.Sprintf("%q", ServiceInstantiated))},
+											kubernetes.JSONString(ServiceNotInstantiated),
+											kubernetes.JSONString(ServiceInstantiating),
+											kubernetes.JSONString(ServiceInstantiated),
 										},
 									},
+									"mode": {
+										Description: "Current service mode",
+										Type:        "string",
+									},
 									"nodeStates": {
-										Type:     "object",
-										Nullable: true,
+										Description: "Last known node states",
+										Type:        "object",
+										Nullable:    true,
 										AdditionalProperties: &apiextensions.JSONSchemaPropsOrBool{
 											Schema: &apiextensions.JSONSchemaProps{
 												Type: "object",
 												Properties: map[string]apiextensions.JSONSchemaProps{
 													"mode": {
-														Type: "string",
+														Description: "Service mode",
+														Type:        "string",
 													},
 													"state": {
-														Type: "string",
+														Description: "Node state for service mode",
+														Type:        "string",
 														Enum: []apiextensions.JSON{
-															{Raw: []byte(fmt.Sprintf("%q", ModeAccepted))},
-															{Raw: []byte(fmt.Sprintf("%q", ModeRejected))},
-															{Raw: []byte(fmt.Sprintf("%q", ModeAchieved))},
-															{Raw: []byte(fmt.Sprintf("%q", ModeFailed))},
+															kubernetes.JSONString(ModeAccepted),
+															kubernetes.JSONString(ModeRejected),
+															kubernetes.JSONString(ModeAchieved),
+															kubernetes.JSONString(ModeFailed),
 														},
 													},
 													"message": {
-														Type: "string",
+														Description: "Human-readable information regarding the node state (optional)",
+														Type:        "string",
 													},
 												},
 											},
 										},
-									},
-									"mode": {
-										Type: "string",
 									},
 								},
 							},
@@ -296,6 +323,7 @@ func ServiceToARD(service *Service) ard.StringMap {
 	} else if service.Spec.ServiceTemplate.Direct != nil {
 		map_["ServiceTemplate"] = ard.StringMap{
 			"Indirect": ard.StringMap{
+				"Namespace":  service.Spec.ServiceTemplate.Indirect.Namespace,
 				"Repository": service.Spec.ServiceTemplate.Indirect.Repository,
 				"Name":       service.Spec.ServiceTemplate.Indirect.Name,
 			},

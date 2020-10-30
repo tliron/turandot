@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/tliron/kutil/ard"
+	"github.com/tliron/kutil/kubernetes"
 	group "github.com/tliron/turandot/resources/turandot.puccini.cloud"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,24 +40,24 @@ type Repository struct {
 }
 
 type RepositorySpec struct {
-	Type     RepositoryType      `json:"type"`
-	Direct   *RepositoryDirect   `json:"direct,omitempty"`
-	Indirect *RepositoryIndirect `json:"indirect,omitempty"`
-	Secret   string              `json:"secret,omitempty"`
+	Type     RepositoryType      `json:"type"`               // Repository type
+	Direct   *RepositoryDirect   `json:"direct,omitempty"`   // Direct reference to repository
+	Indirect *RepositoryIndirect `json:"indirect,omitempty"` // Indirect reference to repository
+	Secret   string              `json:"secret,omitempty"`   // Name of TLS Secret required for connecting to the repository (optional)
 }
 
 type RepositoryDirect struct {
-	Address string `json:"address"`
+	Address string `json:"address"` // Repository address (either "host:port" or "host")
 }
 
 type RepositoryIndirect struct {
-	Namespace string `json:"namespace,omitempty"`
-	Service   string `json:"service"`
-	Port      uint64 `json:"port"`
+	Namespace string `json:"namespace,omitempty"` // Namespace for service resource (optional; defaults to same namespace as this repository)
+	Service   string `json:"service"`             // Name of service resource
+	Port      uint64 `json:"port"`                // TCP port to use with service
 }
 
 type RepositoryStatus struct {
-	SpoolerPod string `json:"spoolerPod"`
+	SpoolerPod string `json:"spoolerPod"` // Name of spooler pod resource (in the same namespace as this repository)
 }
 
 //
@@ -108,45 +109,54 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 				},
 				Schema: &apiextensions.CustomResourceValidation{
 					OpenAPIV3Schema: &apiextensions.JSONSchemaProps{
-						Type:     "object",
-						Required: []string{"spec"},
+						Description: "Turandot repository",
+						Type:        "object",
+						Required:    []string{"spec"},
 						Properties: map[string]apiextensions.JSONSchemaProps{
 							"spec": {
 								Type:     "object",
 								Required: []string{"type"},
 								Properties: map[string]apiextensions.JSONSchemaProps{
 									"type": {
-										Type: "string",
+										Description: "Repository type",
+										Type:        "string",
 										Enum: []apiextensions.JSON{
-											{Raw: []byte(fmt.Sprintf("%q", RepositoryTypeRegistry))},
+											kubernetes.JSONString(RepositoryTypeRegistry),
 										},
 									},
 									"direct": {
-										Type:     "object",
-										Required: []string{"address"},
+										Description: "Direct reference to repository",
+										Type:        "object",
+										Required:    []string{"address"},
 										Properties: map[string]apiextensions.JSONSchemaProps{
 											"address": {
-												Type: "string",
+												Description: "Repository address (either \"host:port\" or \"host\")",
+												Type:        "string",
 											},
 										},
 									},
 									"indirect": {
-										Type:     "object",
-										Required: []string{"service", "port"},
+										Description: "Indirect reference to repository",
+										Type:        "object",
+										Required:    []string{"service", "port"},
 										Properties: map[string]apiextensions.JSONSchemaProps{
 											"namespace": {
-												Type: "string",
+												Description: "Namespace for service resource (optional; defaults to same namespace as this repository)",
+												Type:        "string",
 											},
 											"service": {
-												Type: "string",
+												Description: "Name of service resource",
+												Type:        "string",
 											},
 											"port": {
-												Type: "integer",
+												Description: "TCP port to use with service",
+												Type:        "integer",
 											},
 										},
 									},
 									"secret": {
-										Type: "string",
+										Description: "Name of TLS Secret required for connecting to the repository (optional)",
+										Type:        "string",
 									},
 								},
 								OneOf: []apiextensions.JSONSchemaProps{
@@ -162,7 +172,8 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 								Type: "object",
 								Properties: map[string]apiextensions.JSONSchemaProps{
 									"spoolerPod": {
-										Type: "string",
+										Description: "Name of spooler pod resource (in the same namespace as this repository)",
+										Type:        "string",
 									},
 								},
 							},
@@ -189,12 +200,12 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 func RepositoryToARD(repository *Repository) ard.StringMap {
 	map_ := make(ard.StringMap)
 	map_["Name"] = repository.Name
+	map_["Type"] = repository.Spec.Type
 	if repository.Spec.Direct != nil {
 		map_["Direct"] = ard.StringMap{
 			"Address": repository.Spec.Direct.Address,
 		}
-	}
-	if repository.Spec.Indirect != nil {
+	} else if repository.Spec.Indirect != nil {
 		map_["Indirect"] = ard.StringMap{
 			"Namespace": repository.Spec.Indirect.Namespace,
 			"Service":   repository.Spec.Indirect.Service,

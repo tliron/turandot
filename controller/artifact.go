@@ -18,7 +18,7 @@ func (self *Controller) publishArtifactsToRepository(artifacts parser.Kubernetes
 							urlContext.SetHTTPRoundTripper(host, roundTripper)
 						}
 
-						if name, err := self.PublishOnRepository(artifact.Tag, artifact.SourcePath, repositoryAddress, urlContext); err == nil {
+						if name, err := self.PublishOnRepository(artifact.Name, artifact.SourcePath, repositoryAddress, urlContext); err == nil {
 							artifactMappings[artifact.SourcePath] = name
 						} else {
 							return nil, err

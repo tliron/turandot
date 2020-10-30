@@ -50,6 +50,9 @@ func DescribeService(serviceName string) {
 
 		if service.Spec.ServiceTemplate.Indirect != nil {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Indirect"))
+			if service.Spec.ServiceTemplate.Indirect.Namespace != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Namespace"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Namespace))
+			}
 			if service.Spec.ServiceTemplate.Indirect.Repository != "" {
 				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Repository"), terminal.ColorValue(service.Spec.ServiceTemplate.Indirect.Repository))
 			}

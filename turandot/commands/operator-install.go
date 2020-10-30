@@ -9,7 +9,7 @@ func init() {
 	operatorCommand.AddCommand(operatorInstallCommand)
 	operatorInstallCommand.Flags().StringVarP(&site, "site", "s", "default", "site name")
 	operatorInstallCommand.Flags().BoolVarP(&cluster, "cluster", "c", false, "cluster mode")
-	operatorInstallCommand.Flags().StringVarP(&registry, "registry", "g", "docker.io", "registry URL (use special value \"internal\" to discover internally deployed registry)")
+	operatorInstallCommand.Flags().StringVarP(&registry, "registry", "g", "docker.io", "registry address (use special value \"internal\" to discover internally deployed registry)")
 	operatorInstallCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for installation to succeed")
 }
 

@@ -48,8 +48,8 @@ func ListServiceTemplates() {
 
 		table := terminal.NewTable(maxWidth, "Name", "Services")
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryImageName(image); ok {
-				services, err := turandot.ListServicesForImage(repository, image, urlContext)
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryArtifactName(image); ok {
+				services, err := turandot.ListServicesForArtifact(repository, image, urlContext)
 				util.FailOnError(err)
 				sort.Strings(services)
 				table.Add(serviceTemplateName, strings.Join(services, "\n"))
@@ -59,7 +59,7 @@ func ListServiceTemplates() {
 
 	case "bare":
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryArtifactName(image); ok {
 				fmt.Fprintln(terminal.Stdout, serviceTemplateName)
 			}
 		}
@@ -70,10 +70,10 @@ func ListServiceTemplates() {
 
 		list := make(ard.List, 0, len(images))
 		for _, image := range images {
-			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryImageName(image); ok {
+			if serviceTemplateName, ok := clientpkg.ServiceTemplateNameForRepositoryArtifactName(image); ok {
 				map_ := make(ard.StringMap)
 				map_["Name"] = serviceTemplateName
-				map_["Services"], err = turandot.ListServicesForImage(repository, image, urlContext)
+				map_["Services"], err = turandot.ListServicesForArtifact(repository, image, urlContext)
 				util.FailOnError(err)
 				list = append(list, map_)
 			}

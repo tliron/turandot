@@ -3,21 +3,19 @@ package client
 import (
 	"fmt"
 
-	"github.com/tliron/kutil/version"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (self *Client) InstallOperator(site string, registry string, wait bool) error {
+func (self *Client) InstallOperator(site string, registryAddress string, wait bool) error {
 	var err error
 
-	if registry, err = self.GetRegistry(registry); err != nil {
+	if registryAddress, err = self.GetRegistryAddress(registryAddress); err != nil {
 		return err
 	}
 
@@ -29,35 +27,35 @@ func (self *Client) InstallOperator(site string, registry string, wait bool) err
 		return err
 	}
 
-	if _, err = self.createNamespace(); err != nil {
+	if _, err = self.createOperatorNamespace(); err != nil {
 		return err
 	}
 
 	var serviceAccount *core.ServiceAccount
-	if serviceAccount, err = self.createServiceAccount(); err != nil {
+	if serviceAccount, err = self.createOperatorServiceAccount(); err != nil {
 		return err
 	}
 
 	if self.Cluster {
-		if _, err = self.createAdminClusterRoleBinding(serviceAccount); err != nil {
+		if _, err = self.createOperatorAdminClusterRoleBinding(serviceAccount); err != nil {
 			return err
 		}
 	} else {
 		var role *rbac.Role
-		if role, err = self.createRole(); err != nil {
+		if role, err = self.createOperatorRole(); err != nil {
 			return err
 		}
-		if _, err = self.createRoleBinding(serviceAccount, role); err != nil {
+		if _, err = self.createOperatorRoleBinding(serviceAccount, role); err != nil {
 			return err
 		}
 		// TODO: we only need really this if we want to use registries on other namespaces
-		if _, err = self.createViewClusterRoleBinding(serviceAccount); err != nil {
+		if _, err = self.createOperatorViewClusterRoleBinding(serviceAccount); err != nil {
 			return err
 		}
 	}
 
 	var operatorDeployment *apps.Deployment
-	if operatorDeployment, err = self.createOperatorDeployment(site, registry, serviceAccount, 1); err != nil {
+	if operatorDeployment, err = self.createOperatorDeployment(site, registryAddress, serviceAccount, 1); err != nil {
 		return err
 	}
 
@@ -150,29 +148,36 @@ func (self *Client) UninstallOperator(wait bool) {
 	}
 }
 
+func (self *Client) createOperatorNamespace() (*core.Namespace, error) {
+	return self.CreateNamespace(&core.Namespace{
+		ObjectMeta: meta.ObjectMeta{
+			Name: self.Namespace,
+		},
+	})
+}
+
+func (self *Client) createOperatorServiceAccount() (*core.ServiceAccount, error) {
+	return self.CreateServiceAccount(&core.ServiceAccount{
+		ObjectMeta: meta.ObjectMeta{
+			Name:   self.NamePrefix,
+			Labels: self.Labels(fmt.Sprintf("%s-operator", self.NamePrefix), "operator", self.Namespace),
+		},
+	})
+}
+
 func (self *Client) createServiceCustomResourceDefinition() (*apiextensions.CustomResourceDefinition, error) {
-	return self.createCustomResourceDefinition(&resources.ServiceCustomResourceDefinition)
+	return self.CreateCustomResourceDefinition(&resources.ServiceCustomResourceDefinition)
 }
 
 func (self *Client) createRepositoryCustomResourceDefinition() (*apiextensions.CustomResourceDefinition, error) {
-	return self.createCustomResourceDefinition(&resources.RepositoryCustomResourceDefinition)
+	return self.CreateCustomResourceDefinition(&resources.RepositoryCustomResourceDefinition)
 }
 
-func (self *Client) createCustomResourceDefinition(customResourceDefinition *apiextensions.CustomResourceDefinition) (*apiextensions.CustomResourceDefinition, error) {
-	if customResourceDefinition, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Create(self.Context, customResourceDefinition, meta.CreateOptions{}); err == nil {
-		return customResourceDefinition, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.ServiceCustomResourceDefinition.Name, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
-}
-
-func (self *Client) createRole() (*rbac.Role, error) {
-	role := &rbac.Role{
+func (self *Client) createOperatorRole() (*rbac.Role, error) {
+	return self.CreateRole(&rbac.Role{
 		ObjectMeta: meta.ObjectMeta{
-			Name: self.NamePrefix,
+			Name:   self.NamePrefix,
+			Labels: self.Labels(fmt.Sprintf("%s-operator", self.NamePrefix), "operator", self.Namespace),
 		},
 		Rules: []rbac.PolicyRule{
 			{
@@ -181,22 +186,14 @@ func (self *Client) createRole() (*rbac.Role, error) {
 				Verbs:     []string{rbac.VerbAll},
 			},
 		},
-	}
-
-	if role, err := self.Kubernetes.RbacV1().Roles(self.Namespace).Create(self.Context, role, meta.CreateOptions{}); err == nil {
-		return role, err
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.Kubernetes.RbacV1().Roles(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
+	})
 }
 
-func (self *Client) createRoleBinding(serviceAccount *core.ServiceAccount, role *rbac.Role) (*rbac.RoleBinding, error) {
-	roleBinding := &rbac.RoleBinding{
+func (self *Client) createOperatorRoleBinding(serviceAccount *core.ServiceAccount, role *rbac.Role) (*rbac.RoleBinding, error) {
+	return self.CreateRoleBinding(&rbac.RoleBinding{
 		ObjectMeta: meta.ObjectMeta{
-			Name: self.NamePrefix,
+			Name:   self.NamePrefix,
+			Labels: self.Labels(fmt.Sprintf("%s-operator", self.NamePrefix), "operator", self.Namespace),
 		},
 		Subjects: []rbac.Subject{
 			{
@@ -210,22 +207,14 @@ func (self *Client) createRoleBinding(serviceAccount *core.ServiceAccount, role 
 			Kind:     "Role",         // role.Kind is empty
 			Name:     role.Name,
 		},
-	}
-
-	if roleBinding, err := self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Create(self.Context, roleBinding, meta.CreateOptions{}); err == nil {
-		return roleBinding, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.Kubernetes.RbacV1().RoleBindings(self.Namespace).Get(self.Context, self.NamePrefix, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
+	})
 }
 
-func (self *Client) createViewClusterRoleBinding(serviceAccount *core.ServiceAccount) (*rbac.ClusterRoleBinding, error) {
-	clusterRoleBinding := &rbac.ClusterRoleBinding{
+func (self *Client) createOperatorViewClusterRoleBinding(serviceAccount *core.ServiceAccount) (*rbac.ClusterRoleBinding, error) {
+	return self.CreateClusterRoleBinding(&rbac.ClusterRoleBinding{
 		ObjectMeta: meta.ObjectMeta{
-			Name: self.NamePrefix,
+			Name:   self.NamePrefix,
+			Labels: self.Labels(fmt.Sprintf("%s-operator", self.NamePrefix), "operator", self.Namespace),
 		},
 		Subjects: []rbac.Subject{
 			{
@@ -239,15 +228,14 @@ func (self *Client) createViewClusterRoleBinding(serviceAccount *core.ServiceAcc
 			Kind:     "ClusterRole",
 			Name:     "view",
 		},
-	}
-
-	return self.createClusterRoleBinding(clusterRoleBinding)
+	})
 }
 
-func (self *Client) createAdminClusterRoleBinding(serviceAccount *core.ServiceAccount) (*rbac.ClusterRoleBinding, error) {
-	clusterRoleBinding := &rbac.ClusterRoleBinding{
+func (self *Client) createOperatorAdminClusterRoleBinding(serviceAccount *core.ServiceAccount) (*rbac.ClusterRoleBinding, error) {
+	return self.CreateClusterRoleBinding(&rbac.ClusterRoleBinding{
 		ObjectMeta: meta.ObjectMeta{
-			Name: self.NamePrefix,
+			Name:   self.NamePrefix,
+			Labels: self.Labels(fmt.Sprintf("%s-operator", self.NamePrefix), "operator", self.Namespace),
 		},
 		Subjects: []rbac.Subject{
 			{
@@ -261,65 +249,33 @@ func (self *Client) createAdminClusterRoleBinding(serviceAccount *core.ServiceAc
 			Kind:     "ClusterRole",
 			Name:     "cluster-admin",
 		},
-	}
-
-	return self.createClusterRoleBinding(clusterRoleBinding)
+	})
 }
 
-func (self *Client) createClusterRoleBinding(clusterRoleBinding *rbac.ClusterRoleBinding) (*rbac.ClusterRoleBinding, error) {
-	if clusterRoleBinding, err := self.Kubernetes.RbacV1().ClusterRoleBindings().Create(self.Context, clusterRoleBinding, meta.CreateOptions{}); err == nil {
-		return clusterRoleBinding, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.Kubernetes.RbacV1().ClusterRoleBindings().Get(self.Context, self.NamePrefix, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
-}
-
-func (self *Client) createOperatorDeployment(site string, registry string, serviceAccount *core.ServiceAccount, replicas int32) (*apps.Deployment, error) {
+func (self *Client) createOperatorDeployment(site string, registryAddress string, serviceAccount *core.ServiceAccount, replicas int32) (*apps.Deployment, error) {
 	appName := fmt.Sprintf("%s-operator", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+	labels := self.Labels(appName, "operator", self.Namespace)
 
 	deployment := &apps.Deployment{
 		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "operator",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
+			Name:   appName,
+			Labels: labels,
 		},
 		Spec: apps.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &meta.LabelSelector{
-				MatchLabels: map[string]string{
-					"app.kubernetes.io/name":      appName,
-					"app.kubernetes.io/instance":  instanceName,
-					"app.kubernetes.io/version":   version.GitVersion,
-					"app.kubernetes.io/component": "operator",
-				},
+				MatchLabels: labels,
 			},
 			Template: core.PodTemplateSpec{
 				ObjectMeta: meta.ObjectMeta{
-					Labels: map[string]string{
-						"app.kubernetes.io/name":       appName,
-						"app.kubernetes.io/instance":   instanceName,
-						"app.kubernetes.io/version":    version.GitVersion,
-						"app.kubernetes.io/component":  "operator",
-						"app.kubernetes.io/part-of":    self.PartOf,
-						"app.kubernetes.io/managed-by": self.ManagedBy,
-					},
+					Labels: labels,
 				},
 				Spec: core.PodSpec{
 					ServiceAccountName: serviceAccount.Name,
 					Containers: []core.Container{
 						{
 							Name:            "operator",
-							Image:           fmt.Sprintf("%s/%s", registry, self.OperatorImageName),
+							Image:           fmt.Sprintf("%s/%s", registryAddress, self.OperatorImageName),
 							ImagePullPolicy: core.PullAlways,
 							VolumeMounts: []core.VolumeMount{
 								{
@@ -366,7 +322,7 @@ func (self *Client) createOperatorDeployment(site string, registry string, servi
 					Volumes: []core.Volume{
 						{
 							Name:         "cache",
-							VolumeSource: self.CreateVolumeSource("1Gi"),
+							VolumeSource: self.VolumeSource("1Gi"),
 						},
 					},
 				},

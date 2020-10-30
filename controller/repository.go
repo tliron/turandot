@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (self *Controller) PublishOnRepository(imageName string, sourceUrl string, repositoryAddress string, urlContext *urlpkg.Context) (string, error) {
+func (self *Controller) PublishOnRepository(artifactName string, sourceUrl string, repositoryAddress string, urlContext *urlpkg.Context) (string, error) {
 	if sourceUrl_, err := urlpkg.NewURL(sourceUrl, urlContext); err == nil {
 		opener := func() (io.ReadCloser, error) {
 			if reader, err := sourceUrl_.Open(); err == nil {
@@ -24,24 +24,24 @@ func (self *Controller) PublishOnRepository(imageName string, sourceUrl string, 
 			}
 		}
 
-		self.Log.Infof("publishing image %q at %q on %q", imageName, sourceUrl_, repositoryAddress)
+		self.Log.Infof("publishing image %q at %q on %q", artifactName, sourceUrl_, repositoryAddress)
 
-		name := fmt.Sprintf("%s/%s", repositoryAddress, imageName)
+		tag := fmt.Sprintf("%s/%s", repositoryAddress, artifactName)
 
 		if contentTag, err := namepkg.NewTag("portable"); err == nil {
-			if tag, err := namepkg.NewTag(name); err == nil {
+			if tag_, err := namepkg.NewTag(tag); err == nil {
 				if image, err := tarball.Image(opener, &contentTag); err == nil {
 					repositoryAddress_ := strings.SplitN(repositoryAddress, ":", 2)
 					httpRoundTripper := urlContext.GetHTTPRoundTripper(repositoryAddress_[0])
 					if httpRoundTripper != nil {
-						err = remote.Write(tag, image, remote.WithTransport(httpRoundTripper))
+						err = remote.Write(tag_, image, remote.WithTransport(httpRoundTripper))
 					} else {
-						err = remote.Write(tag, image)
+						err = remote.Write(tag_, image)
 					}
 
 					if err == nil {
-						self.Log.Infof("published image %q at %q on %q", imageName, sourceUrl_, repositoryAddress)
-						return name, nil
+						self.Log.Infof("published image %q at %q on %q", tag, sourceUrl_, repositoryAddress)
+						return tag, nil
 					} else {
 						return "", err
 					}

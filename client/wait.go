@@ -91,6 +91,16 @@ func (self *Client) WaitForDeployment(namespace string, appName string) (*apps.D
 	}
 }
 
+func (self *Client) WaitForDeletion(name string, condition func() bool) {
+	err := waitpkg.PollImmediate(time.Second, timeout, func() (bool, error) {
+		self.Log.Infof("waiting for %s to delete", name)
+		return !condition(), nil
+	})
+	if err != nil {
+		self.Log.Warningf("error while waiting for %s to delete: %s", name, err.Error())
+	}
+}
+
 // TODO: not used
 /*
 func (self *Client) waitForPodContainers(appName string, deployment *apps.Deployment) error {

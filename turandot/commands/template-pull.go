@@ -35,7 +35,7 @@ func PullServiceTemplate(serviceTemplateName string, path string) {
 	util.FailOnError(err)
 	defer file.Close()
 
-	imageName := clientpkg.RepositoryImageNameForServiceTemplateName(serviceTemplateName)
-	err = spoolerCommand.PullTarball(imageName, file)
+	artifactName := clientpkg.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	err = spoolerCommand.PullTarball(artifactName, file)
 	util.FailOnError(err)
 }

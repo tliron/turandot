@@ -78,7 +78,7 @@ func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*
 			Volumes: []core.Volume{
 				{
 					Name:         "spool",
-					VolumeSource: self.CreateVolumeSource("1Gi"),
+					VolumeSource: self.VolumeSource("1Gi"),
 				},
 			},
 		},

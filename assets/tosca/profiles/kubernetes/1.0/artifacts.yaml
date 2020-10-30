@@ -2,18 +2,18 @@ tosca_definitions_version: tosca_simple_yaml_1_3
 
 artifact_types:
 
-  Spec:
+  Manifest:
     description: >-
-      Object specification
+      Kubernetes resource manifest
     file_ext: [ yaml, yml, json ]
 
-  Image:
+  Repository:
     description: >-
-      Inventory image
+      Artifact stored in a repository
     properties:
-      tag:
+      name:
         description: >-
-          Tag of image on registry
+          Name of artifact in repository
         type: string
       repository:
         description: >-
@@ -24,5 +24,5 @@ artifact_types:
   ContainerImage:
     description: >-
       OCI container image
-    derived_from: Image
+    derived_from: Repository
     file_ext: [ tar, tar.gz, tgz ]

@@ -12,7 +12,7 @@ func init() {
 	templateCommand.AddCommand(templateRegisterCommand)
 	templateRegisterCommand.Flags().StringVarP(&repository, "repository", "p", "default", "name of repository")
 	templateRegisterCommand.Flags().StringVarP(&filePath, "file", "f", "", "path to a local CSAR or TOSCA YAML file (will be uploaded)")
-	templateRegisterCommand.Flags().StringVarP(&directoryPath, "directory", "d", "", "path to a local directory of TOSCA YAML files (will be uploaded)")
+	templateRegisterCommand.Flags().StringVarP(&directoryPath, "directory", "d", "", "path to a local directory of TOSCA YAML files (will be packed into a CSAR and uploaded)")
 }
 
 var templateRegisterCommand = &cobra.Command{
@@ -45,8 +45,8 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		util.FailOnError(err)
 		spooler := turandot.Spooler(repository_)
 
-		imageName := clientpkg.RepositoryImageNameForServiceTemplateName(serviceTemplateName)
-		err = tools.PublishOnRegistry(imageName, url, spooler)
+		artifactName := clientpkg.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+		err = tools.PublishOnRegistry(artifactName, url, spooler)
 		util.FailOnError(err)
 	} else if directoryPath != "" {
 		if (filePath != "") || (url != "") {

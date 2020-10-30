@@ -88,7 +88,7 @@ topology_template:
           type: k8s:ContainerImage
           file: artifacts/images/asterisk-cnf.tar.gz
           properties:
-            tag: asterisk-cnf
+            name: asterisk-cnf
         configure.sh:
           type: o11n:Executable
           file: artifacts/scripts/asterisk/configure-cnf.sh

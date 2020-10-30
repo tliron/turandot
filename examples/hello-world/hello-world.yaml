@@ -109,8 +109,8 @@ topology_template:
           # (You can use the included "save-portable-container-image" script to create it)
           file: artifacts/images/hello-world.tar.gz
           properties:
-            # The tag is required for publishing the image
-            tag: hello-world
+            # The name is required for publishing the artifact
+            name: hello-world
         configure:
           # The Executable type will set executable permissions on the file
           type: o11n:Executable

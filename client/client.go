@@ -57,16 +57,3 @@ func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensi
 		Log:                        logging.MustGetLogger(loggerName),
 	}
 }
-
-func (self *Client) EnsureCertManager() error {
-	if self.CertManager == nil {
-		var err error
-		if self.CertManager, err = certmanagerpkg.NewForConfig(self.Config); err == nil {
-			return nil
-		} else {
-			return err
-		}
-	} else {
-		return nil
-	}
-}

@@ -133,7 +133,7 @@ topology_template:
           type: k8s:ContainerImage
           file: artifacts/images/asterisk-vnf.tar.gz
           properties:
-            tag: asterisk-vnf
+            name: asterisk-vnf
         cloudConfig:
           type: kubevirt:CloudConfig
           file: artifacts/cloud-config/asterisk-vnf.yaml

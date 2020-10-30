@@ -172,27 +172,27 @@ func (self *Client) GetRepositoryHTTPRoundTripper(repository *resources.Reposito
 	}
 }
 
-func (self *Client) GetRepositoryURLForCSAR(repository *resources.Repository, imageName string) (string, error) {
+func (self *Client) GetRepositoryURLForCSAR(repository *resources.Repository, artifactName string) (string, error) {
 	if address, err := self.GetRepositoryAddress(repository); err == nil {
-		return fmt.Sprintf("docker://%s/%s?format=csar", address, imageName), nil
+		return fmt.Sprintf("docker://%s/%s?format=csar", address, artifactName), nil
 	} else {
 		return "", err
 	}
 }
 
 func (self *Client) GetRepositoryServiceTemplateURL(repository *resources.Repository, serviceTemplateName string) (string, error) {
-	return self.GetRepositoryURLForCSAR(repository, RepositoryImageNameForServiceTemplateName(serviceTemplateName))
+	return self.GetRepositoryURLForCSAR(repository, RepositoryArtifactNameForServiceTemplateName(serviceTemplateName))
 }
 
 // Utils
 
-func RepositoryImageNameForServiceTemplateName(serviceTemplateName string) string {
+func RepositoryArtifactNameForServiceTemplateName(serviceTemplateName string) string {
 	return fmt.Sprintf("%s%s", serviceTemplateImageNamePrefix, serviceTemplateName)
 }
 
-func ServiceTemplateNameForRepositoryImageName(imageName string) (string, bool) {
-	if strings.HasPrefix(imageName, serviceTemplateImageNamePrefix) {
-		return imageName[len(serviceTemplateImageNamePrefix):], true
+func ServiceTemplateNameForRepositoryArtifactName(artifactName string) (string, bool) {
+	if strings.HasPrefix(artifactName, serviceTemplateImageNamePrefix) {
+		return artifactName[len(serviceTemplateImageNamePrefix):], true
 	} else {
 		return "", false
 	}

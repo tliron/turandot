@@ -38,11 +38,11 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) ListServicesForImage(repositoryName string, imageName string, urlContext *urlpkg.Context) ([]string, error) {
+func (self *Client) ListServicesForArtifact(repositoryName string, artifactName string, urlContext *urlpkg.Context) ([]string, error) {
 	if services, err := self.ListServices(); err == nil {
 		var serviceNames []string
 		for _, service := range services.Items {
-			if (service.Spec.ServiceTemplate.Indirect.Repository == repositoryName) && (service.Spec.ServiceTemplate.Indirect.Name == imageName) {
+			if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Repository == repositoryName) && (service.Spec.ServiceTemplate.Indirect.Name == artifactName) {
 				serviceNames = append(serviceNames, service.Name)
 			}
 		}
@@ -84,7 +84,7 @@ func (self *Client) CreateServiceDirect(namespace string, serviceName string, ur
 	return self.createService(namespace, serviceName, service)
 }
 
-func (self *Client) CreateServiceIndirect(namespace string, serviceName string, repositoryName string, imageName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceIndirect(namespace string, serviceName string, repositoryName string, artifactName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -106,7 +106,7 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 			ServiceTemplate: resources.ServiceTemplate{
 				Indirect: &resources.ServiceTemplateIndirect{
 					Repository: repositoryName,
-					Name:       imageName,
+					Name:       artifactName,
 				},
 			},
 			Inputs: inputs_,
@@ -126,15 +126,15 @@ func (self *Client) CreateServiceFromURL(namespace string, serviceName string, u
 }
 
 func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, repository *resources.Repository, serviceTemplateName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
-	imageName := RepositoryImageNameForServiceTemplateName(serviceTemplateName)
-	return self.CreateServiceIndirect(namespace, serviceName, repository.Name, imageName, inputs, mode)
+	artifactName := RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	return self.CreateServiceIndirect(namespace, serviceName, repository.Name, artifactName, inputs, mode)
 }
 
 func (self *Client) CreateServiceFromContent(namespace string, serviceName string, repository *resources.Repository, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	serviceTemplateName := uuid.New().String()
-	imageName := RepositoryImageNameForServiceTemplateName(serviceTemplateName)
-	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
-		return self.CreateServiceIndirect(namespace, serviceName, repository.Name, imageName, inputs, mode)
+	artifactName := RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	if err := tools.PublishOnRegistry(artifactName, url, spooler); err == nil {
+		return self.CreateServiceIndirect(namespace, serviceName, repository.Name, artifactName, inputs, mode)
 	} else {
 		return nil, err
 	}
@@ -152,7 +152,11 @@ func (self *Client) createService(namespace string, serviceName string, service 
 
 func (self *Client) GetServiceRepository(service *resources.Service) (*resources.Repository, error) {
 	if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Repository != "") {
-		return self.GetRepository(service.Namespace, service.Spec.ServiceTemplate.Indirect.Repository)
+		namespace := service.Spec.ServiceTemplate.Indirect.Namespace
+		if namespace == "" {
+			namespace = service.Namespace
+		}
+		return self.GetRepository(namespace, service.Spec.ServiceTemplate.Indirect.Repository)
 	} else {
 		return nil, nil
 	}

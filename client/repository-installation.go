@@ -5,28 +5,26 @@ import (
 
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	certmanagermeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
-	"github.com/tliron/kutil/version"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (self *Client) InstallRepository(registry string, secure bool, wait bool) error {
+func (self *Client) InstallRepository(registryAddress string, secure bool, wait bool) error {
 	var err error
 
-	if registry, err = self.GetRegistry(registry); err != nil {
+	if registryAddress, err = self.GetRegistryAddress(registryAddress); err != nil {
 		return err
 	}
 
 	var serviceAccount *core.ServiceAccount
-	if serviceAccount, err = self.getServiceAccount(); err != nil {
+	if serviceAccount, err = self.GetOperatorServiceAccount(); err != nil {
 		return err
 	}
 
 	var repositoryDeployment *apps.Deployment
-	if repositoryDeployment, err = self.createRepositoryDeployment(registry, serviceAccount, 1, secure); err != nil {
+	if repositoryDeployment, err = self.createRepositoryDeployment(registryAddress, serviceAccount, 1, secure); err != nil {
 		return err
 	}
 
@@ -36,7 +34,7 @@ func (self *Client) InstallRepository(registry string, secure bool, wait bool) e
 	}
 
 	if secure {
-		if err = self.EnsureCertManager(); err != nil {
+		if err = self.GetCertManager(); err != nil {
 			self.Log.Warningf("%s", err.Error())
 		}
 
@@ -77,7 +75,7 @@ func (self *Client) UninstallRepository(wait bool) {
 		self.Log.Warningf("%s", err)
 	}
 
-	if err := self.EnsureCertManager(); err != nil {
+	if err := self.GetCertManager(); err != nil {
 		self.Log.Warningf("%s", err.Error())
 	}
 
@@ -121,52 +119,33 @@ func (self *Client) UninstallRepository(wait bool) {
 	}
 }
 
-func (self *Client) createRepositoryDeployment(registry string, serviceAccount *core.ServiceAccount, replicas int32, secure bool) (*apps.Deployment, error) {
+func (self *Client) createRepositoryDeployment(registryAddress string, serviceAccount *core.ServiceAccount, replicas int32, secure bool) (*apps.Deployment, error) {
 	// https://hub.docker.com/_/registry
 	// https://github.com/ContainerSolutions/trow
 	// https://github.com/google/go-containerregistry
 
 	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+	labels := self.Labels(appName, "repository", self.Namespace)
 
 	deployment := &apps.Deployment{
 		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "repository",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
+			Name:   appName,
+			Labels: labels,
 		},
 		Spec: apps.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &meta.LabelSelector{
-				MatchLabels: map[string]string{
-					"app.kubernetes.io/name":      appName,
-					"app.kubernetes.io/instance":  instanceName,
-					"app.kubernetes.io/version":   version.GitVersion,
-					"app.kubernetes.io/component": "repository",
-				},
+				MatchLabels: labels,
 			},
 			Template: core.PodTemplateSpec{
 				ObjectMeta: meta.ObjectMeta{
-					Labels: map[string]string{
-						"app.kubernetes.io/name":       appName,
-						"app.kubernetes.io/instance":   instanceName,
-						"app.kubernetes.io/version":    version.GitVersion,
-						"app.kubernetes.io/component":  "repository",
-						"app.kubernetes.io/part-of":    self.PartOf,
-						"app.kubernetes.io/managed-by": self.ManagedBy,
-					},
+					Labels: labels,
 				},
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
 							Name:            "registry",
-							Image:           fmt.Sprintf("%s/%s", registry, self.RepositoryImageName),
+							Image:           fmt.Sprintf("%s/%s", registryAddress, self.RepositoryImageName),
 							ImagePullPolicy: core.PullAlways,
 							VolumeMounts: []core.VolumeMount{
 								{
@@ -201,7 +180,7 @@ func (self *Client) createRepositoryDeployment(registry string, serviceAccount *
 					Volumes: []core.Volume{
 						{
 							Name:         "registry",
-							VolumeSource: self.CreateVolumeSource("1Gi"),
+							VolumeSource: self.VolumeSource("1Gi"),
 						},
 					},
 				},
@@ -245,28 +224,16 @@ func (self *Client) createRepositoryDeployment(registry string, serviceAccount *
 
 func (self *Client) createRepositoryService() (*core.Service, error) {
 	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
+	labels := self.Labels(appName, "repository", self.Namespace)
 
 	service := &core.Service{
 		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "repository",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
+			Name:   appName,
+			Labels: labels,
 		},
 		Spec: core.ServiceSpec{
-			Type: core.ServiceTypeClusterIP,
-			Selector: map[string]string{
-				"app.kubernetes.io/name":      appName,
-				"app.kubernetes.io/instance":  instanceName,
-				"app.kubernetes.io/version":   version.GitVersion,
-				"app.kubernetes.io/component": "repository",
-			},
+			Type:     core.ServiceTypeClusterIP,
+			Selector: labels,
 			Ports: []core.ServicePort{
 				{
 					Name:       "registry",
@@ -278,31 +245,16 @@ func (self *Client) createRepositoryService() (*core.Service, error) {
 		},
 	}
 
-	if service, err := self.Kubernetes.CoreV1().Services(self.Namespace).Create(self.Context, service, meta.CreateOptions{}); err == nil {
-		return service, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.Kubernetes.CoreV1().Services(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
+	return self.CreateService(service)
 }
 
 func (self *Client) createRepositoryCertificateIssuer() (*certmanager.Issuer, error) {
 	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
 
 	issuer := &certmanager.Issuer{
 		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "certificate-issuer",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
+			Name:   appName,
+			Labels: self.Labels(appName, "repository", self.Namespace),
 		},
 		Spec: certmanager.IssuerSpec{
 			IssuerConfig: certmanager.IssuerConfig{
@@ -311,33 +263,17 @@ func (self *Client) createRepositoryCertificateIssuer() (*certmanager.Issuer, er
 		},
 	}
 
-	if issuer, err := self.CertManager.CertmanagerV1().Issuers(self.Namespace).Create(self.Context, issuer, meta.CreateOptions{}); err == nil {
-		return issuer, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.CertManager.CertmanagerV1().Issuers(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
+	return self.CreateCertificateIssuer(issuer)
 }
 
 func (self *Client) createRepositoryCertificate(issuer *certmanager.Issuer, service *core.Service) (*certmanager.Certificate, error) {
 	appName := fmt.Sprintf("%s-repository", self.NamePrefix)
-	instanceName := fmt.Sprintf("%s-%s", appName, self.Namespace)
-
 	ipAddress := service.Spec.ClusterIP
 
 	certificate := &certmanager.Certificate{
 		ObjectMeta: meta.ObjectMeta{
-			Name: appName,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       appName,
-				"app.kubernetes.io/instance":   instanceName,
-				"app.kubernetes.io/version":    version.GitVersion,
-				"app.kubernetes.io/component":  "certificate",
-				"app.kubernetes.io/part-of":    self.PartOf,
-				"app.kubernetes.io/managed-by": self.ManagedBy,
-			},
+			Name:   appName,
+			Labels: self.Labels(appName, "repository", self.Namespace),
 		},
 		Spec: certmanager.CertificateSpec{
 			SecretName:  appName,
@@ -349,14 +285,7 @@ func (self *Client) createRepositoryCertificate(issuer *certmanager.Issuer, serv
 		},
 	}
 
-	if certificate, err := self.CertManager.CertmanagerV1().Certificates(self.Namespace).Create(self.Context, certificate, meta.CreateOptions{}); err == nil {
-		return certificate, nil
-	} else if errors.IsAlreadyExists(err) {
-		self.Log.Infof("%s", err.Error())
-		return self.CertManager.CertmanagerV1().Certificates(self.Namespace).Get(self.Context, appName, meta.GetOptions{})
-	} else {
-		return nil, err
-	}
+	return self.CreateCertificate(certificate)
 }
 
 /*

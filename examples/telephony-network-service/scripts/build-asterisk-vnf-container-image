@@ -11,8 +11,8 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 # https://alt.fedoraproject.org/cloud/
 
 BASE_IMAGE=scratch
-DISK_NAME=Fedora-Cloud-Base-32-1.6.x86_64.qcow2
-URL=https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/$DISK_NAME
+DISK_NAME=Fedora-Cloud-Base-33-1.2.x86_64.qcow2
+URL=https://download.fedoraproject.org/pub/fedora/linux/releases/33/Cloud/x86_64/images/$DISK_NAME
 DISK=$TMPDIR/$DISK_NAME
 IMAGE=asterisk-vnf
 LOCAL=localhost/$IMAGE
