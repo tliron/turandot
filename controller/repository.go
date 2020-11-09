@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"io"
-	"strings"
 
 	namepkg "github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -14,34 +13,33 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (self *Controller) PublishOnRepository(artifactName string, sourceUrl string, repositoryAddress string, urlContext *urlpkg.Context) (string, error) {
-	if sourceUrl_, err := urlpkg.NewURL(sourceUrl, urlContext); err == nil {
-		opener := func() (io.ReadCloser, error) {
-			if reader, err := sourceUrl_.Open(); err == nil {
-				return gzip.NewReader(reader)
-			} else {
-				return nil, err
-			}
-		}
+func (self *Controller) PublishOnRepository(artifactName string, sourceUrl string, repository *resources.Repository, urlContext *urlpkg.Context) (string, error) {
+	if repositoryHost, err := self.Client.GetRepositoryHost(repository); err == nil {
+		if options, err := self.Client.GetRepositoryRemoteOptions(repository); err == nil {
+			if sourceUrl_, err := urlpkg.NewURL(sourceUrl, urlContext); err == nil {
+				self.Log.Infof("publishing image %q at %q on %q", artifactName, sourceUrl_, repositoryHost)
 
-		self.Log.Infof("publishing image %q at %q on %q", artifactName, sourceUrl_, repositoryAddress)
-
-		tag := fmt.Sprintf("%s/%s", repositoryAddress, artifactName)
-
-		if contentTag, err := namepkg.NewTag("portable"); err == nil {
-			if tag_, err := namepkg.NewTag(tag); err == nil {
-				if image, err := tarball.Image(opener, &contentTag); err == nil {
-					repositoryAddress_ := strings.SplitN(repositoryAddress, ":", 2)
-					httpRoundTripper := urlContext.GetHTTPRoundTripper(repositoryAddress_[0])
-					if httpRoundTripper != nil {
-						err = remote.Write(tag_, image, remote.WithTransport(httpRoundTripper))
+				opener := func() (io.ReadCloser, error) {
+					if reader, err := sourceUrl_.Open(); err == nil {
+						return gzip.NewReader(reader)
 					} else {
-						err = remote.Write(tag_, image)
+						return nil, err
 					}
+				}
 
-					if err == nil {
-						self.Log.Infof("published image %q at %q on %q", tag, sourceUrl_, repositoryAddress)
-						return tag, nil
+				if contentTag, err := namepkg.NewTag("portable"); err == nil {
+					tag := fmt.Sprintf("%s/%s", repositoryHost, artifactName)
+					if tag_, err := namepkg.NewTag(tag); err == nil {
+						if image, err := tarball.Image(opener, &contentTag); err == nil {
+							if err := remote.Write(tag_, image, options...); err == nil {
+								self.Log.Infof("published image %q at %q on %q", tag, sourceUrl_, repositoryHost)
+								return tag, nil
+							} else {
+								return "", err
+							}
+						} else {
+							return "", err
+						}
 					} else {
 						return "", err
 					}

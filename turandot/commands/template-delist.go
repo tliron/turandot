@@ -3,7 +3,6 @@ package commands
 import (
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/util"
-	clientpkg "github.com/tliron/turandot/client"
 )
 
 func init() {
@@ -32,7 +31,7 @@ func DelistServiceTemplate(serviceTemplateName string) {
 	util.FailOnError(err)
 	spooler := turandot.Spooler(repository_)
 
-	artifactName := clientpkg.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	artifactName := turandot.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
 	err = spooler.Delete(artifactName)
 	util.FailOnError(err)
 }

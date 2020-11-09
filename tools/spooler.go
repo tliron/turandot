@@ -5,7 +5,6 @@ import (
 
 	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
 	urlpkg "github.com/tliron/kutil/url"
-	"github.com/tliron/kutil/util"
 )
 
 func PublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
@@ -51,6 +50,7 @@ func PullLayerFromRegistry(imageName string, writer io.Writer, spooler *spoolerp
 }
 */
 
+/*
 // TODO: unused. unnecessary?
 func TarAndPublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
 	reader, err := url.Open()
@@ -85,3 +85,4 @@ func TarAndPublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerp
 		return err
 	}
 }
+*/

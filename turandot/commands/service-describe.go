@@ -43,8 +43,14 @@ func DescribeService(serviceName string) {
 			if service.Spec.ServiceTemplate.Direct.URL != "" {
 				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("URL"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.URL))
 			}
-			if service.Spec.ServiceTemplate.Direct.Secret != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Secret"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.Secret))
+			if service.Spec.ServiceTemplate.Direct.TLSSecret != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("TLSSecret"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.TLSSecret))
+			}
+			if service.Spec.ServiceTemplate.Direct.TLSSecretDataKey != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("TLSSecretDataKey"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.TLSSecretDataKey))
+			}
+			if service.Spec.ServiceTemplate.Direct.AuthSecret != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("AuthSecret"), terminal.ColorValue(service.Spec.ServiceTemplate.Direct.AuthSecret))
 			}
 		}
 

@@ -41,7 +41,7 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 			}
 
 			var remoteRepository *resources.Repository
-			if remoteRepository, err = remoteClient.CreateRepositoryIndirect(namespace, "default", "", "turandot-repository", 5000, "turandot-repository"); err != nil {
+			if remoteRepository, err = remoteClient.CreateRepositoryIndirect(namespace, "default", "", "turandot-repository", 5000, "turandot-repository", "", ""); err != nil {
 				return err
 			}
 

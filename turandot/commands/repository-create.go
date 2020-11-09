@@ -1,25 +1,31 @@
 package commands
 
 import (
+	contextpkg "context"
+
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/util"
+	core "k8s.io/api/core/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var address string
+var host string
 var serviceNamespace string
 var service string
 var port uint64
+var tlsSecret string
+var tlsSecretDataKey string
 var provider string
-var secret string
 
 func init() {
 	repositoryCommand.AddCommand(repositoryCreateCommand)
-	repositoryCreateCommand.Flags().StringVarP(&url, "address", "a", "", "registry address (\"host\" or \"host:port\")")
+	repositoryCreateCommand.Flags().StringVarP(&host, "host", "", "", "registry host (\"host\" or \"host:port\")")
 	repositoryCreateCommand.Flags().StringVarP(&serviceNamespace, "service-namespace", "", "", "registry service namespace name (defaults to repository namespace)")
-	repositoryCreateCommand.Flags().StringVarP(&service, "service", "s", "", "registry service name")
-	repositoryCreateCommand.Flags().Uint64VarP(&port, "port", "p", 5000, "registry service port")
-	repositoryCreateCommand.Flags().StringVarP(&provider, "provider", "d", "", "registry provider (\"turandot\", \"minikube\", or \"openshift\")")
-	repositoryCreateCommand.Flags().StringVarP(&secret, "secret", "t", "", "registry TLS secret name")
+	repositoryCreateCommand.Flags().StringVarP(&service, "service", "", "", "registry service name")
+	repositoryCreateCommand.Flags().Uint64VarP(&port, "port", "", 5000, "registry service port")
+	repositoryCreateCommand.Flags().StringVarP(&tlsSecret, "tls-secret", "", "", "registry TLS secret name")
+	repositoryCreateCommand.Flags().StringVarP(&tlsSecretDataKey, "tls-secret-data-key", "", "", "registry TLS secret data key name")
+	repositoryCreateCommand.Flags().StringVarP(&provider, "provider", "", "", "registry provider (\"turandot\", \"minikube\", or \"openshift\")")
 	repositoryCreateCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for registry spooler to come up")
 }
 
@@ -29,29 +35,32 @@ var repositoryCreateCommand = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repositoryName := args[0]
+		var authSecret string
 
-		if (url == "") && (service == "") && (provider == "") {
+		if (host == "") && (service == "") && (provider == "") {
 			failRepositoryCreate()
 		}
 
-		if url != "" {
+		client := NewClient()
+
+		if host != "" {
 			if (service != "") || (provider != "") {
 				failRepositoryCreate()
 			}
 		} else if service != "" {
-			if (url != "") || (provider != "") {
+			if (host != "") || (provider != "") {
 				failRepositoryCreate()
 			}
 		} else if provider != "" {
-			if (url != "") || (service != "") {
+			if (host != "") || (service != "") {
 				failRepositoryCreate()
 			}
 
 			switch provider {
 			case "turandot":
 				service = "turandot-repository"
-				if secret == "" {
-					secret = "turandot-repository"
+				if tlsSecret == "" {
+					tlsSecret = "turandot-repository"
 				}
 
 			case "minikube":
@@ -64,20 +73,41 @@ var repositoryCreateCommand = &cobra.Command{
 				port = 80
 
 			case "openshift":
-			// TODO
+				host = "image-registry.openshift-image-registry.svc:5000"
+				if (tlsSecret == "") || (authSecret == "") {
+					// We will use the "builder" service account's service-ca certificate and auth token
+					serviceAccount, err := client.Kubernetes.CoreV1().ServiceAccounts(client.Namespace).Get(contextpkg.TODO(), "builder", meta.GetOptions{})
+					util.FailOnError(err)
+					for _, secretName := range serviceAccount.Secrets {
+						secret, err := client.Kubernetes.CoreV1().Secrets(client.Namespace).Get(contextpkg.TODO(), secretName.Name, meta.GetOptions{})
+						util.FailOnError(err)
+						if secret.Type == core.SecretTypeServiceAccountToken {
+							if tlsSecret == "" {
+								tlsSecret = secret.Name
+							}
+							if tlsSecretDataKey == "" {
+								tlsSecretDataKey = "service-ca.crt"
+							}
+							if authSecret == "" {
+								authSecret = secret.Name
+							}
+							break
+						}
+					}
+				}
 
 			default:
 				util.Fail("unsupported \"--provider\": must be \"turandot\", \"minikube\", or \"openshift\"")
 			}
 		}
 
-		turandotClient := NewClient().Turandot()
+		turandotClient := client.Turandot()
 
 		var err error
 		if service != "" {
-			_, err = turandotClient.CreateRepositoryIndirect(namespace, repositoryName, serviceNamespace, service, port, secret)
+			_, err = turandotClient.CreateRepositoryIndirect(namespace, repositoryName, serviceNamespace, service, port, tlsSecret, tlsSecretDataKey, authSecret)
 		} else {
-			_, err = turandotClient.CreateRepositoryDirect(namespace, repositoryName, url, secret)
+			_, err = turandotClient.CreateRepositoryDirect(namespace, repositoryName, host, tlsSecret, tlsSecretDataKey, authSecret)
 		}
 		util.FailOnError(err)
 

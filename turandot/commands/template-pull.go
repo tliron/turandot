@@ -5,7 +5,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/util"
-	clientpkg "github.com/tliron/turandot/client"
 )
 
 func init() {
@@ -35,7 +34,7 @@ func PullServiceTemplate(serviceTemplateName string, path string) {
 	util.FailOnError(err)
 	defer file.Close()
 
-	artifactName := clientpkg.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	artifactName := turandot.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
 	err = spoolerCommand.PullTarball(artifactName, file)
 	util.FailOnError(err)
 }

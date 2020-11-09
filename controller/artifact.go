@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+
 	urlpkg "github.com/tliron/kutil/url"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
@@ -12,17 +14,12 @@ func (self *Controller) publishArtifactsToRepository(artifacts parser.Kubernetes
 
 		for _, artifact := range artifacts {
 			if repository, err := self.Client.GetRepository(service.Namespace, artifact.Repository); err == nil {
-				if repositoryAddress, err := self.Client.GetRepositoryAddress(repository); err == nil {
-					if host, roundTripper, err := self.Client.GetRepositoryHTTPRoundTripper(repository); err == nil {
-						if roundTripper != nil {
-							urlContext.SetHTTPRoundTripper(host, roundTripper)
-						}
+				if err := self.Client.UpdateRepositoryURLContext(repository, urlContext); err == nil {
+					// Note: OpenShift registry permissions require the namespace as the tag category
+					artifactName := fmt.Sprintf("%s/%s", service.Namespace, artifact.Name)
 
-						if name, err := self.PublishOnRepository(artifact.Name, artifact.SourcePath, repositoryAddress, urlContext); err == nil {
-							artifactMappings[artifact.SourcePath] = name
-						} else {
-							return nil, err
-						}
+					if name, err := self.PublishOnRepository(artifactName, artifact.SourcePath, repository, urlContext); err == nil {
+						artifactMappings[artifact.SourcePath] = name
 					} else {
 						return nil, err
 					}

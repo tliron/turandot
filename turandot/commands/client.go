@@ -16,10 +16,10 @@ import (
 //
 
 type Client struct {
-	config     *restpkg.Config
-	kubernetes kubernetespkg.Interface
-	rest       restpkg.Interface
-	namespace  string
+	Config     *restpkg.Config
+	Kubernetes kubernetespkg.Interface
+	REST       restpkg.Interface
+	Namespace  string
 }
 
 func NewClient() *Client {
@@ -42,28 +42,28 @@ func NewClient() *Client {
 	}
 
 	return &Client{
-		config:     config,
-		kubernetes: kubernetes,
-		rest:       kubernetes.CoreV1().RESTClient(),
-		namespace:  namespace_,
+		Config:     config,
+		Kubernetes: kubernetes,
+		REST:       kubernetes.CoreV1().RESTClient(),
+		Namespace:  namespace_,
 	}
 }
 
 func (self *Client) Turandot() *clientpkg.Client {
-	apiExtensions, err := apiextensionspkg.NewForConfig(self.config)
+	apiExtensions, err := apiextensionspkg.NewForConfig(self.Config)
 	util.FailOnError(err)
 
-	turandot, err := turandotpkg.NewForConfig(self.config)
+	turandot, err := turandotpkg.NewForConfig(self.Config)
 	util.FailOnError(err)
 
 	return clientpkg.NewClient(
-		self.kubernetes,
+		self.Kubernetes,
 		apiExtensions,
 		turandot,
-		self.rest,
-		self.config,
+		self.REST,
+		self.Config,
 		cluster,
-		self.namespace,
+		self.Namespace,
 		controller.NamePrefix,
 		controller.PartOf,
 		controller.ManagedBy,

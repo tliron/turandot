@@ -40,14 +40,16 @@ type Repository struct {
 }
 
 type RepositorySpec struct {
-	Type     RepositoryType      `json:"type"`               // Repository type
-	Direct   *RepositoryDirect   `json:"direct,omitempty"`   // Direct reference to repository
-	Indirect *RepositoryIndirect `json:"indirect,omitempty"` // Indirect reference to repository
-	Secret   string              `json:"secret,omitempty"`   // Name of TLS Secret required for connecting to the repository (optional)
+	Type             RepositoryType      `json:"type"`                       // Repository type
+	Direct           *RepositoryDirect   `json:"direct,omitempty"`           // Direct reference to repository
+	Indirect         *RepositoryIndirect `json:"indirect,omitempty"`         // Indirect reference to repository
+	TLSSecret        string              `json:"tlsSecret,omitempty"`        // Name of TLS Secret required for connecting to the repository (optional)
+	TLSSecretDataKey string              `json:"tlsSecretDataKey,omitempty"` // Name of key within the TLS Secret data required for connecting to the repository (optional)
+	AuthSecret       string              `json:"authSecret,omitempty"`       // Name of authentication Secret required for connecting to the repository (optional)
 }
 
 type RepositoryDirect struct {
-	Address string `json:"address"` // Repository address (either "host:port" or "host")
+	Host string `json:"host"` // Repository host (either "host:port" or "host")
 }
 
 type RepositoryIndirect struct {
@@ -127,10 +129,10 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 									"direct": {
 										Description: "Direct reference to repository",
 										Type:        "object",
-										Required:    []string{"address"},
+										Required:    []string{"host"},
 										Properties: map[string]apiextensions.JSONSchemaProps{
-											"address": {
-												Description: "Repository address (either \"host:port\" or \"host\")",
+											"host": {
+												Description: "Repository host (either \"host:port\" or \"host\")",
 												Type:        "string",
 											},
 										},
@@ -154,8 +156,16 @@ var RepositoryCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 											},
 										},
 									},
-									"secret": {
+									"tlsSecret": {
 										Description: "Name of TLS Secret required for connecting to the repository (optional)",
+										Type:        "string",
+									},
+									"tlsSecretDataKey": {
+										Description: "Name of key within the TLS Secret data required for connecting to the repository (optional)",
+										Type:        "string",
+									},
+									"authSecret": {
+										Description: "Name of authentication Secret required for connecting to the repository (optional)",
 										Type:        "string",
 									},
 								},
@@ -203,7 +213,7 @@ func RepositoryToARD(repository *Repository) ard.StringMap {
 	map_["Type"] = repository.Spec.Type
 	if repository.Spec.Direct != nil {
 		map_["Direct"] = ard.StringMap{
-			"Address": repository.Spec.Direct.Address,
+			"Host": repository.Spec.Direct.Host,
 		}
 	} else if repository.Spec.Indirect != nil {
 		map_["Indirect"] = ard.StringMap{
@@ -212,7 +222,9 @@ func RepositoryToARD(repository *Repository) ard.StringMap {
 			"Port":      repository.Spec.Indirect.Port,
 		}
 	}
-	map_["Secret"] = repository.Spec.Secret
+	map_["TLSSecret"] = repository.Spec.TLSSecret
+	map_["TLSSecretDataKey"] = repository.Spec.TLSSecretDataKey
+	map_["AuthSecret"] = repository.Spec.AuthSecret
 	map_["SpoolerPod"] = repository.Status.SpoolerPod
 	return map_
 }

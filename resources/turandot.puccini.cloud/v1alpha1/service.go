@@ -60,8 +60,10 @@ type ServiceTemplate struct {
 }
 
 type ServiceTemplateDirect struct {
-	URL    string `json:"url"`              // Full URL of service template (CSAR or YAML file)
-	Secret string `json:"secret,omitempty"` // Name of TLS Secret required for connecting to the URL (optional)
+	URL              string `json:"url"`                        // Full URL of service template (CSAR or YAML file)
+	TLSSecret        string `json:"tlsSecret,omitempty"`        // Name of TLS Secret required for connecting to the URL (optional)
+	TLSSecretDataKey string `json:"tlsSecretDataKey,omitempty"` // Name of key within the TLS Secret data required for connecting to the URL (optional)
+	AuthSecret       string `json:"authSecret,omitempty"`       // Name of authentication Secret required for connecting to the URL (optional)
 }
 
 type ServiceTemplateIndirect struct {
@@ -159,8 +161,16 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 														Description: "Full URL of service template (CSAR or YAML file)",
 														Type:        "string",
 													},
-													"secret": {
+													"tlsSecret": {
 														Description: "Name of TLS Secret required for connecting to the URL (optional)",
+														Type:        "string",
+													},
+													"tlsSecretDataKey": {
+														Description: "Name of key within the TLS Secret data required for connecting to the repository (optional)",
+														Type:        "string",
+													},
+													"authSecret": {
+														Description: "Name of authentication Secret required for connecting to the URL (optional)",
 														Type:        "string",
 													},
 												},
@@ -316,8 +326,10 @@ func ServiceToARD(service *Service) ard.StringMap {
 	if service.Spec.ServiceTemplate.Direct != nil {
 		map_["ServiceTemplate"] = ard.StringMap{
 			"Direct": ard.StringMap{
-				"URL":    service.Spec.ServiceTemplate.Direct.URL,
-				"Secret": service.Spec.ServiceTemplate.Direct.Secret,
+				"URL":              service.Spec.ServiceTemplate.Direct.URL,
+				"TLSSecret":        service.Spec.ServiceTemplate.Direct.TLSSecret,
+				"TLSSecretDataKey": service.Spec.ServiceTemplate.Direct.TLSSecretDataKey,
+				"AuthSecret":       service.Spec.ServiceTemplate.Direct.AuthSecret,
 			},
 		}
 	} else if service.Spec.ServiceTemplate.Direct != nil {

@@ -5,13 +5,12 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/../../scripts/_env"
 . "$ROOT/scripts/_trap"
 
-minikube profile edge
-turandot uninstall --namespace=workspace --wait -v
-kubectl delete events --all --namespace=workspace
+# oc login -u kubeadmin ...
 
-oc config use-context crc-admin
-turandot uninstall --namespace=workspace --wait -v
-kubectl delete events --all --namespace=workspace
+oc new-project workspace || true
+turandot operator uninstall --wait -v
+turandot repository uninstall --wait -v
+kubectl delete events --all
 
 if [ "$1" == -b ]; then
 	"$ROOT/scripts/build-container-image"
@@ -19,21 +18,8 @@ if [ "$1" == -b ]; then
 	# Reminder: clean ~/.local/share/containers/ occassionally!
 fi
 
-kubectl config set-context crc-admin --namespace=workspace
-kubectl config set-context edge --namespace=workspace
-
 turandot operator install --site=central --wait -v
-
-turandot service deploy hello-world -f dist/hello-world.csar -v
-turandot service deploy helm-hello-world -f dist/helm-hello-world.csar -v
-
-turandot delegate set edge --delegate-context=edge -v
-
-turandot template register telephony-network-service -f dist/telephony-network-service.csar -v
-turandot template register simple-data-plane -f dist/simple-data-plane.csar -v
-turandot template register asterisk-cnf -f dist/asterisk-cnf.csar -v
-turandot template register asterisk-vnf -f dist/asterisk-vnf.csar -v
-
-turandot service deploy telephony-network-service -t telephony-network-service -i namespace=workspace -v
-
+turandot repository create default --provider=openshift --wait -v
+turandot service deploy hello-world --file=dist/hello-world.csar -v
+turandot service deploy helm-hello-world --file=dist/helm-hello-world.csar -v
 turandot operator logs --follow

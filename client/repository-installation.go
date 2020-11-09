@@ -190,19 +190,19 @@ func (self *Client) createRepositoryDeployment(registryAddress string, serviceAc
 
 	if secure {
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
-			Name:      "secret",
-			MountPath: "/secret",
+			Name:      "tls",
+			MountPath: tlsMountPath,
 			ReadOnly:  true,
 		})
 
 		deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env,
 			core.EnvVar{
 				Name:  "REGISTRY_HTTP_TLS_CERTIFICATE",
-				Value: "/secret/tls.crt",
+				Value: tlsCertificatePath,
 			},
 			core.EnvVar{
 				Name:  "REGISTRY_HTTP_TLS_KEY",
-				Value: "/secret/tls.key",
+				Value: tlsKeyPath,
 			},
 		)
 
@@ -210,7 +210,7 @@ func (self *Client) createRepositoryDeployment(registryAddress string, serviceAc
 		deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.Handler.HTTPGet.Scheme = "HTTPS"
 
 		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, core.Volume{
-			Name: "secret",
+			Name: "tls",
 			VolumeSource: core.VolumeSource{
 				Secret: &core.SecretVolumeSource{
 					SecretName: appName,

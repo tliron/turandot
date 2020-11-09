@@ -11,9 +11,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+const spoolPath = "/spool"
+
+const spoolerContainerName = "spooler"
+
 func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*core.Pod, error) {
 	var address string
-	address, err := self.GetRepositoryAddress(repository)
+	address, err := self.GetRepositoryHost(repository)
 	if err != nil {
 		return nil, err
 	}
@@ -38,13 +42,13 @@ func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*
 		Spec: core.PodSpec{
 			Containers: []core.Container{
 				{
-					Name:            "spooler",
+					Name:            spoolerContainerName,
 					Image:           fmt.Sprintf("%s/%s", registry, self.RepositorySpoolerImageName),
 					ImagePullPolicy: core.PullAlways,
 					VolumeMounts: []core.VolumeMount{
 						{
 							Name:      "spool",
-							MountPath: "/spool",
+							MountPath: spoolPath,
 						},
 					},
 					Env: []core.EnvVar{
@@ -84,26 +88,49 @@ func (self *Client) CreateRepositorySpooler(repository *resources.Repository) (*
 		},
 	}
 
-	if repository.Spec.Secret != "" {
+	if repository.Spec.TLSSecret != "" {
 		pod.Spec.Containers[0].VolumeMounts = append(pod.Spec.Containers[0].VolumeMounts, core.VolumeMount{
-			Name:      "secret",
-			MountPath: "/secret",
+			Name:      "tls",
+			MountPath: tlsMountPath,
 			ReadOnly:  true,
 		})
 
 		pod.Spec.Containers[0].Env = append(pod.Spec.Containers[0].Env, core.EnvVar{
 			Name:  "REGISTRY_SPOOLER_certificate",
-			Value: "/secret/tls.crt",
+			Value: self.GetRepositoryCertificatePath(repository),
 		})
 
 		pod.Spec.Volumes = append(pod.Spec.Volumes, core.Volume{
-			Name: "secret",
+			Name: "tls",
 			VolumeSource: core.VolumeSource{
 				Secret: &core.SecretVolumeSource{
-					SecretName: repository.Spec.Secret,
+					SecretName: repository.Spec.TLSSecret,
 				},
 			},
 		})
+	}
+
+	if _, username, password, token, err := self.GetRepositoryAuth(repository); err == nil {
+		if username != "" {
+			pod.Spec.Containers[0].Env = append(pod.Spec.Containers[0].Env, core.EnvVar{
+				Name:  "REGISTRY_SPOOLER_username",
+				Value: username,
+			})
+		}
+		if password != "" {
+			pod.Spec.Containers[0].Env = append(pod.Spec.Containers[0].Env, core.EnvVar{
+				Name:  "REGISTRY_SPOOLER_password",
+				Value: password,
+			})
+		}
+		if token != "" {
+			pod.Spec.Containers[0].Env = append(pod.Spec.Containers[0].Env, core.EnvVar{
+				Name:  "REGISTRY_SPOOLER_token",
+				Value: token,
+			})
+		}
+	} else {
+		return nil, err
 	}
 
 	ownerReferences := pod.GetOwnerReferences()
@@ -119,7 +146,7 @@ func (self *Client) WaitForRepositorySpooler(namespace string, repositoryName st
 }
 
 func (self *Client) GetRepositorySpoolerAppName(repositoryName string) string {
-	return fmt.Sprintf("%s-repository-%s-spooler", self.NamePrefix, repositoryName)
+	return fmt.Sprintf("%s-repository-spooler-%s", self.NamePrefix, repositoryName)
 }
 
 func (self *Client) Spooler(repository *resources.Repository) *spoolerpkg.Client {
@@ -133,24 +160,30 @@ func (self *Client) Spooler(repository *resources.Repository) *spoolerpkg.Client
 		nil,
 		self.Namespace,
 		appName,
-		"spooler",
-		"/spool",
+		spoolerContainerName,
+		spoolPath,
 	)
 }
 
 func (self *Client) SpoolerCommand(repository *resources.Repository) (*spoolerpkg.CommandClient, error) {
 	spooler := self.Spooler(repository)
 
-	certificate := ""
-	if repository.Spec.Secret != "" {
-		certificate = "/secret/tls.crt"
+	var username string
+	var password string
+	var token string
+	var err error
+	if _, username, password, token, err = self.GetRepositoryAuth(repository); err != nil {
+		return nil, err
 	}
 
-	if address, err := self.GetRepositoryAddress(repository); err == nil {
+	if address, err := self.GetRepositoryHost(repository); err == nil {
 		return spoolerpkg.NewCommandClient(
 			spooler,
 			address,
-			certificate,
+			self.GetRepositoryCertificatePath(repository),
+			username,
+			password,
+			token,
 		), nil
 	} else {
 		return nil, err

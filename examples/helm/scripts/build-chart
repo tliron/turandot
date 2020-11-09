@@ -9,4 +9,5 @@ CHARTS=$(readlink --canonicalize "$HERE/../artifacts/charts")
 
 mkdir --parents "$CHARTS"
 
+rm --force "$CHARTS/hello-world.tar.gz"
 tar --create --gzip --file="$CHARTS/hello-world.tar.gz" --directory="$HERE/../hello-world" .

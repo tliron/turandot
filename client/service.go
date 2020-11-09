@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/google/uuid"
@@ -52,7 +51,7 @@ func (self *Client) ListServicesForArtifact(repositoryName string, artifactName 
 	}
 }
 
-func (self *Client) CreateServiceDirect(namespace string, serviceName string, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceDirect(namespace string, serviceName string, url urlpkg.URL, tlsSecretName string, authSecretName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -73,7 +72,9 @@ func (self *Client) CreateServiceDirect(namespace string, serviceName string, ur
 		Spec: resources.ServiceSpec{
 			ServiceTemplate: resources.ServiceTemplate{
 				Direct: &resources.ServiceTemplateDirect{
-					URL: url.String(),
+					URL:        url.String(),
+					TLSSecret:  tlsSecretName,
+					AuthSecret: authSecretName,
 				},
 			},
 			Inputs: inputs_,
@@ -119,20 +120,20 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 
 func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) (*resources.Service, error) {
 	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-		return self.CreateServiceDirect(namespace, serviceName, url_, inputs, mode)
+		return self.CreateServiceDirect(namespace, serviceName, url_, "", "", inputs, mode)
 	} else {
 		return nil, err
 	}
 }
 
 func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, repository *resources.Repository, serviceTemplateName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
-	artifactName := RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	artifactName := self.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
 	return self.CreateServiceIndirect(namespace, serviceName, repository.Name, artifactName, inputs, mode)
 }
 
 func (self *Client) CreateServiceFromContent(namespace string, serviceName string, repository *resources.Repository, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	serviceTemplateName := uuid.New().String()
-	artifactName := RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+	artifactName := self.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
 	if err := tools.PublishOnRegistry(artifactName, url, spooler); err == nil {
 		return self.CreateServiceIndirect(namespace, serviceName, repository.Name, artifactName, inputs, mode)
 	} else {
@@ -176,15 +177,15 @@ func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, e
 	}
 }
 
-func (self *Client) GetServiceTemplateHTTPRoundTripper(service *resources.Service) (string, http.RoundTripper, error) {
+func (self *Client) UpdateServiceURLContext(service *resources.Service, urlContext *urlpkg.Context) error {
 	if repository, err := self.GetServiceRepository(service); err == nil {
 		if repository != nil {
-			return self.GetRepositoryHTTPRoundTripper(repository)
+			return self.UpdateRepositoryURLContext(repository, urlContext)
 		} else {
-			return "", nil, nil
+			return nil
 		}
 	} else {
-		return "", nil, err
+		return err
 	}
 }
 

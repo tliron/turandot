@@ -15,6 +15,7 @@ var repositoryLogsCommand = &cobra.Command{
 	Use:   "logs",
 	Short: "Show the logs of the Turandot repository",
 	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: fix to use separate pods
 		Logs("repository", component)
 	},
 }

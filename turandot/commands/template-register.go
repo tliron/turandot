@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 	urlpkg "github.com/tliron/kutil/url"
 	"github.com/tliron/kutil/util"
-	clientpkg "github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/tools"
 )
 
@@ -45,7 +44,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		util.FailOnError(err)
 		spooler := turandot.Spooler(repository_)
 
-		artifactName := clientpkg.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
+		artifactName := turandot.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
 		err = tools.PublishOnRegistry(artifactName, url, spooler)
 		util.FailOnError(err)
 	} else if directoryPath != "" {

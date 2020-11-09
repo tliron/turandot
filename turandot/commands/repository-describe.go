@@ -37,8 +37,8 @@ func DescribeRepository(repositoryName string) {
 
 		if repository.Spec.Direct != nil {
 			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.ColorTypeName("Direct"))
-			if repository.Spec.Direct.Address != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Address"), terminal.ColorValue(repository.Spec.Direct.Address))
+			if repository.Spec.Direct.Host != "" {
+				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Host"), terminal.ColorValue(repository.Spec.Direct.Host))
 			}
 		}
 
@@ -53,9 +53,16 @@ func DescribeRepository(repositoryName string) {
 			fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.ColorTypeName("Port"), terminal.ColorValue(fmt.Sprintf("%d", repository.Spec.Indirect.Port)))
 		}
 
-		if repository.Spec.Secret != "" {
-			fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("Secret"), terminal.ColorValue(repository.Spec.Secret))
+		if repository.Spec.TLSSecret != "" {
+			fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("TLSSecret"), terminal.ColorValue(repository.Spec.TLSSecret))
 		}
+		if repository.Spec.TLSSecretDataKey != "" {
+			fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("TLSSecretDataKey"), terminal.ColorValue(repository.Spec.TLSSecretDataKey))
+		}
+		if repository.Spec.AuthSecret != "" {
+			fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("AuthSecret"), terminal.ColorValue(repository.Spec.AuthSecret))
+		}
+
 		if repository.Status.SpoolerPod != "" {
 			fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.ColorTypeName("SpoolerPod"), terminal.ColorValue(repository.Status.SpoolerPod))
 		}
