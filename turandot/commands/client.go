@@ -3,6 +3,7 @@ package commands
 import (
 	kubernetesutil "github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/util"
+	reposurepkg "github.com/tliron/reposure/apis/clientset/versioned"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	"github.com/tliron/turandot/controller"
 	clientpkg "github.com/tliron/turandot/turandot/client"
@@ -30,7 +31,7 @@ func NewClient() *Client {
 	util.FailOnError(err)
 
 	namespace_ := namespace
-	if cluster {
+	if clusterMode {
 		namespace_ = ""
 	} else if namespace_ == "" {
 		if namespace__, ok := kubernetesutil.GetConfiguredNamespace(kubeconfigPath, context); ok {
@@ -56,20 +57,23 @@ func (self *Client) Turandot() *clientpkg.Client {
 	turandot, err := turandotpkg.NewForConfig(self.Config)
 	util.FailOnError(err)
 
+	reposure, err := reposurepkg.NewForConfig(self.Config)
+	util.FailOnError(err)
+
 	return clientpkg.NewClient(
 		self.Kubernetes,
 		apiExtensions,
 		turandot,
+		reposure,
 		self.REST,
 		self.Config,
-		cluster,
+		clusterMode,
+		clusterRole,
 		self.Namespace,
 		controller.NamePrefix,
 		controller.PartOf,
 		controller.ManagedBy,
 		controller.OperatorImageName,
-		controller.RepositoryImageName,
-		controller.RepositorySpoolerImageName,
 		controller.CacheDirectory,
 	)
 }

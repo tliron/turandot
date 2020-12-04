@@ -18,13 +18,13 @@ var filePath string
 var directoryPath string
 var url string
 var component string
-var repository string
+var sourceRegistry string
 var tail int
 var follow bool
 var all bool
 var site string
-var registry string
 var wait bool
+var registry string
 
 func Logs(appNameSuffix string, containerName string) {
 	// TODO: what happens if we follow more than one log?

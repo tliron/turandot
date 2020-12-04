@@ -2,6 +2,4 @@
 
 package v1alpha1
 
-type RepositoryExpansion interface{}
-
 type ServiceExpansion interface{}

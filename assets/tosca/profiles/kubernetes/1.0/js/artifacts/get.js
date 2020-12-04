@@ -14,10 +14,10 @@ for (var vertexId in clout.vertexes) {
 	for (var artifactName in nodeTemplate.artifacts) {
 		var artifact = nodeTemplate.artifacts[artifactName];
 
-		if ('cloud.puccini.kubernetes::Repository' in artifact.types)
+		if ('cloud.puccini.kubernetes::Registry' in artifact.types)
 			artifacts.push({
 				name: artifact.properties.name,
-				repository: artifact.properties.repository,
+				registry: artifact.properties.registry,
 				sourcePath: artifact.sourcePath
 			});
 	}

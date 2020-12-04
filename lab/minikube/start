@@ -39,7 +39,6 @@ minikube start \
 	--profile="$PROFILE" \
     --vm-driver=kvm2 \
 	--container-runtime=cri-o \
-	--network-plugin=cni \
 	--cni=bridge \
 	--addons=registry \
 	--cpus=4 \

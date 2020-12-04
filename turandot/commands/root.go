@@ -20,7 +20,7 @@ var strict bool
 var masterUrl string
 var kubeconfigPath string
 var context string
-var cluster bool
+var clusterMode bool
 var namespace string
 
 func init() {
@@ -35,7 +35,7 @@ func init() {
 	rootCommand.PersistentFlags().StringVarP(&colorize, "colorize", "z", "true", "colorize output (boolean or \"force\")")
 	rootCommand.PersistentFlags().StringVarP(&format, "format", "o", "", "output format (\"bare\", \"yaml\", \"json\", or \"xml\")")
 	rootCommand.PersistentFlags().BoolVarP(&strict, "strict", "y", false, "strict output (for \"YAML\" format only)")
-	rootCommand.PersistentFlags().BoolVarP(&pretty, "pretty", "r", true, "prettify output")
+	rootCommand.PersistentFlags().BoolVarP(&pretty, "pretty", "p", true, "prettify output")
 
 	rootCommand.PersistentFlags().StringVarP(&masterUrl, "master", "m", "", "address of the Kubernetes API server")
 	rootCommand.PersistentFlags().StringVarP(&kubeconfigPath, "kubeconfig", "k", defaultKubeconfigPath, "path to Kubernetes configuration")

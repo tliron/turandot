@@ -3,11 +3,11 @@ package tools
 import (
 	"io"
 
-	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
 	urlpkg "github.com/tliron/kutil/url"
+	reposure "github.com/tliron/reposure/client/spooler"
 )
 
-func PublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Client) error {
+func PublishOnRegistry(imageName string, url urlpkg.URL, client *reposure.Client) error {
 	reader, err := url.Open()
 	if err != nil {
 		return err
@@ -22,7 +22,7 @@ func PublishOnRegistry(imageName string, url urlpkg.URL, spooler *spoolerpkg.Cli
 		defer readCloser.Close()
 	}
 
-	if err = spooler.Publish(imageName, reader); err == nil {
+	if err = client.PushImage(imageName, reader); err == nil {
 		return nil
 	} else {
 		return err

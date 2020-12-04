@@ -15,12 +15,12 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templateListCommand)
-	templateListCommand.Flags().StringVarP(&repository, "repository", "p", "default", "name of repository")
+	templateListCommand.Flags().StringVarP(&registry, "registry", "r", "default", "name of registry")
 }
 
 var templateListCommand = &cobra.Command{
 	Use:   "list",
-	Short: "List service templates registered in a repository",
+	Short: "List service templates registered in a registry",
 	Run: func(cmd *cobra.Command, args []string) {
 		ListServiceTemplates()
 	},
@@ -28,17 +28,17 @@ var templateListCommand = &cobra.Command{
 
 func ListServiceTemplates() {
 	turandot := NewClient().Turandot()
-	repository_, err := turandot.GetRepository(namespace, repository)
+	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	spoolerCommand, err := turandot.SpoolerCommand(repository_)
+	command, err := turandot.Reposure.CommandClient(registry_)
 	util.FailOnError(err)
-	images, err := spoolerCommand.List()
+	imageNames, err := command.ListImages()
 	util.FailOnError(err)
 
-	if len(images) == 0 {
+	if len(imageNames) == 0 {
 		return
 	}
-	sort.Strings(images)
+	sort.Strings(imageNames)
 
 	switch format {
 	case "":
@@ -46,9 +46,9 @@ func ListServiceTemplates() {
 		defer urlContext.Release()
 
 		table := terminal.NewTable(maxWidth, "Name", "Services")
-		for _, image := range images {
-			if serviceTemplateName, ok := turandot.ServiceTemplateNameForRepositoryArtifactName(image); ok {
-				services, err := turandot.ListServicesForArtifact(repository, image, urlContext)
+		for _, imageName := range imageNames {
+			if serviceTemplateName, ok := turandot.ServiceTemplateNameForRegistryImageName(imageName); ok {
+				services, err := turandot.ListServicesForImageName(registry, imageName, urlContext)
 				util.FailOnError(err)
 				sort.Strings(services)
 				table.Add(serviceTemplateName, strings.Join(services, "\n"))
@@ -57,8 +57,8 @@ func ListServiceTemplates() {
 		table.Print()
 
 	case "bare":
-		for _, image := range images {
-			if serviceTemplateName, ok := turandot.ServiceTemplateNameForRepositoryArtifactName(image); ok {
+		for _, imageName := range imageNames {
+			if serviceTemplateName, ok := turandot.ServiceTemplateNameForRegistryImageName(imageName); ok {
 				fmt.Fprintln(terminal.Stdout, serviceTemplateName)
 			}
 		}
@@ -67,12 +67,12 @@ func ListServiceTemplates() {
 		urlContext := urlpkg.NewContext()
 		defer urlContext.Release()
 
-		list := make(ard.List, 0, len(images))
-		for _, image := range images {
-			if serviceTemplateName, ok := turandot.ServiceTemplateNameForRepositoryArtifactName(image); ok {
+		list := make(ard.List, 0, len(imageNames))
+		for _, imageName := range imageNames {
+			if serviceTemplateName, ok := turandot.ServiceTemplateNameForRegistryImageName(imageName); ok {
 				map_ := make(ard.StringMap)
 				map_["Name"] = serviceTemplateName
-				map_["Services"], err = turandot.ListServicesForArtifact(repository, image, urlContext)
+				map_["Services"], err = turandot.ListServicesForImageName(registry, imageName, urlContext)
 				util.FailOnError(err)
 				list = append(list, map_)
 			}

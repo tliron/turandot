@@ -5,7 +5,6 @@ Turandot
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Latest Release](https://img.shields.io/github/release/tliron/turandot.svg)](https://github.com/tliron/turandot/releases/latest)
-[![Open in Gitpod](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/tliron/turandot)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tliron/turandot)](https://goreportcard.com/report/github.com/tliron/turandot)
 
 Orchestrate and compose [Kubernetes](https://kubernetes.io/) workloads using

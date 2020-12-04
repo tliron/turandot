@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	spoolerpkg "github.com/tliron/kubernetes-registry-spooler/client"
 	"github.com/tliron/kutil/format"
 	urlpkg "github.com/tliron/kutil/url"
+	reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	"github.com/tliron/turandot/tools"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -37,11 +37,11 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) ListServicesForArtifact(repositoryName string, artifactName string, urlContext *urlpkg.Context) ([]string, error) {
+func (self *Client) ListServicesForImageName(registryName string, imageName string, urlContext *urlpkg.Context) ([]string, error) {
 	if services, err := self.ListServices(); err == nil {
 		var serviceNames []string
 		for _, service := range services.Items {
-			if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Repository == repositoryName) && (service.Spec.ServiceTemplate.Indirect.Name == artifactName) {
+			if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Registry == registryName) && (service.Spec.ServiceTemplate.Indirect.Name == imageName) {
 				serviceNames = append(serviceNames, service.Name)
 			}
 		}
@@ -85,7 +85,7 @@ func (self *Client) CreateServiceDirect(namespace string, serviceName string, ur
 	return self.createService(namespace, serviceName, service)
 }
 
-func (self *Client) CreateServiceIndirect(namespace string, serviceName string, repositoryName string, artifactName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceIndirect(namespace string, serviceName string, registryName string, imageName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -106,8 +106,8 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 		Spec: resources.ServiceSpec{
 			ServiceTemplate: resources.ServiceTemplate{
 				Indirect: &resources.ServiceTemplateIndirect{
-					Repository: repositoryName,
-					Name:       artifactName,
+					Registry: registryName,
+					Name:     imageName,
 				},
 			},
 			Inputs: inputs_,
@@ -126,16 +126,17 @@ func (self *Client) CreateServiceFromURL(namespace string, serviceName string, u
 	}
 }
 
-func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, repository *resources.Repository, serviceTemplateName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
-	artifactName := self.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
-	return self.CreateServiceIndirect(namespace, serviceName, repository.Name, artifactName, inputs, mode)
+func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, registry *reposure.Registry, serviceTemplateName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
+	return self.CreateServiceIndirect(namespace, serviceName, registry.Name, imageName, inputs, mode)
 }
 
-func (self *Client) CreateServiceFromContent(namespace string, serviceName string, repository *resources.Repository, spooler *spoolerpkg.Client, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+	spooler := self.Reposure.SpoolerClient(registry)
 	serviceTemplateName := uuid.New().String()
-	artifactName := self.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
-	if err := tools.PublishOnRegistry(artifactName, url, spooler); err == nil {
-		return self.CreateServiceIndirect(namespace, serviceName, repository.Name, artifactName, inputs, mode)
+	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
+	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
+		return self.CreateServiceIndirect(namespace, serviceName, registry.Name, imageName, inputs, mode)
 	} else {
 		return nil, err
 	}
@@ -151,22 +152,22 @@ func (self *Client) createService(namespace string, serviceName string, service 
 	}
 }
 
-func (self *Client) GetServiceRepository(service *resources.Service) (*resources.Repository, error) {
-	if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Repository != "") {
+func (self *Client) GetServiceRegistry(service *resources.Service) (*reposure.Registry, error) {
+	if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Registry != "") {
 		namespace := service.Spec.ServiceTemplate.Indirect.Namespace
 		if namespace == "" {
 			namespace = service.Namespace
 		}
-		return self.GetRepository(namespace, service.Spec.ServiceTemplate.Indirect.Repository)
+		return self.Reposure.RegistryClient().Get(namespace, service.Spec.ServiceTemplate.Indirect.Registry)
 	} else {
 		return nil, nil
 	}
 }
 
 func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, error) {
-	if repository, err := self.GetServiceRepository(service); err == nil {
-		if repository != nil {
-			return self.GetRepositoryURLForCSAR(repository, service.Spec.ServiceTemplate.Indirect.Name)
+	if registry, err := self.GetServiceRegistry(service); err == nil {
+		if registry != nil {
+			return self.GetRegistryURLForCSAR(registry, service.Spec.ServiceTemplate.Indirect.Name)
 		} else if (service.Spec.ServiceTemplate.Direct != nil) && (service.Spec.ServiceTemplate.Direct.URL != "") {
 			return service.Spec.ServiceTemplate.Direct.URL, nil
 		} else {
@@ -178,9 +179,9 @@ func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, e
 }
 
 func (self *Client) UpdateServiceURLContext(service *resources.Service, urlContext *urlpkg.Context) error {
-	if repository, err := self.GetServiceRepository(service); err == nil {
-		if repository != nil {
-			return self.UpdateRepositoryURLContext(repository, urlContext)
+	if registry, err := self.GetServiceRegistry(service); err == nil {
+		if registry != nil {
+			return self.Reposure.RegistryClient().UpdateURLContext(registry, urlContext)
 		} else {
 			return nil
 		}

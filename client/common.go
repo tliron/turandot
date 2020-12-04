@@ -16,15 +16,15 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (self *Client) GetRegistryAddress(registryAddress string) (string, error) {
-	if registryAddress == "internal" {
-		if registry, err := kubernetes.GetInternalRegistryAddress(self.Kubernetes); err == nil {
+func (self *Client) GetSourceRegistryHost(registryHost string) (string, error) {
+	if registryHost == "internal" {
+		if registry, err := kubernetes.GetInternalRegistryHost(self.Context, self.Kubernetes); err == nil {
 			return registry, nil
 		} else {
 			return "", fmt.Errorf("could not discover internal registry: %s", err.Error())
 		}
-	} else if registryAddress != "" {
-		return registryAddress, nil
+	} else if registryHost != "" {
+		return registryHost, nil
 	} else {
 		return "", errors.New("must provide \"--registry\"")
 	}

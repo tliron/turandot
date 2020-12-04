@@ -19,7 +19,8 @@ var context string
 
 var version bool
 var site string
-var cluster bool
+var clusterMode bool
+var clusterRole string
 var namespace string
 var concurrency uint
 var resyncPeriod time.Duration
@@ -39,7 +40,8 @@ func init() {
 	// Our additional flags
 	command.Flags().BoolVar(&version, "version", false, "print version")
 	command.Flags().StringVar(&site, "site", "default", "site name")
-	command.Flags().BoolVar(&cluster, "cluster", false, "enable cluster mode")
+	command.Flags().BoolVar(&clusterMode, "cluster", false, "cluster mode")
+	command.Flags().StringVar(&clusterRole, "role", "", "cluster role")
 	command.Flags().StringVar(&namespace, "namespace", "", "namespace (overrides context namespace in Kubernetes configuration)")
 	command.Flags().UintVar(&concurrency, "concurrency", 1, "number of concurrent workers per processor")
 	command.Flags().DurationVar(&resyncPeriod, "resync", time.Second*30, "informer resync period")

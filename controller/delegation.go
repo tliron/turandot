@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	kubernetesutil "github.com/tliron/kutil/kubernetes"
+	reposurepkg "github.com/tliron/reposure/apis/clientset/versioned"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	clientpkg "github.com/tliron/turandot/client"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -34,6 +35,12 @@ func (self *Controller) NewDelegate(name string) (*clientpkg.Client, error) {
 			return nil, err
 		}
 
+		var reposure *reposurepkg.Clientset
+		reposure, err = reposurepkg.NewForConfig(config)
+		if err != nil {
+			return nil, err
+		}
+
 		rest := kubernetes.CoreV1().RESTClient()
 
 		return clientpkg.NewClient(
@@ -41,16 +48,16 @@ func (self *Controller) NewDelegate(name string) (*clientpkg.Client, error) {
 			kubernetes,
 			apiExtensions,
 			turandot,
+			reposure,
 			rest,
 			config,
 			false,
+			"",
 			namespace,
 			NamePrefix,
 			PartOf,
 			ManagedBy,
 			OperatorImageName,
-			RepositoryImageName,
-			RepositorySpoolerImageName,
 			CacheDirectory,
 		), nil
 	} else {

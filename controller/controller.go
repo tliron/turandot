@@ -7,7 +7,8 @@ import (
 
 	"github.com/op/go-logging"
 	kubernetesutil "github.com/tliron/kutil/kubernetes"
-	turandotclientset "github.com/tliron/turandot/apis/clientset/versioned"
+	reposurepkg "github.com/tliron/reposure/apis/clientset/versioned"
+	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	turandotinformers "github.com/tliron/turandot/apis/informers/externalversions"
 	turandotlisters "github.com/tliron/turandot/apis/listers/turandot.puccini.cloud/v1alpha1"
 	clientpkg "github.com/tliron/turandot/client"
@@ -31,7 +32,7 @@ type Controller struct {
 	Config      *restpkg.Config
 	Dynamic     *kubernetesutil.Dynamic
 	Kubernetes  kubernetes.Interface
-	Turandot    turandotclientset.Interface
+	Turandot    turandotpkg.Interface
 	Client      *clientpkg.Client
 	CachePath   string
 	StopChannel <-chan struct{}
@@ -42,17 +43,16 @@ type Controller struct {
 	KubernetesInformerFactory informers.SharedInformerFactory
 	TurandotInformerFactory   turandotinformers.SharedInformerFactory
 
-	Services     turandotlisters.ServiceLister
-	Repositories turandotlisters.RepositoryLister
+	Services turandotlisters.ServiceLister
 
 	Context contextpkg.Context
 	Log     *logging.Logger
 }
 
-func NewController(toolName string, site string, cluster bool, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotclientset.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
+func NewController(toolName string, site string, clusterMode bool, clusterRole string, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, reposure reposurepkg.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
 	context := contextpkg.TODO()
 
-	if cluster {
+	if clusterMode {
 		namespace = ""
 	}
 
@@ -77,20 +77,20 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		kubernetes,
 		apiExtensions,
 		turandot,
+		reposure,
 		kubernetes.CoreV1().RESTClient(),
 		config,
-		cluster,
+		clusterMode,
+		clusterRole,
 		namespace,
 		NamePrefix,
 		PartOf,
 		ManagedBy,
 		OperatorImageName,
-		RepositoryImageName,
-		RepositorySpoolerImageName,
 		CacheDirectory,
 	)
 
-	if cluster {
+	if clusterMode {
 		self.KubernetesInformerFactory = informers.NewSharedInformerFactory(kubernetes, informerResyncPeriod)
 		self.TurandotInformerFactory = turandotinformers.NewSharedInformerFactory(turandot, informerResyncPeriod)
 	} else {
@@ -100,11 +100,9 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 
 	// Informers
 	serviceInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Services()
-	repositoryInformer := self.TurandotInformerFactory.Turandot().V1alpha1().Repositories()
 
 	// Listers
 	self.Services = serviceInformer.Lister()
-	self.Repositories = repositoryInformer.Lister()
 
 	// Processors
 
@@ -120,19 +118,6 @@ func NewController(toolName string, site string, cluster bool, namespace string,
 		},
 		func(object interface{}) (bool, error) {
 			return self.processService(object.(*turandotresources.Service))
-		},
-	))
-
-	self.Processors.Add(turandotresources.RepositoryGVK, kubernetesutil.NewProcessor(
-		toolName,
-		"repositories",
-		repositoryInformer.Informer(),
-		processorPeriod,
-		func(name string, namespace string) (interface{}, error) {
-			return self.Client.GetRepository(namespace, name)
-		},
-		func(object interface{}) (bool, error) {
-			return self.processRepository(object.(*turandotresources.Repository))
 		},
 	))
 

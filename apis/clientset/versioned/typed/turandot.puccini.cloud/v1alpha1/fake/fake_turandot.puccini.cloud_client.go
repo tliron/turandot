@@ -12,10 +12,6 @@ type FakeTurandotV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeTurandotV1alpha1) Repositories(namespace string) v1alpha1.RepositoryInterface {
-	return &FakeRepositories{c, namespace}
-}
-
 func (c *FakeTurandotV1alpha1) Services(namespace string) v1alpha1.ServiceInterface {
 	return &FakeServices{c, namespace}
 }

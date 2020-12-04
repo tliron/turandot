@@ -67,9 +67,9 @@ type ServiceTemplateDirect struct {
 }
 
 type ServiceTemplateIndirect struct {
-	Namespace  string `json:"namespace,omitempty"` // Namespace for Turandot repository resource (optional; defaults to same namespace as this service)
-	Repository string `json:"repository"`          // Name of Turandot repository resource
-	Name       string `json:"name"`                // Name of service template artifact in the repository (CSAR or YAML artifact)
+	Namespace string `json:"namespace,omitempty"` // Namespace for Turandot registry resource (optional; defaults to same namespace as this service)
+	Registry  string `json:"registry"`            // Name of Turandot registry resource
+	Name      string `json:"name"`                // Name of service template artifact in the registry (CSAR or YAML artifact)
 }
 
 type ServiceStatus struct {
@@ -166,7 +166,7 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 														Type:        "string",
 													},
 													"tlsSecretDataKey": {
-														Description: "Name of key within the TLS Secret data required for connecting to the repository (optional)",
+														Description: "Name of key within the TLS Secret data required for connecting to the registry (optional)",
 														Type:        "string",
 													},
 													"authSecret": {
@@ -178,18 +178,18 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 											"indirect": {
 												Description: "Indirect reference to the service template used to instantiate this service",
 												Type:        "object",
-												Required:    []string{"repository", "name"},
+												Required:    []string{"registry", "name"},
 												Properties: map[string]apiextensions.JSONSchemaProps{
 													"namespace": {
-														Description: "Namespace for Turandot repository resource (optional; defaults to same namespace as this service)",
+														Description: "Namespace for Turandot registry resource (optional; defaults to same namespace as this service)",
 														Type:        "string",
 													},
-													"repository": {
-														Description: "Name of Turandot repository resource",
+													"registry": {
+														Description: "Name of Turandot registry resource",
 														Type:        "string",
 													},
 													"name": {
-														Description: "Name of service template artifact in the repository (CSAR or YAML artifact)",
+														Description: "Name of service template artifact in the registry (CSAR or YAML artifact)",
 														Type:        "string",
 													},
 												},
@@ -335,9 +335,9 @@ func ServiceToARD(service *Service) ard.StringMap {
 	} else if service.Spec.ServiceTemplate.Direct != nil {
 		map_["ServiceTemplate"] = ard.StringMap{
 			"Indirect": ard.StringMap{
-				"Namespace":  service.Spec.ServiceTemplate.Indirect.Namespace,
-				"Repository": service.Spec.ServiceTemplate.Indirect.Repository,
-				"Name":       service.Spec.ServiceTemplate.Indirect.Name,
+				"Namespace": service.Spec.ServiceTemplate.Indirect.Namespace,
+				"Registry":  service.Spec.ServiceTemplate.Indirect.Registry,
+				"Name":      service.Spec.ServiceTemplate.Indirect.Name,
 			},
 		}
 	}

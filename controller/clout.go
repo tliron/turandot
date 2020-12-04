@@ -142,7 +142,7 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 	var artifactMappings map[string]string
 	if artifacts != nil {
 		if artifacts_, ok := parser.ParseKubernetesArtifacts(artifacts); ok {
-			if artifactMappings, err = self.publishArtifactsToRepository(artifacts_, service, urlContext); err != nil {
+			if artifactMappings, err = self.publishArtifactsToRegistry(artifacts_, service, urlContext); err != nil {
 				return service, err
 			}
 		} else {

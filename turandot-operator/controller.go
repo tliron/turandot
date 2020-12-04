@@ -9,6 +9,7 @@ import (
 	"github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/util"
 	versionpkg "github.com/tliron/kutil/version"
+	reposurepkg "github.com/tliron/reposure/apis/clientset/versioned"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	controllerpkg "github.com/tliron/turandot/controller"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -34,7 +35,7 @@ func Controller() {
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	util.FailOnError(err)
 
-	if cluster {
+	if clusterMode {
 		namespace = ""
 	} else if namespace == "" {
 		if namespace_, ok := kubernetes.GetConfiguredNamespace(kubeconfigPath, context); ok {
@@ -62,17 +63,22 @@ func Controller() {
 	turandotClient, err := turandotpkg.NewForConfig(config)
 	util.FailOnError(err)
 
+	reposureClient, err := reposurepkg.NewForConfig(config)
+	util.FailOnError(err)
+
 	// Controller
 
 	controller := controllerpkg.NewController(
 		toolName,
 		site,
-		cluster,
+		clusterMode,
+		clusterRole,
 		namespace,
 		dynamicClient,
 		kubernetesClient,
 		apiExtensionsClient,
 		turandotClient,
+		reposureClient,
 		config,
 		cachePath,
 		resyncPeriod,

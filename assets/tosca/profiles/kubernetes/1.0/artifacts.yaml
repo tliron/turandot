@@ -7,22 +7,22 @@ artifact_types:
       Kubernetes resource manifest
     file_ext: [ yaml, yml, json ]
 
-  Repository:
+  Registry:
     description: >-
-      Artifact stored in a repository
+      Artifact stored in a registry
     properties:
       name:
         description: >-
-          Name of artifact in repository
+          Name of artifact in registry
         type: string
-      repository:
+      registry:
         description: >-
-          Repository name
+          Registry name
         type: string
         default: default
 
   ContainerImage:
     description: >-
       OCI container image
-    derived_from: Repository
+    derived_from: Registry
     file_ext: [ tar, tar.gz, tgz ]

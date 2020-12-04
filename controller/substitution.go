@@ -2,12 +2,12 @@ package controller
 
 import (
 	urlpkg "github.com/tliron/kutil/url"
-	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
+	//reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 )
 
 func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, mode string, site string, urlContext *urlpkg.Context) error {
 	// hacky ;)
-	repositoryName := "default"
+	registryName := "default"
 	var serviceTemplateName string
 	switch nodeTemplateName {
 	case "central-pbx":
@@ -21,8 +21,8 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 
 	if (site == "") || (site == self.Site) {
 		// Local
-		if repository, err := self.Client.GetRepository(namespace, repositoryName); err == nil {
-			if _, err := self.Client.CreateServiceFromTemplate(namespace, serviceName, repository, serviceTemplateName, inputs, mode); err != nil {
+		if registry, err := self.Client.Reposure.RegistryClient().Get(namespace, registryName); err == nil {
+			if _, err := self.Client.CreateServiceFromTemplate(namespace, serviceName, registry, serviceTemplateName, inputs, mode); err != nil {
 				return err
 			}
 		} else {
@@ -36,26 +36,30 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 				return err
 			}
 
-			if err := remoteClient.InstallRepository("docker.io", true, true); err != nil {
+			// TODO: install Reposure operator?
+			/*if err := remoteClient.InstallRegistry("docker.io", true, true); err != nil {
 				return err
-			}
+			}*/
 
-			var remoteRepository *resources.Repository
-			if remoteRepository, err = remoteClient.CreateRepositoryIndirect(namespace, "default", "", "turandot-repository", 5000, "turandot-repository", "", ""); err != nil {
-				return err
-			}
+			// TODO: simple registry?
+			/*
+					var remoteRegistry *reposure.Registry
+					if remoteRegistry, err = remoteClient.Reposure.CreateIndirect(namespace, "default", "", "reposure-simple", 5000, "reposure-simple", "", ""); err != nil {
+						return err
+					}
 
-			if url, err := remoteClient.GetRepositoryServiceTemplateURL(remoteRepository, serviceTemplateName); err == nil {
-				if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-					if _, err := remoteClient.CreateServiceFromContent(namespace, serviceName, remoteRepository, remoteClient.Spooler(remoteRepository), url_, inputs, mode); err != nil {
+				if url, err := remoteClient.GetRegistryServiceTemplateURL(remoteRegistry, serviceTemplateName); err == nil {
+					if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
+						if _, err := remoteClient.CreateServiceFromContent(namespace, serviceName, remoteRegistry, remoteClient.Spooler(remoteRegistry), url_, inputs, mode); err != nil {
+							return err
+						}
+					} else {
 						return err
 					}
 				} else {
 					return err
 				}
-			} else {
-				return err
-			}
+			*/
 		} else {
 			return err
 		}

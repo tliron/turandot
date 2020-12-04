@@ -7,13 +7,13 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templateDelistCommand)
-	templateDelistCommand.Flags().StringVarP(&repository, "repository", "p", "default", "name of repository")
+	templateDelistCommand.Flags().StringVarP(&registry, "registry", "r", "default", "name of registry")
 	templateDelistCommand.Flags().BoolVarP(&all, "all", "a", false, "delist all templates")
 }
 
 var templateDelistCommand = &cobra.Command{
 	Use:   "delist [SERVICE TEMPLATE NAME]",
-	Short: "Delist a service template from a repository",
+	Short: "Delist a service template from a registry",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
@@ -27,28 +27,30 @@ var templateDelistCommand = &cobra.Command{
 
 func DelistServiceTemplate(serviceTemplateName string) {
 	turandot := NewClient().Turandot()
-	repository_, err := turandot.GetRepository(namespace, repository)
+	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	spooler := turandot.Spooler(repository_)
+	spooler := turandot.Reposure.SpoolerClient(registry_)
 
-	artifactName := turandot.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
-	err = spooler.Delete(artifactName)
+	imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
+	err = spooler.DeleteImage(imageName)
 	util.FailOnError(err)
 }
 
 func DelistAllTemplates() {
 	turandot := NewClient().Turandot()
-	repository_, err := turandot.GetRepository(namespace, repository)
+	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	spoolerCommand, err := turandot.SpoolerCommand(repository_)
+	command, err := turandot.Reposure.CommandClient(registry_)
 	util.FailOnError(err)
-	images, err := spoolerCommand.List()
+	imageNames, err := command.ListImages()
 	util.FailOnError(err)
-	spooler := turandot.Spooler(repository_)
+	spooler := turandot.Reposure.SpoolerClient(registry_)
 
-	for _, image := range images {
-		log.Infof("deleting template: %s", image)
-		err := spooler.Delete(image)
-		util.FailOnError(err)
+	for _, imageName := range imageNames {
+		if serviceTemplateName, ok := turandot.ServiceTemplateNameForRegistryImageName(imageName); ok {
+			log.Infof("deleting template: %s", serviceTemplateName)
+			err := spooler.DeleteImage(imageName)
+			util.FailOnError(err)
+		}
 	}
 }

@@ -9,14 +9,14 @@ import (
 
 func init() {
 	templateCommand.AddCommand(templateRegisterCommand)
-	templateRegisterCommand.Flags().StringVarP(&repository, "repository", "p", "default", "name of repository")
+	templateRegisterCommand.Flags().StringVarP(&registry, "registry", "r", "default", "name of registry")
 	templateRegisterCommand.Flags().StringVarP(&filePath, "file", "f", "", "path to a local CSAR or TOSCA YAML file (will be uploaded)")
 	templateRegisterCommand.Flags().StringVarP(&directoryPath, "directory", "d", "", "path to a local directory of TOSCA YAML files (will be packed into a CSAR and uploaded)")
 }
 
 var templateRegisterCommand = &cobra.Command{
 	Use:   "register [SERVICE TEMPLATE NAME]",
-	Short: "Register a service template in a repository from CSAR or TOSCA YAML content",
+	Short: "Register a service template in a registry from CSAR or TOSCA YAML content",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceTemplateName := args[0]
@@ -40,12 +40,12 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		util.FailOnError(err)
 
 		turandot := NewClient().Turandot()
-		repository_, err := turandot.GetRepository(namespace, repository)
+		registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 		util.FailOnError(err)
-		spooler := turandot.Spooler(repository_)
+		spooler := turandot.Reposure.SpoolerClient(registry_)
 
-		artifactName := turandot.RepositoryArtifactNameForServiceTemplateName(serviceTemplateName)
-		err = tools.PublishOnRegistry(artifactName, url, spooler)
+		imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
+		err = tools.PublishOnRegistry(imageName, url, spooler)
 		util.FailOnError(err)
 	} else if directoryPath != "" {
 		if (filePath != "") || (url != "") {

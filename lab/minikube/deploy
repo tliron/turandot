@@ -6,9 +6,11 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$ROOT/scripts/_trap"
 
 minikube profile central
-kubectl config set-context central --namespace=workspace
+kubectl config set-context --current --namespace=workspace
+
 turandot operator uninstall --wait -v
-turandot repository uninstall --wait -v
+reposure operator uninstall --wait -v
+
 kubectl delete events --all
 
 if [ "$1" == -b ]; then
@@ -17,11 +19,10 @@ if [ "$1" == -b ]; then
 	# Reminder: clean ~/.local/share/containers/ occassionally!
 fi
 
-turandot operator install --site=central --wait -v
-turandot repository install --wait -v
-turandot repository create default --provider=turandot --wait -v
-#turandot repository create default --provider=minikube --wait -v
+reposure operator install --role=view --wait -v
+reposure registry create default --provider=minikube --wait -v
 
+turandot operator install --site=central --role=view --wait -v
 turandot service deploy hello-world --file=dist/hello-world.csar -v
 turandot service deploy helm-hello-world --file=dist/helm-hello-world.csar -v
 turandot operator logs --follow
