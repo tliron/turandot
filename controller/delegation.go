@@ -44,13 +44,13 @@ func (self *Controller) NewDelegate(name string) (*clientpkg.Client, error) {
 		rest := kubernetes.CoreV1().RESTClient()
 
 		return clientpkg.NewClient(
-			fmt.Sprintf("turandot.client.%s", name),
 			kubernetes,
 			apiExtensions,
 			turandot,
 			reposure,
 			rest,
 			config,
+			self.Context,
 			false,
 			"",
 			namespace,
@@ -59,6 +59,7 @@ func (self *Controller) NewDelegate(name string) (*clientpkg.Client, error) {
 			ManagedBy,
 			OperatorImageName,
 			CacheDirectory,
+			fmt.Sprintf("turandot.client.%s", name),
 		), nil
 	} else {
 		return nil, err

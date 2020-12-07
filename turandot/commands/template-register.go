@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 	urlpkg "github.com/tliron/kutil/url"
 	"github.com/tliron/kutil/util"
-	"github.com/tliron/turandot/tools"
 )
 
 func init() {
@@ -45,7 +44,7 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 		spooler := turandot.Reposure.SpoolerClient(registry_)
 
 		imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
-		err = tools.PublishOnRegistry(imageName, url, spooler)
+		err = spooler.PushTarballFromURL(imageName, url)
 		util.FailOnError(err)
 	} else if directoryPath != "" {
 		if (filePath != "") || (url != "") {

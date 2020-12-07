@@ -1,12 +1,15 @@
 package commands
 
 import (
+	contextpkg "context"
+	"fmt"
+
 	kubernetesutil "github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/util"
 	reposurepkg "github.com/tliron/reposure/apis/clientset/versioned"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
+	clientpkg "github.com/tliron/turandot/client"
 	"github.com/tliron/turandot/controller"
-	clientpkg "github.com/tliron/turandot/turandot/client"
 	apiextensionspkg "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kubernetespkg "k8s.io/client-go/kubernetes"
 	restpkg "k8s.io/client-go/rest"
@@ -20,11 +23,12 @@ type Client struct {
 	Config     *restpkg.Config
 	Kubernetes kubernetespkg.Interface
 	REST       restpkg.Interface
+	Context    contextpkg.Context
 	Namespace  string
 }
 
 func NewClient() *Client {
-	config, err := kubernetesutil.NewConfigFromFlags(masterUrl, kubeconfigPath, context, log)
+	config, err := kubernetesutil.NewConfigFromFlags(masterUrl, kubeconfigPath, kubeconfigContext, log)
 	util.FailOnError(err)
 
 	kubernetes, err := kubernetespkg.NewForConfig(config)
@@ -34,7 +38,7 @@ func NewClient() *Client {
 	if clusterMode {
 		namespace_ = ""
 	} else if namespace_ == "" {
-		if namespace__, ok := kubernetesutil.GetConfiguredNamespace(kubeconfigPath, context); ok {
+		if namespace__, ok := kubernetesutil.GetConfiguredNamespace(kubeconfigPath, kubeconfigContext); ok {
 			namespace_ = namespace__
 		}
 		if namespace_ == "" {
@@ -46,6 +50,7 @@ func NewClient() *Client {
 		Config:     config,
 		Kubernetes: kubernetes,
 		REST:       kubernetes.CoreV1().RESTClient(),
+		Context:    context,
 		Namespace:  namespace_,
 	}
 }
@@ -67,6 +72,7 @@ func (self *Client) Turandot() *clientpkg.Client {
 		reposure,
 		self.REST,
 		self.Config,
+		self.Context,
 		clusterMode,
 		clusterRole,
 		self.Namespace,
@@ -75,5 +81,6 @@ func (self *Client) Turandot() *clientpkg.Client {
 		controller.ManagedBy,
 		controller.OperatorImageName,
 		controller.CacheDirectory,
+		fmt.Sprintf("%s.client", toolName),
 	)
 }

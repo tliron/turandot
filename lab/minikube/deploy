@@ -9,7 +9,6 @@ minikube profile central
 kubectl config set-context --current --namespace=workspace
 
 turandot operator uninstall --wait -v
-reposure operator uninstall --wait -v
 
 kubectl delete events --all
 
@@ -19,10 +18,9 @@ if [ "$1" == -b ]; then
 	# Reminder: clean ~/.local/share/containers/ occassionally!
 fi
 
-reposure operator install --role=view --wait -v
-reposure registry create default --provider=minikube --wait -v
-
 turandot operator install --site=central --role=view --wait -v
+reposure registry create default --provider=minikube --wait -v
+reposure image delete default --all -v
 turandot service deploy hello-world --file=dist/hello-world.csar -v
 turandot service deploy helm-hello-world --file=dist/helm-hello-world.csar -v
 turandot operator logs --follow

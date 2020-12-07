@@ -1,4 +1,4 @@
-package tools
+package controller
 
 import (
 	"errors"
@@ -59,7 +59,7 @@ func WriteClout(clout *cloutpkg.Clout, writer io.Writer) error {
 	return format.Write(clout, "yaml", terminal.Indent, false, writer)
 }
 
-func ExecScriptlet(clout *cloutpkg.Clout, scriptletName string, arguments map[string]string, urlContext *urlpkg.Context) (string, error) {
+func ExecCloutScriptlet(clout *cloutpkg.Clout, scriptletName string, arguments map[string]string, urlContext *urlpkg.Context) (string, error) {
 	jsContext := js.NewContext(scriptletName, pucciniLog, arguments, false, "yaml", false, true, false, "", urlContext)
 	var builder strings.Builder
 	jsContext.Stdout = &builder

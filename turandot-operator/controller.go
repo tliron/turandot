@@ -38,7 +38,7 @@ func Controller() {
 	if clusterMode {
 		namespace = ""
 	} else if namespace == "" {
-		if namespace_, ok := kubernetes.GetConfiguredNamespace(kubeconfigPath, context); ok {
+		if namespace_, ok := kubernetes.GetConfiguredNamespace(kubeconfigPath, kubeconfigContext); ok {
 			namespace = namespace_
 		}
 		if namespace == "" {
@@ -69,6 +69,7 @@ func Controller() {
 	// Controller
 
 	controller := controllerpkg.NewController(
+		context,
 		toolName,
 		site,
 		clusterMode,

@@ -15,7 +15,7 @@ var colorize string
 
 var masterUrl string
 var kubeconfigPath string
-var context string
+var kubeconfigContext string
 
 var version bool
 var site string
@@ -35,7 +35,7 @@ func init() {
 	// Conventional flags for Kubernetes controllers
 	command.Flags().StringVar(&masterUrl, "master", "", "address of Kubernetes API server")
 	command.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "path to Kubernetes configuration")
-	command.Flags().StringVarP(&context, "context", "x", "", "name of context in Kubernetes configuration")
+	command.Flags().StringVarP(&kubeconfigContext, "context", "x", "", "name of context in Kubernetes configuration")
 
 	// Our additional flags
 	command.Flags().BoolVar(&version, "version", false, "print version")

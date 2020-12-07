@@ -15,14 +15,13 @@ import (
 	"github.com/tliron/puccini/tosca/compiler"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
-	"github.com/tliron/turandot/tools"
 )
 
 func (self *Controller) ReadClout(cloutPath string, resolve bool, coerce bool, urlContext *urlpkg.Context) (*cloutpkg.Clout, error) {
 	if url, err := urlpkg.NewURL(cloutPath, urlContext); err == nil {
 		if reader, err := url.Open(); err == nil {
 			defer reader.Close()
-			if clout, err := tools.ReadClout(reader, urlContext); err == nil {
+			if clout, err := ReadClout(reader, urlContext); err == nil {
 				problems := &problemspkg.Problems{}
 
 				if resolve {
@@ -72,7 +71,7 @@ func (self *Controller) WriteServiceClout(yaml string, service *resources.Servic
 
 func (self *Controller) executeCloutGet(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (ard.Value, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := tools.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := ExecCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if value, err := format.DecodeYAML(yaml); err == nil {
 				return value, nil
 			} else if err != io.EOF {
@@ -92,7 +91,7 @@ func (self *Controller) executeCloutGet(service *resources.Service, urlContext *
 
 func (self *Controller) executeCloutGetAll(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) ([]ard.StringMap, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := tools.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := ExecCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if value, err := format.DecodeYAMLStringMaps(yaml); err == nil {
 				return value, nil
 			} else if err != io.EOF {
@@ -112,7 +111,7 @@ func (self *Controller) executeCloutGetAll(service *resources.Service, urlContex
 
 func (self *Controller) executeCloutUpdate(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (*resources.Service, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := tools.ExecScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := ExecCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if yaml != "" {
 				return self.WriteServiceClout(yaml, service)
 			} else {

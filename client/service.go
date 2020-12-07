@@ -6,10 +6,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/tliron/kutil/format"
+	"github.com/tliron/kutil/kubernetes"
 	urlpkg "github.com/tliron/kutil/url"
 	reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
-	"github.com/tliron/turandot/tools"
 	"k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -44,6 +44,7 @@ func (self *Client) ListServicesForImageName(registryName string, imageName stri
 			if (service.Spec.ServiceTemplate.Indirect != nil) && (service.Spec.ServiceTemplate.Indirect.Registry == registryName) && (service.Spec.ServiceTemplate.Indirect.Name == imageName) {
 				serviceNames = append(serviceNames, service.Name)
 			}
+			// TODO: direct
 		}
 		return serviceNames, nil
 	} else {
@@ -91,6 +92,11 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 		namespace = self.Namespace
 	}
 
+	if colon := strings.Index(imageName, ":"); colon == -1 {
+		// Must have a tag
+		imageName += ":latest"
+	}
+
 	// Encode inputs
 	var inputs_ map[string]string
 	var err error
@@ -133,9 +139,9 @@ func (self *Client) CreateServiceFromTemplate(namespace string, serviceName stri
 
 func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
 	spooler := self.Reposure.SpoolerClient(registry)
-	serviceTemplateName := uuid.New().String()
+	serviceTemplateName := fmt.Sprintf("%s-%s", serviceName, uuid.New().String())
 	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
-	if err := tools.PublishOnRegistry(imageName, url, spooler); err == nil {
+	if err := spooler.PushTarballFromURL(imageName, url); err == nil {
 		return self.CreateServiceIndirect(namespace, serviceName, registry.Name, imageName, inputs, mode)
 	} else {
 		return nil, err
@@ -233,6 +239,25 @@ func (self *Client) DeleteService(namespace string, serviceName string) error {
 	}
 
 	return self.Turandot.TurandotV1alpha1().Services(namespace).Delete(self.Context, serviceName, meta.DeleteOptions{})
+}
+
+func (self *Client) GetServiceClout(namespace string, serviceName string) (string, error) {
+	if service, err := self.GetService(namespace, serviceName); err == nil {
+		appName := fmt.Sprintf("%s-operator", self.NamePrefix)
+
+		if podName, err := kubernetes.GetFirstPodName(self.Context, self.Kubernetes, self.Namespace, appName); err == nil {
+			var builder strings.Builder
+			if err := self.Exec(self.Namespace, podName, "operator", nil, &builder, "cat", service.Status.CloutPath); err == nil {
+				return strings.TrimRight(builder.String(), "\n"), nil
+			} else {
+				return "", err
+			}
+		} else {
+			return "", err
+		}
+	} else {
+		return "", nil
+	}
 }
 
 // Utils

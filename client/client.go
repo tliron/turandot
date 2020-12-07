@@ -41,14 +41,14 @@ type Client struct {
 	Log     *logging.Logger
 }
 
-func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, reposure reposurepkg.Interface, rest restpkg.Interface, config *restpkg.Config, clusterMode bool, clusterRole string, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, cachePath string) *Client {
+func NewClient(kubernetes kubernetespkg.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, reposure reposurepkg.Interface, rest restpkg.Interface, config *restpkg.Config, context contextpkg.Context, clusterMode bool, clusterRole string, namespace string, namePrefix string, partOf string, managedBy string, operatorImageName string, cachePath string, logName string) *Client {
 	reposure_ := reposureclient.NewClient(
 		kubernetes,
 		apiExtensions,
 		reposure,
 		rest,
 		config,
-		contextpkg.TODO(),
+		context,
 		clusterMode,
 		clusterRole,
 		namespace,
@@ -58,7 +58,7 @@ func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensi
 		reposurecontroller.OperatorImageReference,
 		reposurecontroller.SurrogateImageReference,
 		reposurecontroller.SimpleImageReference,
-		fmt.Sprintf("%s.reposure", loggerName),
+		fmt.Sprintf("%s.reposure", logName),
 	)
 
 	return &Client{
@@ -76,7 +76,7 @@ func NewClient(loggerName string, kubernetes kubernetespkg.Interface, apiExtensi
 		ManagedBy:         managedBy,
 		OperatorImageName: operatorImageName,
 		CachePath:         cachePath,
-		Context:           contextpkg.TODO(),
-		Log:               logging.MustGetLogger(loggerName),
+		Context:           context,
+		Log:               logging.MustGetLogger(logName),
 	}
 }

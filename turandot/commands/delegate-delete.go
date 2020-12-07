@@ -11,7 +11,7 @@ func init() {
 }
 
 var delegateDeleteCommand = &cobra.Command{
-	Use:   "delete [DELEGATE NAME]",
+	Use:   "delete [[DELEGATE NAME]]",
 	Short: "Delete a delegate",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -20,6 +20,8 @@ var delegateDeleteCommand = &cobra.Command{
 			DeleteDelegate(delegateName)
 		} else if all {
 			DeleteAllDelegates()
+		} else {
+			util.Fail("must provide delegate name or specify \"--all\"")
 		}
 	},
 }

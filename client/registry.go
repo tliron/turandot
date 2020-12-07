@@ -31,7 +31,11 @@ func (self *Client) RegistryImageNameForServiceTemplateName(serviceTemplateName 
 func (self *Client) ServiceTemplateNameForRegistryImageName(artifactName string) (string, bool) {
 	prefix := fmt.Sprintf("%s/%s-", self.Namespace, serviceTemplateArtifactCategory)
 	if strings.HasPrefix(artifactName, prefix) {
-		return artifactName[len(prefix):], true
+		name := artifactName[len(prefix):]
+		if colon := strings.Index(name, ":"); colon != -1 {
+			name = name[:colon]
+		}
+		return name, true
 	} else {
 		return "", false
 	}

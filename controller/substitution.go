@@ -2,7 +2,7 @@ package controller
 
 import (
 	urlpkg "github.com/tliron/kutil/url"
-	//reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
+	reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 )
 
 func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, mode string, site string, urlContext *urlpkg.Context) error {
@@ -32,34 +32,27 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 		// Delegate
 		self.Log.Infof("delegating %q to: %s", serviceTemplateName, site)
 		if remoteClient, err := self.NewDelegate(site); err == nil {
-			if err := remoteClient.InstallOperator(site, "docker.io", true); err != nil {
+			if err := remoteClient.InstallOperator(site, true, "docker.io", true); err != nil {
 				return err
 			}
 
-			// TODO: install Reposure operator?
-			/*if err := remoteClient.InstallRegistry("docker.io", true, true); err != nil {
+			// hack: Minikube
+			var remoteRegistry *reposure.Registry
+			if remoteRegistry, err = remoteClient.Reposure.CreateRegistryIndirect(namespace, "default", "kube-system", "registry", 80, "", "", ""); err != nil {
 				return err
-			}*/
+			}
 
-			// TODO: simple registry?
-			/*
-					var remoteRegistry *reposure.Registry
-					if remoteRegistry, err = remoteClient.Reposure.CreateIndirect(namespace, "default", "", "reposure-simple", 5000, "reposure-simple", "", ""); err != nil {
-						return err
-					}
-
-				if url, err := remoteClient.GetRegistryServiceTemplateURL(remoteRegistry, serviceTemplateName); err == nil {
-					if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-						if _, err := remoteClient.CreateServiceFromContent(namespace, serviceName, remoteRegistry, remoteClient.Spooler(remoteRegistry), url_, inputs, mode); err != nil {
-							return err
-						}
-					} else {
+			if url, err := remoteClient.GetRegistryServiceTemplateURL(remoteRegistry, serviceTemplateName); err == nil {
+				if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
+					if _, err := remoteClient.CreateServiceFromContent(namespace, serviceName, remoteRegistry, url_, inputs, mode); err != nil {
 						return err
 					}
 				} else {
 					return err
 				}
-			*/
+			} else {
+				return err
+			}
 		} else {
 			return err
 		}

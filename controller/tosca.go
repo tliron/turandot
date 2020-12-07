@@ -5,7 +5,6 @@ import (
 	"github.com/tliron/kutil/format"
 	urlpkg "github.com/tliron/kutil/url"
 	"github.com/tliron/kutil/util"
-	"github.com/tliron/turandot/tools"
 )
 
 func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs map[string]string, cloutPath string, urlContext *urlpkg.Context) (string, error) {
@@ -23,7 +22,7 @@ func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs
 
 	if file, err := format.OpenFileForWrite(cloutPath); err == nil {
 		defer file.Close()
-		if err := tools.CompileTOSCA(serviceTemplateURL, inputs_, file, urlContext); err == nil {
+		if err := CompileTOSCA(serviceTemplateURL, inputs_, file, urlContext); err == nil {
 			return util.GetFileHash(cloutPath)
 		} else {
 			return "", err

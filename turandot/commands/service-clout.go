@@ -26,7 +26,7 @@ func Clout(serviceName string) {
 	// TODO: in cluster mode we must specify the namespace
 	namespace := ""
 
-	clout, err := NewClient().Turandot().ServiceClout(namespace, serviceName)
+	clout, err := NewClient().Turandot().GetServiceClout(namespace, serviceName)
 	util.FailOnError(err)
 
 	fmt.Fprintln(terminal.Stdout, clout)

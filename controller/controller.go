@@ -49,9 +49,7 @@ type Controller struct {
 	Log     *logging.Logger
 }
 
-func NewController(toolName string, site string, clusterMode bool, clusterRole string, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, reposure reposurepkg.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
-	context := contextpkg.TODO()
-
+func NewController(context contextpkg.Context, toolName string, site string, clusterMode bool, clusterRole string, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, reposure reposurepkg.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
 	if clusterMode {
 		namespace = ""
 	}
@@ -73,13 +71,13 @@ func NewController(toolName string, site string, clusterMode bool, clusterRole s
 	}
 
 	self.Client = clientpkg.NewClient(
-		fmt.Sprintf("%s.client.%s", toolName, site),
 		kubernetes,
 		apiExtensions,
 		turandot,
 		reposure,
 		kubernetes.CoreV1().RESTClient(),
 		config,
+		context,
 		clusterMode,
 		clusterRole,
 		namespace,
@@ -88,6 +86,7 @@ func NewController(toolName string, site string, clusterMode bool, clusterRole s
 		ManagedBy,
 		OperatorImageName,
 		CacheDirectory,
+		fmt.Sprintf("%s.client.%s", toolName, site),
 	)
 
 	if clusterMode {

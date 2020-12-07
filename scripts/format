@@ -11,8 +11,6 @@ gofmt -w -s -e \
 	"$ROOT/resources" \
 	"$ROOT/resources/turandot.puccini.cloud" \
 	"$ROOT/resources/turandot.puccini.cloud/v1alpha1" \
-	"$ROOT/tools" \
 	"$ROOT/turandot" \
-	"$ROOT/turandot/client" \
 	"$ROOT/turandot/commands" \
 	"$ROOT/turandot-operator"
