@@ -894,6 +894,8 @@ github.com/tliron/reposure v0.0.0-20201207163618-50e7a5792289 h1:+TZ9J9VRDAeIaDH
 github.com/tliron/reposure v0.0.0-20201207163618-50e7a5792289/go.mod h1:GIf6kxbCDv54JPN/qmpU+HDMMEiCi72o1iDOobG3ZpQ=
 github.com/tliron/reposure v0.1.0 h1:1MlgGu2R6GMptSAz3a03dxCh2pzzqLU5OubKlcMEutU=
 github.com/tliron/reposure v0.1.0/go.mod h1:hNQY6u0XuLMzReSsla3nUdwooAtXpKIBUJi7NeKU8ZE=
+github.com/tliron/reposure v0.1.1 h1:ZOagyMl+KoyUb6nrWFpmZrKp3Wv9HBf9jCaGoXgZ/Vo=
+github.com/tliron/reposure v0.1.1/go.mod h1:hNQY6u0XuLMzReSsla3nUdwooAtXpKIBUJi7NeKU8ZE=
 github.com/tliron/yamlkeys v1.3.4 h1:LOIV2nj78WhfFoFXtxgCASse7zzsd0rC2jD6de90Oic=
 github.com/tliron/yamlkeys v1.3.4/go.mod h1:8kJ1A/1s3p/I3MQUAbtv72dPEyQGoh0ZkQp0UAkABBo=
 github.com/tliron/yamlkeys v1.3.5 h1:zfNwrtxNP9pyj2UJV8SgLj6jUP4bsHwFtBByZyIg4AM=
