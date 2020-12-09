@@ -11,9 +11,9 @@ builds:
   - darwin
   - windows
   ldflags:
-  - -X 'github.com/tliron/turandot/version.GitVersion={{.Env.VERSION}}'
-  - -X 'github.com/tliron/turandot/version.GitRevision={{.Env.REVISION}}'
-  - -X 'github.com/tliron/turandot/version.Timestamp={{.Env.TIMESTAMP}}'
+  - -X 'github.com/tliron/kutil/version.GitVersion={{.Env.VERSION}}'
+  - -X 'github.com/tliron/kutil/version.GitRevision={{.Env.REVISION}}'
+  - -X 'github.com/tliron/kutil/version.Timestamp={{.Env.TIMESTAMP}}'
 
 nfpms:
 
@@ -34,7 +34,6 @@ archives:
   - assets/kubernetes/**/*
   - assets/tosca/**/*
   - examples/**/*
-  - lab/**/*
 
   format_overrides:
   - goos: windows

@@ -15,11 +15,14 @@ if [ "$1" == -f ]; then
 	FORCE=true
 fi
 
-install_tool minikube "$MINIKUBE_VERSION" \
-"https://storage.googleapis.com/minikube/releases/v$MINIKUBE_VERSION/minikube-linux-amd64"
-
 install_tool kubectl "$KUBECTL_VERSION" \
 "https://storage.googleapis.com/kubernetes-release/release/v$KUBECTL_VERSION/bin/linux/amd64/kubectl"
+
+install_tool k9s "$K9S_VERSION" \
+"https://github.com/derailed/k9s/releases/download/v$K9S_VERSION/k9s_Linux_x86_64.tar.gz" 0
+
+install_tool minikube "$MINIKUBE_VERSION" \
+"https://storage.googleapis.com/minikube/releases/v$MINIKUBE_VERSION/minikube-linux-amd64"
 
 "$HERE/kubevirt/install" "$1"
 

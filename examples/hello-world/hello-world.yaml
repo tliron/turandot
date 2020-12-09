@@ -89,7 +89,7 @@ topology_template:
             # This combination allows the command to manipulate the Clout if desired
             command:
             - /tmp/configure.sh
-            - $$nodeTemplate # argument beginning with "$$" will be replaced with local values
+            - $$nodeTemplate # arguments beginning with "$$" will be replaced with local values
             # Artifacts are copied to the target container before execution
             artifacts:
             - configure # See below
