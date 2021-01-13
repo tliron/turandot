@@ -322,41 +322,41 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 
 func ServiceToARD(service *Service) ard.StringMap {
 	map_ := make(ard.StringMap)
-	map_["Name"] = service.Name
+	map_["name"] = service.Name
 	if service.Spec.ServiceTemplate.Direct != nil {
-		map_["ServiceTemplate"] = ard.StringMap{
-			"Direct": ard.StringMap{
-				"URL":              service.Spec.ServiceTemplate.Direct.URL,
-				"TLSSecret":        service.Spec.ServiceTemplate.Direct.TLSSecret,
-				"TLSSecretDataKey": service.Spec.ServiceTemplate.Direct.TLSSecretDataKey,
-				"AuthSecret":       service.Spec.ServiceTemplate.Direct.AuthSecret,
+		map_["serviceTemplate"] = ard.StringMap{
+			"direct": ard.StringMap{
+				"url":              service.Spec.ServiceTemplate.Direct.URL,
+				"tlsSecret":        service.Spec.ServiceTemplate.Direct.TLSSecret,
+				"tlsSecretDataKey": service.Spec.ServiceTemplate.Direct.TLSSecretDataKey,
+				"authSecret":       service.Spec.ServiceTemplate.Direct.AuthSecret,
 			},
 		}
 	} else if service.Spec.ServiceTemplate.Direct != nil {
-		map_["ServiceTemplate"] = ard.StringMap{
-			"Indirect": ard.StringMap{
-				"Namespace": service.Spec.ServiceTemplate.Indirect.Namespace,
-				"Registry":  service.Spec.ServiceTemplate.Indirect.Registry,
-				"Name":      service.Spec.ServiceTemplate.Indirect.Name,
+		map_["serviceTemplate"] = ard.StringMap{
+			"indirect": ard.StringMap{
+				"namespace": service.Spec.ServiceTemplate.Indirect.Namespace,
+				"registry":  service.Spec.ServiceTemplate.Indirect.Registry,
+				"name":      service.Spec.ServiceTemplate.Indirect.Name,
 			},
 		}
 	}
-	map_["Inputs"] = service.Spec.Inputs
-	map_["Outputs"] = service.Status.Outputs
-	map_["InstantiationState"] = service.Status.InstantiationState
-	map_["CloutPath"] = service.Status.CloutPath
-	map_["CloutHash"] = service.Status.CloutHash
-	map_["Mode"] = service.Status.Mode
+	map_["inputs"] = service.Spec.Inputs
+	map_["outputs"] = service.Status.Outputs
+	map_["instantiationState"] = service.Status.InstantiationState
+	map_["cloutPath"] = service.Status.CloutPath
+	map_["cloutHash"] = service.Status.CloutHash
+	map_["mode"] = service.Status.Mode
 	nodeStates := make(ard.StringMap)
 	if service.Status.NodeStates != nil {
 		for node, nodeState := range service.Status.NodeStates {
 			nodeStates[node] = ard.StringMap{
-				"Mode":    nodeState.Mode,
-				"State":   nodeState.State,
-				"Message": nodeState.Message,
+				"mode":    nodeState.Mode,
+				"state":   nodeState.State,
+				"message": nodeState.Message,
 			}
 		}
 	}
-	map_["NodeStates"] = nodeStates
+	map_["nodeStates"] = nodeStates
 	return map_
 }

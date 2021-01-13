@@ -47,13 +47,12 @@ func DeployService(serviceName string) {
 
 	ParseInputs()
 
-	turandot := NewClient().Turandot()
-
 	if template != "" {
 		if (filePath != "") || (directoryPath != "") || (url != "") {
 			deployFailOnlyOneOf()
 		}
 
+		turandot := NewClient().Turandot()
 		registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 		util.FailOnError(err)
 		_, err = turandot.CreateServiceFromTemplate(namespace, serviceName, registry_, template, inputValues, mode)
@@ -63,19 +62,9 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		var url_ urlpkg.URL
-		var err error
-		if filePath != "" {
-			url_, err = urlpkg.NewValidFileURL(filePath, nil)
-		} else {
-			url_, err = urlpkg.ReadToInternalURLFromStdin("yaml")
-		}
+		url_, err := urlpkg.NewValidFileURL(filePath, nil)
 		util.FailOnError(err)
-
-		registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
-		util.FailOnError(err)
-		_, err = turandot.CreateServiceFromContent(namespace, serviceName, registry_, url_, inputValues, mode)
-		util.FailOnError(err)
+		createServiceFromContent(serviceName, url_)
 	} else if directoryPath != "" {
 		if (template != "") || (filePath != "") || (url != "") {
 			deployFailOnlyOneOf()
@@ -90,11 +79,21 @@ func DeployService(serviceName string) {
 		urlContext := urlpkg.NewContext()
 		defer urlContext.Release()
 
-		_, err := turandot.CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
+		_, err := NewClient().Turandot().CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
 		util.FailOnError(err)
 	} else {
-		deployFailOnlyOneOf()
+		url_, err := urlpkg.ReadToInternalURLFromStdin("yaml")
+		util.FailOnError(err)
+		createServiceFromContent(serviceName, url_)
 	}
+}
+
+func createServiceFromContent(serviceName string, url urlpkg.URL) {
+	turandot := NewClient().Turandot()
+	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
+	util.FailOnError(err)
+	_, err = turandot.CreateServiceFromContent(namespace, serviceName, registry_, url, inputValues, mode)
+	util.FailOnError(err)
 }
 
 func ParseInputs() {

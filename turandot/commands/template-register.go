@@ -25,36 +25,35 @@ var templateRegisterCommand = &cobra.Command{
 
 func RegisterServiceTemplate(serviceTemplateName string) {
 	if filePath != "" {
-		if (directoryPath != "") || (url != "") {
+		if directoryPath != "" {
 			registerFailOnlyOneOf()
 		}
 
-		var url urlpkg.URL
-		var err error
-		if filePath != "" {
-			url, err = urlpkg.NewValidFileURL(filePath, nil)
-		} else {
-			url, err = urlpkg.ReadToInternalURLFromStdin("yaml")
-		}
+		url, err := urlpkg.NewValidFileURL(filePath, nil)
 		util.FailOnError(err)
-
-		turandot := NewClient().Turandot()
-		registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
-		util.FailOnError(err)
-		spooler := turandot.Reposure.SpoolerClient(registry_)
-
-		imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
-		err = spooler.PushTarballFromURL(imageName, url)
-		util.FailOnError(err)
+		registerServiceTemplate(serviceTemplateName, url)
 	} else if directoryPath != "" {
-		if (filePath != "") || (url != "") {
+		if filePath != "" {
 			registerFailOnlyOneOf()
 		}
 
 		// TODO pack directory into CSAR
 	} else {
-		registerFailOnlyOneOf()
+		url, err := urlpkg.ReadToInternalURLFromStdin("yaml")
+		util.FailOnError(err)
+		registerServiceTemplate(serviceTemplateName, url)
 	}
+}
+
+func registerServiceTemplate(serviceTemplateName string, url urlpkg.URL) {
+	turandot := NewClient().Turandot()
+	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
+	util.FailOnError(err)
+	spooler := turandot.Reposure.SpoolerClient(registry_)
+
+	imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
+	err = spooler.PushTarballFromURL(imageName, url)
+	util.FailOnError(err)
 }
 
 func registerFailOnlyOneOf() {

@@ -222,7 +222,7 @@ func (self *Client) createOperatorClusterRoleBinding(serviceAccount *core.Servic
 	})
 }
 
-func (self *Client) createOperatorDeployment(site string, registryAddress string, serviceAccount *core.ServiceAccount, replicas int32) (*apps.Deployment, error) {
+func (self *Client) createOperatorDeployment(site string, sourceRegistryHost string, serviceAccount *core.ServiceAccount, replicas int32) (*apps.Deployment, error) {
 	appName := fmt.Sprintf("%s-operator", self.NamePrefix)
 	labels := self.Labels(appName, "operator", self.Namespace)
 
@@ -245,7 +245,7 @@ func (self *Client) createOperatorDeployment(site string, registryAddress string
 					Containers: []core.Container{
 						{
 							Name:            "operator",
-							Image:           fmt.Sprintf("%s/%s", registryAddress, self.OperatorImageName),
+							Image:           fmt.Sprintf("%s/%s", sourceRegistryHost, self.OperatorImageName),
 							ImagePullPolicy: core.PullAlways,
 							VolumeMounts: []core.VolumeMount{
 								{
@@ -269,6 +269,15 @@ func (self *Client) createOperatorDeployment(site string, registryAddress string
 								{
 									Name:  "TURANDOT_OPERATOR_verbose",
 									Value: "1",
+								},
+								{
+									// For kutil's kubernetes.GetConfiguredNamespace
+									Name: "KUBERNETES_NAMESPACE",
+									ValueFrom: &core.EnvVarSource{
+										FieldRef: &core.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
+										},
+									},
 								},
 								// TODO: cluster mode and role
 							},
