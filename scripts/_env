@@ -5,9 +5,9 @@ _HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 MODULE=github.com/tliron/turandot
 
-K8S_VERSION=0.20.1
-HELM_VERSION=3.4.2
-YQ_VERSION=4.0.0
+K8S_VERSION=0.20.2
+HELM_VERSION=3.5.0
+YQ_VERSION=4.4.1
 
 ROOT=$(readlink --canonicalize "$_HERE/..")
 

@@ -19,4 +19,4 @@ install_tool helm "$HELM_VERSION" \
 "linux-amd64/"
 
 install_tool yq "$YQ_VERSION" \
-"https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_amd64"
+"https://github.com/mikefarah/yq/releases/download/v$YQ_VERSION/yq_linux_amd64"
