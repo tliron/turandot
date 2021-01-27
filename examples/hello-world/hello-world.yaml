@@ -23,7 +23,7 @@ node_types:
       # Only one should be used per node type
       metadata: k8s:Metadata
       # Other capabilities can be added to represent Kubernetes resources
-      # (The same capability type can be used multiple times, e.g. two LoadBalancer)
+      # (The same capability type can be used multiple times, e.g. two LoadBalancers)
       deployment: k8s:Deployment
       web: k8s:LoadBalancer
     interfaces:
