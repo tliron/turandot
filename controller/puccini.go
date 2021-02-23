@@ -6,9 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/op/go-logging"
 	"github.com/tliron/kutil/ard"
 	"github.com/tliron/kutil/format"
+	"github.com/tliron/kutil/logging"
 	problemspkg "github.com/tliron/kutil/problems"
 	"github.com/tliron/kutil/terminal"
 	urlpkg "github.com/tliron/kutil/url"
@@ -18,11 +18,11 @@ import (
 	"github.com/tliron/puccini/tosca/parser"
 )
 
-var pucciniLog = logging.MustGetLogger("turandot.puccini")
+var pucciniLog = logging.GetLogger("turandot.puccini")
 
 func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, urlContext *urlpkg.Context) error {
 	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-		if serviceTemplate, problems, err := parser.Parse(url_, nil, inputs); err == nil {
+		if _, serviceTemplate, problems, err := parser.Parse(url_, nil, inputs); err == nil {
 			if problems.Empty() {
 				if clout, err := compiler.Compile(serviceTemplate, true); err == nil {
 					return WriteClout(clout, writer)

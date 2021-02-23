@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/ard"
-	formatpkg "github.com/tliron/kutil/format"
 	urlpkg "github.com/tliron/kutil/url"
 	"github.com/tliron/kutil/util"
 	"github.com/tliron/yamlkeys"
@@ -110,7 +109,7 @@ func ParseInputs() {
 		if closer, ok := reader.(io.Closer); ok {
 			defer closer.Close()
 		}
-		data, err := formatpkg.ReadAllYAML(reader)
+		data, err := yamlkeys.DecodeAll(reader)
 		util.FailOnError(err)
 		for _, data_ := range data {
 			if map_, ok := data_.(ard.Map); ok {
@@ -128,7 +127,7 @@ func ParseInputs() {
 		if len(s) != 2 {
 			util.Failf("malformed input: %s", input)
 		}
-		value, err := formatpkg.DecodeYAML(s[1])
+		value, _, err := ard.DecodeYAML(s[1], false)
 		util.FailOnError(err)
 		inputValues[s[0]] = value
 	}

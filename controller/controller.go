@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/op/go-logging"
 	kubernetesutil "github.com/tliron/kutil/kubernetes"
+	"github.com/tliron/kutil/logging"
 	reposurepkg "github.com/tliron/reposure/apis/clientset/versioned"
 	turandotpkg "github.com/tliron/turandot/apis/clientset/versioned"
 	turandotinformers "github.com/tliron/turandot/apis/informers/externalversions"
@@ -46,7 +46,7 @@ type Controller struct {
 	Services turandotlisters.ServiceLister
 
 	Context contextpkg.Context
-	Log     *logging.Logger
+	Log     logging.Logger
 }
 
 func NewController(context contextpkg.Context, toolName string, site string, clusterMode bool, clusterRole string, namespace string, dynamic dynamicpkg.Interface, kubernetes kubernetes.Interface, apiExtensions apiextensionspkg.Interface, turandot turandotpkg.Interface, reposure reposurepkg.Interface, config *restpkg.Config, cachePath string, informerResyncPeriod time.Duration, stopChannel <-chan struct{}) *Controller {
@@ -54,7 +54,7 @@ func NewController(context contextpkg.Context, toolName string, site string, clu
 		namespace = ""
 	}
 
-	log := logging.MustGetLogger(fmt.Sprintf("%s.controller", toolName))
+	log := logging.GetLoggerf("%s.controller", toolName)
 
 	self := Controller{
 		Site:        site,

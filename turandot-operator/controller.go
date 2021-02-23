@@ -16,9 +16,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	kubernetespkg "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-
-	// Load all auth plugins:
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
 func Controller() {
@@ -45,7 +42,7 @@ func Controller() {
 			namespace = kubernetes.GetServiceAccountNamespace()
 		}
 		if namespace == "" {
-			log.Fatal("could not discover namespace and namespace not provided")
+			util.Fail("could not discover namespace and namespace not provided")
 		}
 	}
 

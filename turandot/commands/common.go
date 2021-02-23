@@ -3,14 +3,14 @@ package commands
 import (
 	contextpkg "context"
 
-	"github.com/op/go-logging"
+	"github.com/tliron/kutil/logging"
 )
 
 const toolName = "turandot"
 
 var context = contextpkg.TODO()
 
-var log = logging.MustGetLogger(toolName)
+var log = logging.GetLogger(toolName)
 
 var filePath string
 var directoryPath string

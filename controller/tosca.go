@@ -15,7 +15,7 @@ func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs
 	inputs_ := make(map[string]ard.Value)
 	for key, input := range inputs {
 		var err error
-		if inputs_[key], err = format.DecodeYAML(input); err != nil {
+		if inputs_[key], _, err = ard.DecodeYAML(input, false); err != nil {
 			return "", err
 		}
 	}
