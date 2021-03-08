@@ -8,6 +8,7 @@ import (
 	"github.com/tliron/kutil/logging"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
+	"k8s.io/klog/v2"
 )
 
 var logTo string
@@ -63,7 +64,9 @@ var command = &cobra.Command{
 		} else {
 			logging.Configure(verbose, &logTo)
 		}
-		// TODO: init "k8s.io/klog"?
+		if writer := logging.GetWriter(); writer != nil {
+			klog.SetOutput(writer)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		Controller()

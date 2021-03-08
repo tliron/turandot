@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/tebeka/atexit"
 	"github.com/tliron/kutil/util"
 
 	_ "github.com/tliron/kutil/logging/simple"
@@ -11,5 +10,5 @@ import (
 func main() {
 	err := command.Execute()
 	util.FailOnError(err)
-	atexit.Exit(0)
+	util.Exit(0)
 }

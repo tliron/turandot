@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/tebeka/atexit"
+	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/turandot/commands"
 
 	_ "github.com/tliron/kutil/logging/simple"
@@ -9,5 +9,5 @@ import (
 
 func main() {
 	commands.Execute()
-	atexit.Exit(0)
+	util.Exit(0)
 }

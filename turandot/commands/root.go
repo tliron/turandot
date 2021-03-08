@@ -8,6 +8,7 @@ import (
 	"github.com/tliron/kutil/logging"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
+	"k8s.io/klog/v2"
 )
 
 var logTo string
@@ -54,6 +55,9 @@ var rootCommand = &cobra.Command{
 			logging.Configure(verbose, nil)
 		} else {
 			logging.Configure(verbose, &logTo)
+		}
+		if writer := logging.GetWriter(); writer != nil {
+			klog.SetOutput(writer)
 		}
 	},
 }
