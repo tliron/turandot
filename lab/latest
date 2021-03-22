@@ -27,7 +27,7 @@ m "HELM_VERSION=$HELM_VERSION"
 YQ_VERSION=$(github_version mikefarah/yq)
 m "YQ_VERSION=$YQ_VERSION"
 
-MULTUS_VERSION=$(github_version intel/multus-cni)
+MULTUS_VERSION=$(github_version k8snetworkplumbingwg/multus-cni)
 MULTUS_VERSION=${MULTUS_VERSION:1}
 m "MULTUS_VERSION=$MULTUS_VERSION"
 

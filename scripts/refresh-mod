@@ -10,6 +10,7 @@ rm --force "$ROOT/go.mod" "$ROOT/go.sum"
 cd "$ROOT"
 go mod init "$MODULE"
 go get k8s.io/client-go@v$K8S_VERSION
+go mod tidy
 
 "$HERE/test"
 

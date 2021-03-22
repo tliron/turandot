@@ -8,6 +8,6 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 NAMESPACE=$1
 
-kubectl get namespaces "$WORKSPACE" --output=json | \
+kubectl get namespaces "$NAMESPACE" --output=json | \
 jq .spec.finalizers=[] | \
-kubectl replace --raw="/api/v1/namespaces/$WORKSPACE/finalize" -f -
+kubectl replace --raw="/api/v1/namespaces/$NAMESPACE/finalize" -f -
