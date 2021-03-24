@@ -81,12 +81,12 @@ Configuring the Registry
 
 You will now use Reposure to configure the "default" registry for Turandot. 
 
-This can be simple or complex depending on your Kubernetes cluster. The reason is that
-the Turandot operator does more than just deploy TOSCA, it can also deploy artifacts
-referred to by your TOSCA, including artifacts of a special type: container images. Container
-images are downloaded from a registry by the container runtime (CRI-O, Docker, etc.) that runs
-on each of the cluster's hosts, and by default the container runtime is likely configured to
-require TLS authentication (HTTPS) and may even require authorization.
+This can be simple or complex depending on your Kubernetes cluster. The reason it can be
+challenging is that the Turandot operator does more than just deploy TOSCA, it can also deploy
+artifacts referred to by your TOSCA, including artifacts of a special type: container images.
+Container images are downloaded from a registry by the container runtime (CRI-O, Docker, etc.)
+that runs on each of the cluster's hosts, and by the container runtime is likely to be configured
+by delay to require TLS authentication (HTTPS) and may even require authorization.
 
 Reposure comes with built-in support for the built-in registries of a few Kubernetes
 distributions, making it easy to make use of them. For Minikube:
@@ -110,16 +110,19 @@ small deployments.
 
 Installing the "simple" registry is simple, but configuring your Kubernetes container
 runtime to accept it is beyond the scope of this guide. Specifically you would need to
-allow it to accept a TLS certificate or your custom certificate authority.
+allow it to accept your TLS certificate or your custom certificate authority. The extra
+challenge of working with TLS certificates for cloud workloads is that the certificate
+is tied to either an IP address (which may change) or a DNS domain name, which may be
+local and custom.
 
 However, if you can configure your container runtime to at least accept self-signed
-certificates (so-called "insecure" mode), then Reposure's "simple" registry can provision
-one using [cert-manager](https://github.com/jetstack/cert-manager). (In Minikube this
-is enabled via the
-[`--insecure-registry`](https://minikube.sigs.k8s.io/docs/handbook/registry/) flag.)
+certificates (so-called "insecure" mode, which in Minikube is enabled via the
+[`--insecure-registry`](https://minikube.sigs.k8s.io/docs/handbook/registry/) flag),
+then Reposure's "simple" registry can provision such a self-signed certificate for you
+by using [cert-manager](https://github.com/jetstack/cert-manager).
 
-So, assuming your container runtime is "insecure", you can start by installing
-cert-manager via our included script:
+Assuming your container runtime is "insecure", you can start by installing cert-manager
+via our included script:
 
     lab/cert-manager/deploy
 

@@ -7,7 +7,7 @@ Turandot
 [![Latest Release](https://img.shields.io/github/release/tliron/turandot.svg)](https://github.com/tliron/turandot/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tliron/turandot)](https://goreportcard.com/report/github.com/tliron/turandot)
 
-Orchestrate and compose [Kubernetes](https://kubernetes.io/) workloads using
+Compose and orchestrate [Kubernetes](https://kubernetes.io/) workloads using
 [TOSCA](https://www.oasis-open.org/committees/tosca/).
 
 Want to dive in?
