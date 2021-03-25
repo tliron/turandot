@@ -13,20 +13,10 @@ where we have scripts that do much of what is explained here.
 Requirements
 ------------
 
-To get started with Turandot you need `kubectl` access to a working Kubernetes
-cluster.
+### Tools
 
-For development work, [Minikube](https://minikube.sigs.k8s.io/docs/) is a quick way
-to get started. Just make sure to start Minikube with its registry add-on enabled:
-
-    minikube start --addons=registry ...
-
-Download the CLI Utilities
---------------------------
-
-[Download](https://github.com/tliron/turandot/releases) the latest binary release of
-Turandot. Specifically you'll need the `turandot` CLI utility (it's a self-contained
-executable).
+Download the binary release of [Turandot](https://github.com/tliron/turandot/releases).
+Specifically you'll need the `turandot` CLI utility (it's a self-contained executable).
 
 You will also need the [Reposure](https://reposure.puccini.cloud/) CLI utility in
 order to configure the registry that Turandot will use to store TOSCA service templates
@@ -35,6 +25,19 @@ and artifacts, so download that, too.
 Finally, we'll need the `puccini-csar` CLI utility from [Puccini](https://puccini.cloud/)
 in order to package our CSAR. It's generally useful to have Puccini available in
 order to validate and otherwise work with your TOSCA and CSAR.
+
+A few other tools used by the scripts: `podman` (or `docker`), `pigz` (or `gzip`),
+`zip`, `zipinfo`, `tar`.
+
+### Kubernetes Cluster
+
+To get started with Turandot you need `kubectl` access to a working Kubernetes
+cluster.
+
+For development work, [Minikube](https://minikube.sigs.k8s.io/docs/) is a quick way
+to get started. Just make sure to start Minikube with its registry add-on enabled:
+
+    minikube start --addons=registry ...
 
 The `turandot` and `reposure` utilities use the same local configuration you have for
 `kubectl`, and like `kubectl` they can accept a `--namespace` argument for selecting
@@ -149,10 +152,6 @@ TOSCA artifact. The
 [build-csar](examples/hello-world/scripts/save-container-image) script will handle that:
 
     examples/hello-world/scripts/save-container-image
-
-The above script uses [Podman](https://podman.io/) to extract the tarball. If Podman is
-not available to you, you can use Docker instead. Simply replace all `podman` commands
-with `docker`.
 
 Next you'll use the [build-csar](examples/hello-world/scripts/build-csar) script to package
 the TOSCA topology template, profiles, and artifacts (including the container image

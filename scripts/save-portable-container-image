@@ -30,9 +30,21 @@ function goodbye () {
 	old_goodbye $1
 }
 
+if command -v podman &> /dev/null; then
+	PODMAN=podman
+else
+	PODMAN=docker
+fi
+
+if command -v pigz &> /dev/null; then
+	GZIP=pigz
+else
+	GZIP=gzip
+fi
+
 # Save
 m "saving $IMAGE..."
-podman save "$IMAGE" --output "$WORK/image.tar"
+"$PODMAN" save "$IMAGE" --output "$WORK/image.tar"
 
 # Unpack
 m "unpacking..."
@@ -46,5 +58,5 @@ mv --force "$WORK/image/manifest.json~" "$WORK/image/manifest.json"
 # Repack
 m "repacking to $FILE..."
 pushd "$WORK/image" > /dev/null
-tar --create --use-compress-program=pigz --file="$FILE" *
+tar --create --use-compress-program="$GZIP" --file="$FILE" *
 popd > /dev/null
