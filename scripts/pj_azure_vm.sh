@@ -1,28 +1,39 @@
-if [ $# -eq 0 ]
-    then
-        echo "Options are create | destroy | stop | start"
-fi
+# uses azure command to execute an action on a virtual machine
 
-if [ $1 == 'create' ]
-    then
-        az group create --name MyVMResourceGroup --location uksouth
-        az vm create --resource-group myVMResourceGroup --name myVM --image OpenLogic:CentOS:8_2:latest --size Standard_B1s --admin-username azureuser --generate-ssh-keys --custom-data cloud-init.txt
-        PUBLICIP=$(az vm show -d -g myVMResourceGroup -n myVM --query publicIps -o tsv);ssh -q azureuser@$PUBLICIP
-fi
+RESOURCEGROUP=MyVMResourceGroup
+LOCATION=uksouth
+VMNAME=myVM
 
-if [ $1 == 'destroy' ]
-    then
-        az group delete --name myVMResourceGroup --yes
+function connect {
+    PUBLICIP=$(az vm show -d -g $RESOURCEGROUP -n $VMNAME --query publicIps -o tsv);ssh -q azureuser@$PUBLICIP
+}
 
-fi
+case $1 in
 
-if [ $1 == 'stop' ]
-    then
-        az vm stop --resource-group myVMResourceGroup --name myVM
-fi
+    create)
+        az group create --name $RESOURCEGROUP --location $LOCATION
+        az vm create --resource-group $RESOURCEGROUP --name $VMNAME --image OpenLogic:CentOS:8_2:latest --size Standard_B1s --admin-username azureuser --generate-ssh-keys --custom-data pj_cloud-init.txt
+        PUBLICIP=$(az vm show -d -g $RESOURCEGROUP -n $VMNAME --query publicIps -o tsv);ssh -q azureuser@$PUBLICIP
+    ;;
 
-if [ $1 == 'start' ]
-    then
-        az vm start --resource-group myVMResourceGroup --name myVM
-        PUBLICIP=$(az vm show -d -g myVMResourceGroup -n myVM --query publicIps -o tsv);ssh -q azureuser@$PUBLICIP
-fi
+    destroy)
+        az group delete --name $RESOURCEGROUP --yes
+    ;;
+
+    stop)
+        az vm stop --resource-group $RESOURCEGROUP --name $VMNAME
+    ;;
+
+    start)
+        az vm start --resource-group $RESOURCEGROUP --name $VMNAME
+        connect
+    ;;
+
+    connect)
+        connect
+    ;;
+
+    *)
+        echo "ERROR: Must supply one argument which may be create | destroy | stop | start | connect"
+
+esac

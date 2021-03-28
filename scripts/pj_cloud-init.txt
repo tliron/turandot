@@ -5,14 +5,22 @@ packages:
   - jq
   - pigz
   - podman
+  - zip
+  - zipinfo
+  - tar
+  - kubectl
+  - minikube
 write_files:
   - owner: azureuser:azureuser
     path: /home/azureuser/startup.sh
     content: |
       #!/bin/sh
-      echo "this has been written via cloud-init" + $(date) >> myScript.txt
+      echo "this has been written via cloud-init" + $(date) >> ~/logs.txt
     permissions: '0744'
 runcmd:
   - sudo chown azureuser:azureuser /home/azureuser
   - sudo chown azureuser:azureuser /home/azureuser/startup.sh
   - /home/azureuser/startup.sh
+  - git clone https://github.com/pmjordan/turandot.git
+  - cd turandot
+  - sudo scripts/pj_install.sh
