@@ -1,0 +1,18 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - git
+  - jq
+  - pigz
+  - podman
+write_files:
+  - owner: azureuser:azureuser
+    path: /home/azureuser/startup.sh
+    content: |
+      #!/bin/sh
+      echo "this has been written via cloud-init" + $(date) >> myScript.txt
+    permissions: '0744'
+runcmd:
+  - sudo chown azureuser:azureuser /home/azureuser
+  - sudo chown azureuser:azureuser /home/azureuser/startup.sh
+  - /home/azureuser/startup.sh
