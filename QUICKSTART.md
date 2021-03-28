@@ -14,6 +14,7 @@ Requirements
 ------------
 
 ### Tools
+An Azure VM with the tools listed below using the command script/pj_azure_vm.sh
 
 Download the binary release of [Turandot](https://github.com/tliron/turandot/releases).
 Specifically you'll need the `turandot` CLI utility (it's a self-contained executable).
@@ -28,6 +29,8 @@ order to validate and otherwise work with your TOSCA and CSAR.
 
 A few other tools used by the scripts: `podman` (or `docker`), `pigz` (or `gzip`),
 `zip`, `zipinfo`, `tar`.
+
+
 
 ### Kubernetes Cluster
 

@@ -1,15 +1,12 @@
 #cloud-config
-package_upgrade: true
+debug:
+  verbose: true
+package_upgrade: false
 packages:
   - git
   - jq
   - pigz
   - podman
-  - zip
-  - zipinfo
-  - tar
-  - kubectl
-  - minikube
 write_files:
   - owner: azureuser:azureuser
     path: /home/azureuser/startup.sh
@@ -22,5 +19,4 @@ runcmd:
   - sudo chown azureuser:azureuser /home/azureuser/startup.sh
   - /home/azureuser/startup.sh
   - git clone https://github.com/pmjordan/turandot.git
-  - cd turandot
-  - sudo scripts/pj_install.sh
+  - sudo turandot/scripts/pj_install.sh

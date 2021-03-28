@@ -4,6 +4,16 @@ RESOURCEGROUP=MyVMResourceGroup
 LOCATION=uksouth
 VMNAME=myVM
 
+function create {
+    az group create --name $RESOURCEGROUP --location $LOCATION
+    az vm create --resource-group $RESOURCEGROUP --name $VMNAME --image OpenLogic:CentOS:8_2:latest --size Standard_B1s --admin-username azureuser --generate-ssh-keys --custom-data scripts/pj_cloud-init.txt
+}
+
+
+function destroy {
+    az group delete --name $RESOURCEGROUP --yes
+}
+
 function connect {
     PUBLICIP=$(az vm show -d -g $RESOURCEGROUP -n $VMNAME --query publicIps -o tsv);ssh -q azureuser@$PUBLICIP
 }
@@ -11,13 +21,12 @@ function connect {
 case $1 in
 
     create)
-        az group create --name $RESOURCEGROUP --location $LOCATION
-        az vm create --resource-group $RESOURCEGROUP --name $VMNAME --image OpenLogic:CentOS:8_2:latest --size Standard_B1s --admin-username azureuser --generate-ssh-keys --custom-data pj_cloud-init.txt
-        PUBLICIP=$(az vm show -d -g $RESOURCEGROUP -n $VMNAME --query publicIps -o tsv);ssh -q azureuser@$PUBLICIP
+        create
+        connect
     ;;
 
     destroy)
-        az group delete --name $RESOURCEGROUP --yes
+        destroy
     ;;
 
     stop)
@@ -29,11 +38,17 @@ case $1 in
         connect
     ;;
 
+    rebuild)
+        destroy
+        create
+        connect
+    ;;
+
     connect)
         connect
     ;;
 
     *)
-        echo "ERROR: Must supply one argument which may be create | destroy | stop | start | connect"
-
+        echo "ERROR: Must supply one argument which may be create | destroy | stop | start | connect | rebuild"
+    ;;
 esac
