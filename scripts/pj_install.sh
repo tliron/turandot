@@ -14,8 +14,14 @@ sudo rpm -ivh reposure.rpm
 wget -O puccini.rpm https://github.com/tliron/puccini/releases/download/v0.17.0/puccini_0.17.0_linux_amd64.rpm
 sudo rpm -ivh puccini.rpm
 
+#Install kubectl and minikube here as can't get them from cloud-init packages
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
+sudo rpm -ivh minikube-latest.x86_64.rpm
 
 #TODO make the above a loop over an array of JSON objects each representing the required binary
 cd /turandot
 
-#TODO need kubectl and minikube and cant get it from cloud-init
+

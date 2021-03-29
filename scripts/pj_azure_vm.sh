@@ -6,7 +6,7 @@ VMNAME=myVM
 
 function create {
     az group create --name $RESOURCEGROUP --location $LOCATION
-    az vm create --resource-group $RESOURCEGROUP --name $VMNAME --image OpenLogic:CentOS:8_2:latest --size Standard_B1s --admin-username azureuser --generate-ssh-keys --custom-data scripts/pj_cloud-init.txt
+    az vm create --resource-group $RESOURCEGROUP --name $VMNAME --image OpenLogic:CentOS:8_2:latest --size Standard_B2s --admin-username azureuser --generate-ssh-keys --custom-data scripts/pj_cloud-init.txt
 }
 
 
