@@ -14,10 +14,17 @@ write_files:
       #!/bin/sh
       echo "this has been written via cloud-init" + $(date) >> ~/logs.txt
     permissions: '0744'
+groups:
+  - turandot: [azureuser]
 runcmd:
   - sudo chown azureuser:azureuser /home/azureuser
   - sudo chown azureuser:azureuser /home/azureuser/startup.sh
   - /home/azureuser/startup.sh
+  - cd /opt
   - git clone https://github.com/pmjordan/turandot.git
-  - sudo turandot/scripts/pj_install.sh
+  - chown -R root:turandot /opt/turandot
+  - chmod -R g+w /opt/turandot
+  - /opt/turandot/scripts/pj_install.sh
+  - mkdir -p -m 775 /Depot/Temporary
+  - chown -R :turandot /Depot/Temporary
 final_message: "The system is finally up, after $UPTIME seconds"

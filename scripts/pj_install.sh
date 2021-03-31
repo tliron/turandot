@@ -22,7 +22,7 @@ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-latest
 sudo rpm -ivh minikube-latest.x86_64.rpm
 
 #TODO make the above a loop over an array of JSON objects each representing the required binary
-cd /turandot
+cd /opt/turandot
 
 sudo wall -n "Completed turandot tools installation"
 
