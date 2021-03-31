@@ -20,3 +20,4 @@ runcmd:
   - /home/azureuser/startup.sh
   - git clone https://github.com/pmjordan/turandot.git
   - sudo turandot/scripts/pj_install.sh
+final_message: "The system is finally up, after $UPTIME seconds"
