@@ -22,5 +22,6 @@ turandot operator install --site=central --role=view --wait -v
 reposure registry create default --provider=minikube --wait -v
 reposure image delete default --all -v
 turandot service deploy hello-world --file=dist/hello-world.csar -v
-turandot service deploy helm-hello-world --file=dist/helm-hello-world.csar -v
+turandot service deploy self-contained --file=dist/self-contained.csar -v
+turandot service deploy helm --file=dist/helm.csar -v
 turandot operator logs --follow

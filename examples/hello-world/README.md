@@ -3,13 +3,10 @@ Hello World Example
 
 A stateless single-pod web workload comprising a deployment and a loadbalancer service.
 
-This example demonstrates how a container image can be included as an artifact within a CSAR.
-
 
 Building the CSAR
 -----------------
 
-* [Save container images as tarball](examples/hello-world/scripts/save-container-image)
 * [Package as CSAR file](examples/hello-world/scripts/build-csar)
 
 

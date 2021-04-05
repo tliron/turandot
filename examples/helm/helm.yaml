@@ -18,10 +18,11 @@ topology_template:
     hello-world:
       type: helm:Release
       properties:
+        # If the "name" property is not specified the node template name will be used
         chart: { get_artifact: [ SELF, chart ] }
         namespace: { get_input: namespace }
         values:
-          nameOverride: helm # will be used as a postfix
+          nameOverride: helm # is used as both a postfix and a label
           service.type: LoadBalancer
           service.port: '8080'
       artifacts:
