@@ -93,7 +93,7 @@ challenging is that the Turandot operator does more than just deploy TOSCA, it c
 artifacts referred to by your TOSCA, including artifacts of a special type: container images.
 Container images are downloaded from a registry by the container runtime (CRI-O, Docker, etc.)
 that runs on each of the cluster's hosts, and by the container runtime is likely to be configured
-by delay to require TLS authentication (HTTPS) and may even require authorization.
+by default to require TLS authentication (HTTPS) and may even require authorization.
 
 Reposure comes with built-in support for the built-in registries of a few Kubernetes
 distributions, making it easy to make use of them. For Minikube:
