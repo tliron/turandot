@@ -44,7 +44,6 @@ Then get the external IP address
 
 and use it to confirm operation
 
-    
     curl <external address>:8080
 
 

@@ -22,15 +22,11 @@ The command
 
     turandot service list
 
-will show 'mode normal hellow-world: failed' until an external address is allocated.
+will show 'mode normal hello-world: failed' until an external address is allocated.
 
 If you want to access the deployed web server from outside the cluster you will need to have
 loadbalancing supported on your Kubernetes cluster. On Minikube you can just
 [start a tunnel](https://minikube.sigs.k8s.io/docs/handbook/accessing/#using-minikube-tunnel) in a separate terminal session.
-
-As in the hello-world example, confirm operation using
-
-  Run minikube tunnel in a separate session
 
     minikube tunnel
 

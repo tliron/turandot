@@ -9,8 +9,8 @@ This example demonstrates how a container image can be included as an artifact w
 Building the CSAR
 -----------------
 
-* [Save container images as tarball](scripts/save-container-image)
-* [Package as CSAR file](scripts/build-csar)
+* [Save container images as tarball](examples/self-contained/scripts/save-container-image)
+* [Package as CSAR file](examples/self-contained/scripts/build-csar)
 
 
 Deploying
