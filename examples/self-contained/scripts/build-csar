@@ -26,7 +26,8 @@ function build () {
 	m "built $ROOT/dist/$ARCHIVE.csar"
 }
 
-build hello-world \
-	hello-world.yaml \
+build self-contained \
+	self-contained.yaml \
+	artifacts/images \
 	artifacts/scriptlets \
 	artifacts/scripts

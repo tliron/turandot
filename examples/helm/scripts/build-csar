@@ -26,6 +26,6 @@ function build () {
 	m "built $ROOT/dist/$ARCHIVE.csar"
 }
 
-build helm-hello-world \
-	helm-hello-world.yaml \
+build helm \
+	helm.yaml \
 	artifacts/charts

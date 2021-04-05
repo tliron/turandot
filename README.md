@@ -25,11 +25,10 @@ Get It
 Features
 --------
 
-**Complex workloads**: Turandot targets complex, large-scale workloads. Moreover, it intends to
-implement part of the
-[NFV MANO (Network Function Virtualization Management and Orchestration) specification](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29),
-which is a crucial component for deploying heterogeneous network services on clouds at scale.
-Included is a comprehensive example of a multi-cluster
+**Complex workloads**: Turandot targets complex, large-scale, and multi-cluster workloads.
+Many examples are found in the field of Network Function Virtualization (NFV) (e.g.
+[MANO](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29)).
+Included with Turandot is a comprehensive example of a multi-cluster
 [telephony network service](examples/telephony-network-service/) modeled entirely in TOSCA.
 
 **Diverse workloads**: Workloads can comprise both standard and

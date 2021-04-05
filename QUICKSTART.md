@@ -1,5 +1,9 @@
-Turandot Quickstart
-===================
+Turandot Quickstart: Hello World
+================================
+
+*Note that this quickstart guide is intentionally simplified in that it does not support
+CSAR packages that include container images as artifacts. That feature is more complex to
+set up and is covered in [a more advanced quickstart guide](QUICKSTART-SELF-CONTAINED.md).*
 
 Start by cloning the Turandot git repository so that you'll have access to all the example
 files and helper scripts:
@@ -18,16 +22,11 @@ Requirements
 Download the binary release of [Turandot](https://github.com/tliron/turandot/releases).
 Specifically you'll need the `turandot` CLI utility (it's a self-contained executable).
 
-You will also need the [Reposure](https://reposure.puccini.cloud/) CLI utility in
-order to configure the registry that Turandot will use to store TOSCA service templates
-and artifacts, so download that, too.
-
-Finally, we'll need the `puccini-csar` CLI utility from [Puccini](https://puccini.cloud/)
+We'll also need the `puccini-csar` CLI utility from [Puccini](https://puccini.cloud/)
 in order to package our CSAR. It's generally useful to have Puccini available in
 order to validate and otherwise work with your TOSCA and CSAR.
 
-A few other tools used by the scripts: `podman` (or `docker`), `pigz` (or `gzip`),
-`zip`, `zipinfo`, `tar`.
+A few other tools used by the scripts: `zip`, `zipinfo`, `tar`.
 
 ### Kubernetes Cluster
 
@@ -39,36 +38,20 @@ to get started. Just make sure to start Minikube with its registry add-on enable
 
     minikube start --addons=registry ...
 
-The `turandot` and `reposure` utilities use the same local configuration you have for
-`kubectl`, and like `kubectl` they can accept a `--namespace` argument for selecting
-the namespace in which to work. To make commands more succinct in this guide let's set a
-default namespace:
+The `turandot` utility uses the same local configuration you have for `kubectl`, and like
+`kubectl` they can accept a `--namespace` argument for selecting the namespace in which to
+work. To make commands more succinct in this guide let's set a default namespace:
 
     kubectl create namespace workspace
     kubectl config set-context --current --namespace=workspace
 
-Installing the Operators
-------------------------
+Installing the Operator
+-----------------------
 
-Before you install the operators, note that you may need to specify a cluster-wide role
-in order to permit them access to the authentication and authorization secrets necessary
-to connect to the registry (see below), because those secrets may be stored outside of
-your namespace.
-
-If you indeed need access to secrets, for testing you can use "view" role, which already
-exists in most Kubernetes deployments. It will allow read-access to any resource in any
-namespace.
-
-(For production systems you would want more tightened security, in which case it would
-be a good idea to create a custom cluster role that would allow access to just the registry)
-secrets and nothing else. Doing so is beyond the scope of this guide.
-
-To install the operators with the "view" cluster role you can use this command:
-
-    turandot operator install --site=central --role=view --wait -v
-
-Here we're also giving this cluster the "central" site identifier. This will be used
+Here we're giving this cluster the "central" site identifier. This will be used
 for multi-cluster policy-based TOSCA service composition.
+
+    turandot operator install --site=central --wait -v
 
 Note the operators' container images are downloaded from Docker Hub. Here are
 direct links for [Turandot](https://hub.docker.com/r/tliron/turandot-operator),
@@ -79,83 +62,14 @@ The `--wait` flag tells the command to block until the operators are running
 successfully. The `-v` flag adds more verbosity so you can see what the command is
 doing. (You can use `-vv` for even more verbosity.)
 
-Configuring the Registry
-------------------------
-
-You will now use Reposure to configure the "default" registry for Turandot. 
-
-This can be simple or complex depending on your Kubernetes cluster. The reason it can be
-challenging is that the Turandot operator does more than just deploy TOSCA, it can also deploy
-artifacts referred to by your TOSCA, including artifacts of a special type: container images.
-Container images are downloaded from a registry by the container runtime (CRI-O, Docker, etc.)
-that runs on each of the cluster's hosts, and by the container runtime is likely to be configured
-by delay to require TLS authentication (HTTPS) and may even require authorization.
-
-Reposure comes with built-in support for the built-in registries of a few Kubernetes
-distributions, making it easy to make use of them. For Minikube:
-
-    reposure registry create default --provider=minikube --wait -v
-
-For OpenShift:
-
-    reposure registry create default --provider=openshift --wait -v
-
-(For both of these cases we would need to add `--role=view` during the operator
-installation step above.)
-
-If you're using neither Minikube nor OpenShift then you must set up your own registry.
-For production environments you'd likely want to use a robust product, like
-[Harbor](https://goharbor.io/) or [Quay](https://www.projectquay.io/).
-Alternatively, Reposure comes with a "simple" registry that is suitable for testing and
-small deployments.
-
-### Reposure's "Simple" Registry
-
-Installing the "simple" registry is simple, but configuring your Kubernetes container
-runtime to accept it is beyond the scope of this guide. Specifically you would need to
-allow it to accept your TLS certificate or your custom certificate authority. The extra
-challenge of working with TLS certificates for cloud workloads is that the certificate
-is tied to either an IP address (which may change) or a DNS domain name, which may be
-local and custom.
-
-However, if you can configure your container runtime to at least accept self-signed
-certificates (so-called "insecure" mode, which in Minikube is enabled via the
-[`--insecure-registry`](https://minikube.sigs.k8s.io/docs/handbook/registry/) flag),
-then Reposure's "simple" registry can provision such a self-signed certificate for you
-by using [cert-manager](https://github.com/jetstack/cert-manager).
-
-Assuming your container runtime is "insecure", you can start by installing cert-manager
-via our included script:
-
-    lab/cert-manager/deploy
-
-And then install the "simple" registry with self-signed authentication like so:
-
-    reposure simple install --authentication --wait -v
-
-And then configure the registry:
-
-    reposure registry create default --provider=simple --wait -v
-
-(Note that if you are using the "simple" registry with authentication then you don't
-need to install the operators with `--role=view`, because it stores its secrets in
-its namespace.)
-
 Building the "Hello World" CSAR
 -------------------------------
 
 Let's use the included [Hello World](examples/hello-world/) example, which is based on
 [this Kubernetes demo](https://github.com/paulbouwer/hello-kubernetes).
 
-Now you want to export the container image into a tarball so that you can use it as a
-TOSCA artifact. The
-[build-csar](examples/hello-world/scripts/save-container-image) script will handle that:
-
-    examples/hello-world/scripts/save-container-image
-
-Next you'll use the [build-csar](examples/hello-world/scripts/build-csar) script to package
-the TOSCA topology template, profiles, and artifacts (including the container image
-tarball you created above) into a CSAR:
+You'll use the [build-csar](examples/hello-world/scripts/build-csar) script to package
+the TOSCA topology template, profiles, and artifacts into a CSAR:
 
     examples/hello-world/scripts/build-csar
 
