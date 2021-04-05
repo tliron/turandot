@@ -1,6 +1,6 @@
 #!/bin/sh
 # install turandot on Centos. Assumes required published packages already installed by cloud-init
-echo "this has been written by turandot script pj_install.sh " + $(date) >> ~/logs.txt
+echo "this has been written by turandot script pj_install.sh " + $(date) >> ~/pj_turandot_install_logs.txt
 
 cd /tmp
 #Install turandot binary
@@ -26,9 +26,6 @@ sudo rpm -ivh minikube-latest.x86_64.rpm
 #start minikube
 opt/turandot/scripts/pj_turandot_minikube_start.sh
 
-cd /opt/turandot
-
-
-sudo wall -n "Completed turandot tools installation"
+sudo wall -n "Completed turandot tools installation. Start a new session to use new permissions and cd to /opt/turandot"
 
 

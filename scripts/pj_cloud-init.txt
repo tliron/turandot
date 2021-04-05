@@ -28,4 +28,4 @@ runcmd:
   - mkdir -p -m 775 /Depot/Temporary
   - chown -R :turandot /Depot/Temporary
   - usermod -a -G turandot azureuser 
-final_message: "The system is finally up, after $UPTIME seconds"
+final_message: "The system is finally up, after $UPTIME seconds."
