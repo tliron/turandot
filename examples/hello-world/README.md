@@ -18,11 +18,7 @@ Deploying
 Verifying
 ---------
 
-The command
-
     turandot service list
-
-will show 'mode normal hello-world: failed' until an external address is allocated.
 
 If you want to access the deployed web server from outside the cluster you will need to have
 loadbalancing supported on your Kubernetes cluster. On Minikube you can just

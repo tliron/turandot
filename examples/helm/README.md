@@ -24,7 +24,7 @@ As in the hello-world example, ensure that kubectl is pointing to a k8 service, 
 
 then use turandot to deploy the service
 
-    turandot service deploy helm-hello-world --file=dist/helm-hello-world.csar
+    turandot service deploy helm-hello-world --file=dist/helm.csar
 
 Note that though Helm is used to create the Kubernetes manifests, Turandot is controlling them.
 The `helm` command line tool will not be able to list the release. Use the `turandot service` command
