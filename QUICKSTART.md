@@ -16,10 +16,8 @@ where we have scripts that do much of what is explained here.
 
 Requirements
 ------------
-The requirements can be installed manually as detailed in the sections below but scripts/pj_cloud-init.txt and scripts/pj_install.sh are provided for use when installing turandot on a new cloud VM using Centos. For example scripts/pj_azure_vm.sh uses those to create a VM on Azure.
 
 ### Tools
-An Azure VM with the tools listed below using the command script/pj_azure_vm.sh
 
 Download the binary release of [Turandot](https://github.com/tliron/turandot/releases).
 Specifically you'll need the `turandot` CLI utility (it's a self-contained executable).
