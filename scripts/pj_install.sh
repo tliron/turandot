@@ -23,9 +23,6 @@ sudo rpm -ivh minikube-latest.x86_64.rpm
 
 #TODO make the above a loop over an array of JSON objects each representing the required binary
 
-#start minikube
-opt/turandot/scripts/pj_turandot_minikube_start.sh
-
 sudo wall -n "Completed turandot tools installation. Start a new session to use new permissions and cd to /opt/turandot"
 
 
