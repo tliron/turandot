@@ -16,8 +16,8 @@ without TOSCA and Turandot's orchestration. See
 [the repository](https://github.com/tliron/telephony-network-service).
 
 
-Building the Components
------------------------
+Helper Scripts
+--------------
 
 * [Build Asterisk CNF container image](scripts/build-asterisk-cnf-container-image)
 * [Build Asterisk VNF virtual machine image](scripts/build-asterisk-vnf-container-image)

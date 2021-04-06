@@ -1,5 +1,0 @@
-#!/bin/bash
-set -e
-
-IP=$(kubectl get services --selector=app.kubernetes.io/name=self-contained --namespace=workspace --output=jsonpath={.items[0].status.loadBalancer.ingress[0].ip})
-echo http://$IP:80

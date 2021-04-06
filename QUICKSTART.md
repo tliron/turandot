@@ -98,9 +98,13 @@ output for your "Hello World" service will show `http://<unknown>:80`.
 
 If you're using Minikube, it comes with a
 [primitive ingress solution](https://minikube.sigs.k8s.io/docs/commands/tunnel/) based on ssh
-tunneling that can be useful for testing. To run it (blocking):
+tunneling that can be useful for testing. To run it (it's blocking, so you might want to do
+it in a separate terminal session):
 
     minikube tunnel
 
-Once the tunnel is up, the LoadBalancer should get its IP address, and soon Turandot will
-update the "url" output with the correct URL. A web browser can then be used to access the indicated URL.
+Once the tunnel is up, the LoadBalancer should get its IP address, and Turandot would soon
+update the "url" output with the correct URL. You can then use curl or a web browser to access
+it:
+
+    xdg-open $(turandot service output hello-world url)
