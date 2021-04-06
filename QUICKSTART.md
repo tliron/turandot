@@ -92,9 +92,9 @@ To list all deployed services:
 
 Note that the "Hello World" example includes a LoadBalancer Kubernetes service that would
 allow you to access its web page from outside the cluster. If your cluster is not configured
-with LoadBalancer support then the service will never get an IP address, and the TOSCA "url"
-output for your "Hello World" service will show `http://<unknown>:80`, even when successfully
-deployed.
+with LoadBalancer support then, even when successfully
+deployed, the service will never get an IP address, and the TOSCA "url"
+output for your "Hello World" service will show `http://<unknown>:80`.
 
 If you're using Minikube, it comes with a
 [primitive ingress solution](https://minikube.sigs.k8s.io/docs/commands/tunnel/) based on ssh
@@ -103,5 +103,4 @@ tunneling that can be useful for testing. To run it (blocking):
     minikube tunnel
 
 Once the tunnel is up, the LoadBalancer should get its IP address, and soon Turandot will
-update the "url" output with the correct URL, which you should be able to access with a
-web browser.
+update the "url" output with the correct URL. A web browser can then be used to access the indicated URL.
