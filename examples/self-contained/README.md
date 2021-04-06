@@ -10,8 +10,12 @@ Building the CSAR
 -----------------
 
 * [Save container images as tarball](scripts/save-container-image)
+
+    examples/self-contained/scripts/save-container-image
+
 * [Package as CSAR file](scripts/build-csar)
 
+    examples/self-contained/scripts/build-csar
 
 Deploying
 ---------
@@ -20,7 +24,7 @@ Deploying
 
 If you want to access the deployed web server from outside the cluster you will need to have
 loadbalancing supported on your Kubernetes cluster. On Minikube you can just
-[start a tunnel](https://minikube.sigs.k8s.io/docs/handbook/accessing/#using-minikube-tunnel).
+[start a tunnel](https://minikube.sigs.k8s.io/docs/handbook/accessing/#using-minikube-tunnel) on a separate terminal session
 
 If supported, the "url" output of the service template will work. To open from your default web
 browser:
