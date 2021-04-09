@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Requirements:
+# Requirements (Fedora):
 #   sudo dnf install podman jq pigz
 
 HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
@@ -10,6 +10,42 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 if (( "$#" < 2 )); then
 	echo 'usage: save-portable-container-image [IMAGE NAME] [FILE PATH]'
+	exit 1
+fi
+
+if command -v podman &> /dev/null; then
+	CONTAINER_IMAGE_TOOL=podman
+else
+	CONTAINER_IMAGE_TOOL=docker
+fi
+
+if ! command -v "$CONTAINER_IMAGE_TOOL" &> /dev/null; then
+	m 'missing container image tool: `podman` or `docker`' "$RED"
+	MISSING=true
+fi
+
+if command -v pigz &> /dev/null; then
+	GZIP_TOOL=pigz
+else
+	GZIP_TOOL=gzip
+fi
+
+if ! command -v "$GZIP_TOOL" &> /dev/null; then
+	m 'missing gzip tool: `pigz` or `gzip`' "$RED"
+	MISSING=true
+fi
+
+if ! command -v tar &> /dev/null; then
+	m 'missing `tar` tool' "$RED"
+	MISSING=true
+fi
+
+if ! command -v jq &> /dev/null; then
+	m 'missing `jq` tool' "$RED"
+	MISSING=true
+fi
+
+if [ "$MISSING" == true ]; then
 	exit 1
 fi
 
@@ -30,21 +66,9 @@ function goodbye () {
 	old_goodbye $1
 }
 
-if command -v podman &> /dev/null; then
-	PODMAN=podman
-else
-	PODMAN=docker
-fi
-
-if command -v pigz &> /dev/null; then
-	GZIP=pigz
-else
-	GZIP=gzip
-fi
-
 # Save
 m "saving $IMAGE..."
-"$PODMAN" save "$IMAGE" --output "$WORK/image.tar"
+"$CONTAINER_IMAGE_TOOL" save "$IMAGE" --output "$WORK/image.tar"
 
 # Unpack
 m "unpacking..."
@@ -58,5 +82,5 @@ mv --force "$WORK/image/manifest.json~" "$WORK/image/manifest.json"
 # Repack
 m "repacking to $FILE..."
 pushd "$WORK/image" > /dev/null
-tar --create --use-compress-program="$GZIP" --file="$FILE" *
+tar --create --use-compress-program="$GZIP_TOOL" --file="$FILE" *
 popd > /dev/null

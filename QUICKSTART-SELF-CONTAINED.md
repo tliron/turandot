@@ -31,7 +31,7 @@ in order to package our CSAR. It's generally useful to have Puccini available in
 order to validate and otherwise work with your TOSCA and CSAR.
 
 A few other tools used by the scripts: `podman` (or `docker`), `pigz` (or `gzip`),
-`zip`, `zipinfo`, `tar`.
+`zip`, `zipinfo`, `tar`, `jq`.
 
 ### Kubernetes Cluster
 

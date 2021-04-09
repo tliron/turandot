@@ -1,0 +1,79 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+imports:
+
+- namespace_prefix: k8s
+  file: ../../../../assets/tosca/profiles/kubernetes/1.0/profile.yaml
+
+node_types:
+
+  Bookinfo:
+    derived_from: k8s:Service
+    properties:
+      name:
+        type: string
+      version:
+        type: string
+        default: v1
+    capabilities:
+      metadata:
+        properties:
+          name:
+            default: { get_property: [ SELF, name ] }
+      service:
+        type: k8s:ClusterIP
+        properties:
+          ports:
+            default:
+            - port: 9080
+      deployment:
+        properties:
+          template:
+            default:
+              containers:
+              - name: { get_property: [ SELF, name ] }
+                image: { concat: [ istio/examples-bookinfo-, { get_property: [ SELF, name ] }, -, { get_property: [ SELF, version ] }, ':1.5.0' ] }
+                imagePullPolicy: IfNotPresent
+                ports:
+                - containerPort: 9080
+
+  Productpage:
+#    metadata:
+#      puccini.k8s:plugins.2: internal:/tosca/kubernetes/1.0/js/plugins/dummy.js
+    derived_from: Bookinfo
+    properties:
+      name:
+        default: productpage
+    requirements:
+    - reviews:
+        capability: k8s:Service
+        node: Reviews
+        relationship: k8s:Route
+    - details:
+        capability: k8s:Service
+        node: Details
+        relationship: k8s:Route
+
+  Reviews:
+    derived_from: Bookinfo
+    properties:
+      name:
+        default: reviews
+    requirements:
+    - ratings:
+        capability: k8s:Service
+        node: Ratings
+        relationship: k8s:Route
+        occurrences: [ 0, UNBOUNDED ] # can be 0!
+
+  Details:
+    derived_from: Bookinfo
+    properties:
+      name:
+        default: details
+
+  Ratings:
+    derived_from: Bookinfo
+    properties:
+      name:
+        default: ratings
