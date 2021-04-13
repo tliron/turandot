@@ -66,7 +66,7 @@ func ListServices() {
 
 	case "bare":
 		for _, service := range services.Items {
-			fmt.Fprintln(terminal.Stdout, service.Name)
+			terminal.Println(service.Name)
 		}
 
 	default:

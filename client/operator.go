@@ -12,13 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (self *Client) InstallOperator(site string, reposure bool, sourceRegistryHost string, wait bool) error {
-	if reposure {
-		if err := self.Reposure.InstallOperator(sourceRegistryHost, wait); err != nil {
-			return err
-		}
-	}
-
+func (self *Client) InstallOperator(site string, sourceRegistryHost string, wait bool) error {
 	var err error
 
 	if sourceRegistryHost, err = self.GetSourceRegistryHost(sourceRegistryHost); err != nil {
@@ -68,7 +62,7 @@ func (self *Client) InstallOperator(site string, reposure bool, sourceRegistryHo
 	return nil
 }
 
-func (self *Client) UninstallOperator(reposure bool, wait bool) {
+func (self *Client) UninstallOperator(wait bool) {
 	var gracePeriodSeconds int64 = 0
 	deleteOptions := meta.DeleteOptions{
 		GracePeriodSeconds: &gracePeriodSeconds,
@@ -136,10 +130,6 @@ func (self *Client) UninstallOperator(reposure bool, wait bool) {
 			_, err := self.APIExtensions.ApiextensionsV1().CustomResourceDefinitions().Get(self.Context, resources.ServiceCustomResourceDefinition.Name, getOptions)
 			return err == nil
 		})
-	}
-
-	if reposure {
-		self.Reposure.UninstallOperator(wait)
 	}
 }
 

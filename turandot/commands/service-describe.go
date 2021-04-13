@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	formatpkg "github.com/tliron/kutil/format"
 	"github.com/tliron/kutil/terminal"
@@ -35,65 +33,65 @@ func DescribeService(serviceName string) {
 	if format != "" {
 		formatpkg.Print(resources.ServiceToARD(service), format, terminal.Stdout, strict, pretty)
 	} else {
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.StyleTypeName("Name"), terminal.StyleValue(service.Name))
-		fmt.Fprintf(terminal.Stdout, "%s:\n", terminal.StyleTypeName("ServiceTemplate"))
+		terminal.Printf("%s: %s\n", terminal.Stylize.TypeName("Name"), terminal.Stylize.Value(service.Name))
+		terminal.Printf("%s:\n", terminal.Stylize.TypeName("ServiceTemplate"))
 
 		if service.Spec.ServiceTemplate.Direct != nil {
-			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.StyleTypeName("Direct"))
+			terminal.Printf("  %s:\n", terminal.Stylize.TypeName("Direct"))
 			if service.Spec.ServiceTemplate.Direct.URL != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("URL"), terminal.StyleValue(service.Spec.ServiceTemplate.Direct.URL))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("URL"), terminal.Stylize.Value(service.Spec.ServiceTemplate.Direct.URL))
 			}
 			if service.Spec.ServiceTemplate.Direct.TLSSecret != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("TLSSecret"), terminal.StyleValue(service.Spec.ServiceTemplate.Direct.TLSSecret))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("TLSSecret"), terminal.Stylize.Value(service.Spec.ServiceTemplate.Direct.TLSSecret))
 			}
 			if service.Spec.ServiceTemplate.Direct.TLSSecretDataKey != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("TLSSecretDataKey"), terminal.StyleValue(service.Spec.ServiceTemplate.Direct.TLSSecretDataKey))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("TLSSecretDataKey"), terminal.Stylize.Value(service.Spec.ServiceTemplate.Direct.TLSSecretDataKey))
 			}
 			if service.Spec.ServiceTemplate.Direct.AuthSecret != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("AuthSecret"), terminal.StyleValue(service.Spec.ServiceTemplate.Direct.AuthSecret))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("AuthSecret"), terminal.Stylize.Value(service.Spec.ServiceTemplate.Direct.AuthSecret))
 			}
 		}
 
 		if service.Spec.ServiceTemplate.Indirect != nil {
-			fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.StyleTypeName("Indirect"))
+			terminal.Printf("  %s:\n", terminal.Stylize.TypeName("Indirect"))
 			if service.Spec.ServiceTemplate.Indirect.Namespace != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("Namespace"), terminal.StyleValue(service.Spec.ServiceTemplate.Indirect.Namespace))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("Namespace"), terminal.Stylize.Value(service.Spec.ServiceTemplate.Indirect.Namespace))
 			}
 			if service.Spec.ServiceTemplate.Indirect.Registry != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("Registry"), terminal.StyleValue(service.Spec.ServiceTemplate.Indirect.Registry))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("Registry"), terminal.Stylize.Value(service.Spec.ServiceTemplate.Indirect.Registry))
 			}
 			if service.Spec.ServiceTemplate.Indirect.Name != "" {
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("Name"), terminal.StyleValue(service.Spec.ServiceTemplate.Indirect.Name))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("Name"), terminal.Stylize.Value(service.Spec.ServiceTemplate.Indirect.Name))
 			}
 		}
 
 		if (service.Spec.Inputs != nil) && (len(service.Spec.Inputs) > 0) {
-			fmt.Fprintf(terminal.Stdout, "%s:\n", terminal.StyleTypeName("Inputs"))
+			terminal.Printf("%s:\n", terminal.Stylize.TypeName("Inputs"))
 			for name, input := range service.Spec.Inputs {
-				fmt.Fprintf(terminal.Stdout, "  %s: %s\n", terminal.StyleName(name), terminal.StyleValue(input))
+				terminal.Printf("  %s: %s\n", terminal.Stylize.Name(name), terminal.Stylize.Value(input))
 			}
 		}
 
 		if (service.Status.Outputs != nil) && (len(service.Status.Outputs) > 0) {
-			fmt.Fprintf(terminal.Stdout, "%s:\n", terminal.StyleTypeName("Outputs"))
+			terminal.Printf("%s:\n", terminal.Stylize.TypeName("Outputs"))
 			for name, output := range service.Status.Outputs {
-				fmt.Fprintf(terminal.Stdout, "  %s: %s\n", terminal.StyleName(name), terminal.StyleValue(output))
+				terminal.Printf("  %s: %s\n", terminal.Stylize.Name(name), terminal.Stylize.Value(output))
 			}
 		}
 
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.StyleTypeName("InstantiationState"), terminal.StyleValue(string(service.Status.InstantiationState)))
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.StyleTypeName("CloutPath"), terminal.StyleValue(service.Status.CloutPath))
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.StyleTypeName("CloutHash"), terminal.StyleValue(service.Status.CloutHash))
-		fmt.Fprintf(terminal.Stdout, "%s: %s\n", terminal.StyleTypeName("Mode"), terminal.StyleValue(service.Status.Mode))
+		terminal.Printf("%s: %s\n", terminal.Stylize.TypeName("InstantiationState"), terminal.Stylize.Value(string(service.Status.InstantiationState)))
+		terminal.Printf("%s: %s\n", terminal.Stylize.TypeName("CloutPath"), terminal.Stylize.Value(service.Status.CloutPath))
+		terminal.Printf("%s: %s\n", terminal.Stylize.TypeName("CloutHash"), terminal.Stylize.Value(service.Status.CloutHash))
+		terminal.Printf("%s: %s\n", terminal.Stylize.TypeName("Mode"), terminal.Stylize.Value(service.Status.Mode))
 
 		if service.Status.NodeStates != nil {
-			fmt.Fprintf(terminal.Stdout, "%s:\n", terminal.StyleTypeName("NodeStates"))
+			terminal.Printf("%s:\n", terminal.Stylize.TypeName("NodeStates"))
 			for node, nodeState := range service.Status.NodeStates {
-				fmt.Fprintf(terminal.Stdout, "  %s:\n", terminal.StyleName(node))
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("Mode"), terminal.StyleValue(nodeState.Mode))
-				fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("State"), terminal.StyleValue(string(nodeState.State)))
+				terminal.Printf("  %s:\n", terminal.Stylize.Name(node))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("Mode"), terminal.Stylize.Value(nodeState.Mode))
+				terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("State"), terminal.Stylize.Value(string(nodeState.State)))
 				if nodeState.Message != "" {
-					fmt.Fprintf(terminal.Stdout, "    %s: %s\n", terminal.StyleTypeName("Message"), terminal.StyleValue(nodeState.Message))
+					terminal.Printf("    %s: %s\n", terminal.Stylize.TypeName("Message"), terminal.Stylize.Value(nodeState.Message))
 				}
 			}
 		}

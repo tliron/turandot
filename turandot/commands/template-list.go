@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -59,7 +58,7 @@ func ListServiceTemplates() {
 	case "bare":
 		for _, imageName := range imageNames {
 			if serviceTemplateName, ok := turandot.ServiceTemplateNameForRegistryImageName(imageName); ok {
-				fmt.Fprintln(terminal.Stdout, serviceTemplateName)
+				terminal.Println(serviceTemplateName)
 			}
 		}
 

@@ -32,7 +32,10 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 		// Delegate
 		self.Log.Infof("delegating %q to: %s", serviceTemplateName, site)
 		if remoteClient, err := self.NewDelegate(site); err == nil {
-			if err := remoteClient.InstallOperator(site, true, "docker.io", true); err != nil {
+			if err := remoteClient.InstallOperator(site, "docker.io", true); err != nil {
+				return err
+			}
+			if err := remoteClient.Reposure.InstallOperator("docker.io", true); err != nil {
 				return err
 			}
 

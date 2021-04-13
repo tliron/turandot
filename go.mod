@@ -14,7 +14,7 @@ require (
 	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40
 	github.com/jetstack/cert-manager v1.3.0
 	github.com/spf13/cobra v1.1.3
-	github.com/tliron/kutil v0.1.23
+	github.com/tliron/kutil v0.1.25
 	github.com/tliron/puccini v0.0.0-00010101000000-000000000000
 	github.com/tliron/reposure v0.0.0-00010101000000-000000000000
 	github.com/tliron/yamlkeys v1.3.5

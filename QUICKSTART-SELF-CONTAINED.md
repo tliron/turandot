@@ -14,6 +14,7 @@ files and helper scripts:
 If you prefer to read code rather than prose, check out the [`lab/`](lab/) directory,
 where we have scripts that do much of what is explained here.
 
+
 Requirements
 ------------
 
@@ -51,6 +52,7 @@ default namespace:
     kubectl create namespace workspace
     kubectl config set-context --current --namespace=workspace
 
+
 Installing the Operators
 ------------------------
 
@@ -59,17 +61,18 @@ in order to permit them access to the authentication and authorization secrets n
 to connect to the registry (see below), because those secrets may be stored outside of
 your namespace.
 
-If you indeed need access to secrets, for testing you can use "view" role, which already
-exists in most Kubernetes deployments. It will allow read-access to any resource in any
+If you indeed need access to secrets for testing you can use "view" role, which already
+exists in most Kubernetes deployments. It allows read-access to any resource in any
 namespace.
 
 (For production systems you would want more tightened security, in which case it would
-be a good idea to create a custom cluster role that would allow access to just the registry)
-secrets and nothing else. Doing so is beyond the scope of this guide.
+be a good idea to create a custom cluster role that would allow access to just the
+registry secrets and nothing else. Doing so is beyond the scope of this guide.)
 
-To install the operators with the "view" cluster role you can use this command:
+To install the operators with the "view" cluster role you can use these commands:
 
-    turandot operator install --site=central --role=view --wait -v
+    turandot operator install --role=view --site=central --wait -v
+    reposure operator install --role=view --wait -v
 
 Here we're also giving this cluster the "central" site identifier. This will be used
 for multi-cluster policy-based TOSCA service composition.
@@ -79,9 +82,10 @@ direct links for [Turandot](https://hub.docker.com/r/tliron/turandot-operator),
 [Reposure operator](https://hub.docker.com/r/tliron/reposure-operator), and
 [Reposure surrogate](https://hub.docker.com/r/tliron/reposure-surrogate).
 
-The `--wait` flag tells the command to block until the operators are running
+The `--wait` flag tells the commands to block until the operators are running
 successfully. The `-v` flag adds more verbosity so you can see what the command is
 doing. (You can use `-vv` for even more verbosity.)
+
 
 Configuring the Registry
 ------------------------
@@ -145,6 +149,7 @@ And then configure the registry:
 need to install the operators with `--role=view`, because it stores its secrets in
 its namespace.)
 
+
 Building the Self-Contained CSAR
 --------------------------------
 
@@ -164,6 +169,7 @@ tarball you created above) into a CSAR:
     examples/self-contained/scripts/build-csar
 
 The CSAR file should now sit in the "dist" directory.
+
 
 Deploying "Self-Contained"
 --------------------------

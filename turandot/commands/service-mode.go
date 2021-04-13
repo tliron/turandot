@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
@@ -31,7 +29,7 @@ func GetMode(serviceName string) {
 
 	service, err := NewClient().Turandot().GetService(namespace, serviceName)
 	util.FailOnError(err)
-	fmt.Fprintln(terminal.Stdout, service.Status.Mode)
+	terminal.Println(service.Status.Mode)
 }
 
 func SetMode(serviceName string, mode string) {

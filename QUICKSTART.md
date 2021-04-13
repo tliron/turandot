@@ -14,6 +14,7 @@ files and helper scripts:
 If you prefer to read code rather than prose, check out the [`lab/`](lab/) directory,
 where we have scripts that do much of what is explained here.
 
+
 Requirements
 ------------
 
@@ -45,22 +46,22 @@ work. To make commands more succinct in this guide let's set a default namespace
     kubectl create namespace workspace
     kubectl config set-context --current --namespace=workspace
 
+
 Installing the Operator
 -----------------------
 
 Here we're giving this cluster the "central" site identifier. This will be used
-for multi-cluster policy-based TOSCA service composition.
+for multi-cluster policy-based TOSCA service composition:
 
     turandot operator install --site=central --wait -v
 
-Note the operators' container images are downloaded from Docker Hub. Here are
-direct links for [Turandot](https://hub.docker.com/r/tliron/turandot-operator),
-[Reposure operator](https://hub.docker.com/r/tliron/reposure-operator), and
-[Reposure surrogate](https://hub.docker.com/r/tliron/reposure-surrogate).
+Note the operator's container image is downloaded from Docker Hub. Here is a
+[direct link](https://hub.docker.com/r/tliron/turandot-operator).
 
-The `--wait` flag tells the command to block until the operators are running
+The `--wait` flag tells the command to block until the operator is running
 successfully. The `-v` flag adds more verbosity so you can see what the command is
 doing. (You can use `-vv` for even more verbosity.)
+
 
 Building the "Hello World" CSAR
 -------------------------------
@@ -74,6 +75,7 @@ the TOSCA topology template, profiles, and artifacts into a CSAR:
     examples/hello-world/scripts/build-csar
 
 The CSAR file should now sit in the "dist" directory.
+
 
 Deploying "Hello World"
 -----------------------

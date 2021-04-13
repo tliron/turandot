@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
@@ -34,7 +32,7 @@ func ServiceOutput(serviceName string, outputName string) {
 		if output, ok := service.Status.Outputs[outputName]; ok {
 			// TODO: unpack the YAML
 			// TODO: support output in various formats
-			fmt.Fprintln(terminal.Stdout, output)
+			terminal.Println(output)
 			return
 		}
 	}

@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -42,7 +41,7 @@ func ListDelegates() {
 
 	case "bare":
 		for _, delegate := range delegates {
-			fmt.Fprintln(terminal.Stdout, delegate)
+			terminal.Println(delegate)
 		}
 
 	default:
