@@ -25,5 +25,3 @@ install_tool minikube "$MINIKUBE_VERSION" \
 "https://storage.googleapis.com/minikube/releases/v$MINIKUBE_VERSION/minikube-linux-amd64"
 
 "$HERE/kubevirt/install" "$1"
-
-"$HERE/cert-manager/install" "$1"

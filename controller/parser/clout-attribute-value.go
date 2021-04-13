@@ -1,9 +1,7 @@
 package parser
 
 import (
-	"encoding/json"
-
-	"github.com/tliron/kutil/util"
+	"github.com/tliron/kutil/format"
 )
 
 //
@@ -40,11 +38,11 @@ func (self CloutAttributeValues) Set(vertexId string, capabilityName string, att
 	})
 }
 
-func (self CloutAttributeValues) StringMap() map[string]string {
+func (self CloutAttributeValues) JSON() map[string]string {
 	map_ := make(map[string]string)
 	for vertexId, list := range self {
-		if bytes, err := json.Marshal(list); err == nil {
-			map_[vertexId] = util.BytesToString(bytes)
+		if value, err := format.EncodeJSON(list, ""); err == nil {
+			map_[vertexId] = value
 		}
 	}
 	return map_

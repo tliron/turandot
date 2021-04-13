@@ -121,33 +121,36 @@ small deployments.
 
 Installing the "simple" registry is simple, but configuring your Kubernetes container
 runtime to accept it is beyond the scope of this guide. Specifically you would need to
-allow it to accept your TLS certificate or your custom certificate authority. The extra
-challenge of working with TLS certificates for cloud workloads is that the certificate
-is tied to either an IP address (which may change) or a DNS domain name, which may be
-local and custom.
+allow it to accept your TLS certificate or your custom certificate authority.
 
 However, if you can configure your container runtime to at least accept self-signed
 certificates (so-called "insecure" mode, which in Minikube is enabled via the
 [`--insecure-registry`](https://minikube.sigs.k8s.io/docs/handbook/registry/) flag),
-then Reposure's "simple" registry can provision such a self-signed certificate for you
-by using [cert-manager](https://github.com/jetstack/cert-manager).
+then Reposure's "simple" registry can provision such a self-signed certificate for
+you.
 
-Assuming your container runtime is "insecure", you can start by installing cert-manager
-via our included script:
+To do so Reposure relies on [cert-manager](https://github.com/jetstack/cert-manager),
+which does a lot of the heavy lifting required for provisioning and updating
+certificates. (The additional challenge of working with TLS certificates in cloud
+environments is that IP addresses change, so that certificates either have to be
+updated or tied to a DNS domain name, and then DNS management may be local and custom.)
 
-    lab/cert-manager/deploy
+So, assuming your container runtime is "insecure", you can start by installing
+cert-manager:
+
+    kubectl apply --filename=https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.yaml
 
 And then install the "simple" registry with self-signed authentication like so:
 
     reposure simple install --authentication --wait -v
 
-And then configure the registry:
+Finally, configure the registry:
 
     reposure registry create default --provider=simple --wait -v
 
 (Note that if you are using the "simple" registry with authentication then you don't
-need to install the operators with `--role=view`, because it stores its secrets in
-its namespace.)
+need to install the operators with `--role=view`, because the "simple" registry stores
+its certificate secrets within its namespace.)
 
 
 Building the Self-Contained CSAR

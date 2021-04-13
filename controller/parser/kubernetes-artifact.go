@@ -1,7 +1,8 @@
 package parser
 
 import (
-	"github.com/tliron/kutil/ard"
+	"github.com/tliron/kutil/util"
+	"gopkg.in/yaml.v3"
 )
 
 //
@@ -9,26 +10,9 @@ import (
 //
 
 type KubernetesArtifact struct {
-	Name       string
-	Registry   string
-	SourcePath string
-}
-
-func ParseKubernetesArtifact(value ard.Value) (*KubernetesArtifact, bool) {
-	artifact := ard.NewNode(value)
-	if name, ok := artifact.Get("name").String(false); ok {
-		if registry, ok := artifact.Get("registry").String(false); ok {
-			if sourcePath, ok := artifact.Get("sourcePath").String(false); ok {
-				return &KubernetesArtifact{name, registry, sourcePath}, true
-			} else {
-				return nil, false
-			}
-		} else {
-			return nil, false
-		}
-	} else {
-		return nil, false
-	}
+	Name       string `yaml:"name"`
+	Registry   string `yaml:"registry"`
+	SourcePath string `yaml:"sourcePath"`
 }
 
 //
@@ -37,17 +21,12 @@ func ParseKubernetesArtifact(value ard.Value) (*KubernetesArtifact, bool) {
 
 type KubernetesArtifacts []*KubernetesArtifact
 
-func ParseKubernetesArtifacts(value ard.Value) (KubernetesArtifacts, bool) {
-	if artifacts, ok := ard.NewNode(value).Get("artifacts").List(false); ok {
-		self := make(KubernetesArtifacts, len(artifacts))
-		for index, artifact := range artifacts {
-			if artifact_, ok := ParseKubernetesArtifact(artifact); ok {
-				self[index] = artifact_
-			} else {
-				return nil, false
-			}
-		}
-		return self, true
+func DecodeKubernetesArtifacts(code string) (KubernetesArtifacts, bool) {
+	var artifacts struct {
+		Artifacts KubernetesArtifacts `yaml:"artifacts"`
+	}
+	if err := yaml.Unmarshal(util.StringToBytes(code), &artifacts); err == nil {
+		return artifacts.Artifacts, true
 	} else {
 		return nil, false
 	}

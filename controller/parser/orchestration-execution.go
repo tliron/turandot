@@ -258,54 +258,58 @@ func (self *OrchestrationSSHExecution) GetMode() string {
 
 type OrchestrationExecutions map[string][]OrchestrationExecution
 
-func ParseOrchestrationExecutions(value ard.Value) (OrchestrationExecutions, bool) {
-	if executions, ok := ard.NewNode(value).Get("executions").List(false); ok {
-		self := make(OrchestrationExecutions)
+func DecodeOrchestrationExecutions(code string) (OrchestrationExecutions, bool) {
+	if value, _, err := ard.DecodeYAML(code, false); err == nil {
+		if executions, ok := ard.NewNode(value).Get("executions").List(false); ok {
+			self := make(OrchestrationExecutions)
 
-		for _, execution := range executions {
-			if nodeTemplateName, ok := ard.NewNode(execution).Get("nodeTemplate").String(false); ok {
-				nodeTemplateExecutions, _ := self[nodeTemplateName]
+			for _, execution := range executions {
+				if nodeTemplateName, ok := ard.NewNode(execution).Get("nodeTemplate").String(false); ok {
+					nodeTemplateExecutions, _ := self[nodeTemplateName]
 
-				if type_, ok := ard.NewNode(execution).Get("type").String(false); ok {
-					switch type_ {
-					case "clout":
-						if execution_, ok := ParseOrchestrationCloutExecution(execution); ok {
-							nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
-						} else {
-							return nil, false
+					if type_, ok := ard.NewNode(execution).Get("type").String(false); ok {
+						switch type_ {
+						case "clout":
+							if execution_, ok := ParseOrchestrationCloutExecution(execution); ok {
+								nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
+							} else {
+								return nil, false
+							}
+
+						case "container":
+							if execution_, ok := ParseOrchestrationContainerExecution(execution); ok {
+								nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
+							} else {
+								return nil, false
+							}
+
+						case "ssh":
+							if execution_, ok := ParseOrchestrationSSHExecution(execution); ok {
+								nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
+							} else {
+								return nil, false
+							}
 						}
+					} else {
+						return nil, false
+					}
 
-					case "container":
-						if execution_, ok := ParseOrchestrationContainerExecution(execution); ok {
-							nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
-						} else {
-							return nil, false
-						}
-
-					case "ssh":
-						if execution_, ok := ParseOrchestrationSSHExecution(execution); ok {
-							nodeTemplateExecutions = append(nodeTemplateExecutions, execution_)
-						} else {
-							return nil, false
-						}
+					if len(nodeTemplateExecutions) > 0 {
+						self[nodeTemplateName] = nodeTemplateExecutions
 					}
 				} else {
 					return nil, false
 				}
-
-				if len(nodeTemplateExecutions) > 0 {
-					self[nodeTemplateName] = nodeTemplateExecutions
-				}
-			} else {
-				return nil, false
 			}
-		}
 
-		if len(self) == 0 {
-			self = nil
-		}
+			if len(self) == 0 {
+				self = nil
+			}
 
-		return self, true
+			return self, true
+		} else {
+			return nil, false
+		}
 	} else {
 		return nil, false
 	}

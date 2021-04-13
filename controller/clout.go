@@ -71,23 +71,17 @@ func (self *Controller) WriteServiceClout(yaml string, service *resources.Servic
 	}
 }
 
-func (self *Controller) executeCloutGet(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (ard.Value, error) {
+func (self *Controller) executeCloutGet(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (string, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
 		if yaml, err := ExecCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
-			if value, _, err := ard.DecodeYAML(yaml, false); err == nil {
-				return value, nil
-			} else if err != io.EOF {
-				return nil, err
-			} else {
-				return nil, nil
-			}
+			return yaml, nil
 		} else if js.IsScriptletNotFoundError(err) {
-			return nil, nil
+			return "", nil
 		} else {
-			return nil, err
+			return "", err
 		}
 	} else {
-		return nil, err
+		return "", err
 	}
 }
 
@@ -143,20 +137,21 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 
 	// Get artifacts
 	self.Log.Infof("getting artifacts from Clout: %s", service.Status.CloutPath)
-	var artifacts ard.Value
-	if artifacts, err = self.executeCloutGet(service, urlContext, "kubernetes.artifacts.get", nil); err != nil {
+	var artifacts parser.KubernetesArtifacts
+	if artifacts_, err := self.executeCloutGet(service, urlContext, "kubernetes.artifacts.get", nil); err == nil {
+		var ok bool
+		if artifacts, ok = parser.DecodeKubernetesArtifacts(artifacts_); !ok {
+			return service, fmt.Errorf("could not parse artifacts:\n%s", artifacts_)
+		}
+	} else {
 		return service, err
 	}
 
 	// Publish artifacts
 	var artifactMappings map[string]string
 	if artifacts != nil {
-		if artifacts_, ok := parser.ParseKubernetesArtifacts(artifacts); ok {
-			if artifactMappings, err = self.publishArtifactsToRegistry(artifacts_, service, urlContext); err != nil {
-				return service, err
-			}
-		} else {
-			return service, fmt.Errorf("could not parse artifacts: %s", artifacts)
+		if artifactMappings, err = self.publishArtifactsToRegistry(artifacts, service, urlContext); err != nil {
+			return service, err
 		}
 	}
 
@@ -169,20 +164,21 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 	}
 
 	// Get policies
-	var policies ard.Value
 	self.Log.Infof("getting policies from Clout: %s", service.Status.CloutPath)
-	if policies, err = self.executeCloutGet(service, urlContext, "orchestration.policies", nil); err != nil {
+	var policies parser.OrchestrationPolicies
+	if policies_, err := self.executeCloutGet(service, urlContext, "orchestration.policies", nil); err == nil {
+		var ok bool
+		if policies, ok = parser.DecodeOrchestrationPolicies(policies_); !ok {
+			return service, fmt.Errorf("could not parse policies:\n%s", policies_)
+		}
+	} else {
 		return service, err
 	}
 
 	// Process policies
 	if policies != nil {
-		if orchestrationPolicies, ok := parser.ParseOrchestrationPolicies(policies); ok {
-			if err := self.processPolicies(orchestrationPolicies, service, urlContext); err != nil {
-				return service, err
-			}
-		} else {
-			return service, fmt.Errorf("could not parse policies: %+v", policies)
+		if err := self.processPolicies(policies, service, urlContext); err != nil {
+			return service, err
 		}
 	}
 
@@ -205,7 +201,7 @@ func (self *Controller) instantiateClout(service *resources.Service, urlContext 
 	// Update Kubernetes resource mappings
 	if resourceMappings != nil {
 		self.Log.Infof("updating resource mappings in Clout: %s", service.Status.CloutPath)
-		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-mappings", resourceMappings.StringMap()); err != nil {
+		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-mappings", resourceMappings.JSON()); err != nil {
 			return service, err
 		}
 	}
@@ -233,50 +229,50 @@ func (self *Controller) updateClout(service *resources.Service, urlContext *urlp
 	}
 
 	// Get executions
-	var executions ard.Value
 	self.Log.Infof("getting executions for Clout: %s", service.Status.CloutPath)
-	if executions, err = self.executeCloutGet(service, urlContext, "kubernetes.executions", map[string]string{
+	var executions parser.OrchestrationExecutions
+	if executions_, err := self.executeCloutGet(service, urlContext, "kubernetes.executions", map[string]string{
 		"service": service.Name,
-	}); err != nil {
+	}); err == nil {
+		var ok bool
+		if executions, ok = parser.DecodeOrchestrationExecutions(executions_); !ok {
+			return service, fmt.Errorf("could not parse executions:\n%s", executions_)
+		}
+	} else {
 		return service, err
 	}
 
 	// Process executions
 	if executions != nil {
-		if orchestrationExecutions, ok := parser.ParseOrchestrationExecutions(executions); ok {
-			if orchestrationExecutions != nil {
-				if service, err = self.processExecutions(orchestrationExecutions, service, urlContext); err != nil {
-					return service, err
-				}
-			}
-		} else {
-			return service, fmt.Errorf("could not parse executions: %+v", executions)
+		if service, err = self.processExecutions(executions, service, urlContext); err != nil {
+			return service, err
 		}
 	}
 
 	// Get Kubernetes resource mappings
 	self.Log.Infof("get resource mappings from Clout: %s", service.Status.CloutPath)
-	var mappings ard.Value
-	if mappings, err = self.executeCloutGet(service, urlContext, "kubernetes.resources.get-mappings", nil); err != nil {
+	var resourceMappings parser.KubernetesResourceMappings
+	if resourceMappings_, err := self.executeCloutGet(service, urlContext, "kubernetes.resources.get-mappings", nil); err == nil {
+		var ok bool
+		if resourceMappings, ok = parser.DecodeKubernetesResourceMappings(resourceMappings_); !ok {
+			return service, fmt.Errorf("could not parse resource mappings:\n%s", resourceMappings_)
+		}
+	} else {
 		return service, err
 	}
 
 	// Get Clout attribute values from Kubernetes resources
 	var attributeValues parser.CloutAttributeValues
-	if mappings != nil {
-		if resourceMappings, ok := parser.ParseKubernetesResourceMappings(mappings); ok {
-			if attributeValues, err = self.GetAttributesFromResources(resourceMappings); err != nil {
-				return service, err
-			}
-		} else {
-			return service, fmt.Errorf("could not parse resource mappings: %+v", mappings)
+	if resourceMappings != nil {
+		if attributeValues, err = self.GetAttributesFromResources(resourceMappings); err != nil {
+			return service, err
 		}
 	}
 
 	// Update attributes in Clout
 	if attributeValues != nil {
 		self.Log.Infof("updating attributes in Clout: %s", service.Status.CloutPath)
-		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-attributes", attributeValues.StringMap()); err != nil {
+		if service, err = self.executeCloutUpdate(service, urlContext, "kubernetes.resources.update-attributes", attributeValues.JSON()); err != nil {
 			return service, err
 		}
 	}
@@ -308,22 +304,24 @@ func (self *Controller) updateServiceStatusFromClout(service *resources.Service,
 
 	// Get node states
 	self.Log.Infof("get node states from Clout: %s", service.Status.CloutPath)
-	var states ard.Value
-	if states, err = self.executeCloutGet(service, urlContext, "orchestration.states.get", nil); err != nil {
+	var states parser.OrchestrationStates
+	if states_, err := self.executeCloutGet(service, urlContext, "orchestration.states.get", nil); err == nil {
+		var ok bool
+		if states, ok = parser.DecodeOrchestrationStates(states_); !ok {
+			return service, fmt.Errorf("could not parse node states:\n%s", states_)
+		}
+	} else {
 		return service, err
 	}
 
 	// Process node states
 	if states != nil {
-		if orchestrationStates, ok := parser.ParseOrchestrationStates(states); ok {
-			if serviceStates, ok := orchestrationStates[service.Name]; ok {
-				if service, err = self.UpdateServiceStatusNodeStates(service, serviceStates); err != nil {
-					return service, err
-				}
+		if serviceStates, ok := states[service.Name]; ok {
+			if service, err = self.UpdateServiceStatusNodeStates(service, serviceStates); err != nil {
+				return service, err
 			}
-		} else {
-			return service, fmt.Errorf("could not parse node states: %+v", states)
 		}
+
 	}
 
 	return service, nil

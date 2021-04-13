@@ -1,7 +1,7 @@
 
 clout.exec('tosca.lib.traversal');
 
-//TODO: not here
+// TODO: not here
 for (var vertexId in clout.vertexes) {
 	var vertex = clout.vertexes[vertexId];
 	if (!tosca.isNodeTemplate(vertex))
