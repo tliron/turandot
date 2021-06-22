@@ -30,27 +30,31 @@ fi
 # Note: for CRI-O we cannot access the registry at localhost:5000
 # See: https://github.com/kubernetes/minikube/issues/6982
 # Note: With CNI + Docker cannot access the registry externally
-# Note: if changing the default --service-cluster-ip-range, then must also change --insecure-registry
 # Note: setting --dns-domain will break external access to registry
 # This error? "Unable to get host boot time: No such process"
 # See: https://www.spinics.net/lists/virt-tools/msg13886.html
 
 minikube start \
 	--profile="$PROFILE" \
-    --vm-driver=kvm2 \
+	--vm-driver=kvm2 \
 	--container-runtime=cri-o \
 	--cni=bridge \
 	--addons=registry \
 	--cpus=4 \
 	--memory="$MEMORY" \
 	--disk-size="$DISK_SIZE" \
-	--service-cluster-ip-range="$IP_RANGE"
+	--service-cluster-ip-range="$IP_RANGE" \
+	--feature-gates=SCTPSupport=true
 
-#	--kubernetes-version="$KUBERNETES_VERSION" \
-#	--insecure-registry="$IP_RANGE" \
+# By default --service-cluster-ip-range will also set --insecure-registry
+#	--insecure-registry="$IP_RANGE"
 #	--insecure-registry=10.1.0.0/16
+#	--kubernetes-version="$KUBERNETES_VERSION" \
 
 minikube profile "$PROFILE"
+
+# Workaround for: https://github.com/kubernetes/minikube/issues/11729
+minikube ssh -- sudo systemctl restart crio
 
 minikube dashboard \
 	--profile="$PROFILE"

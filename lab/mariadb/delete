@@ -9,10 +9,10 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 BASE=https://raw.githubusercontent.com/abalki001/mariadb-operator/$MARIADB_VERSION/deploy
 
-kubectl delete --filename="$BASE/mariadb_pvc.yaml" --namespace="$WORKSPACE" || true
-kubectl delete --filename="$BASE/mariadb_pv.yaml" --namespace="$WORKSPACE" || true
-kubectl delete --filename="$BASE/operator.yaml" --namespace="$WORKSPACE" || true
-kubectl delete --filename="$BASE/service_account.yaml" --namespace="$WORKSPACE" || true
-kubectl delete --filename="$BASE/role_binding.yaml" --namespace="$WORKSPACE" || true
-kubectl delete --filename="$BASE/role.yaml" --namespace="$WORKSPACE" || true
-kubectl delete --filename="$BASE/crds/mariadb.persistentsys_mariadbs_crd.yaml" || true
+kubectl delete --ignore-not-found=true --filename="$BASE/mariadb_pvc.yaml" --namespace="$WORKSPACE"
+kubectl delete --ignore-not-found=true --filename="$BASE/mariadb_pv.yaml" --namespace="$WORKSPACE"
+kubectl delete --ignore-not-found=true --filename="$BASE/operator.yaml" --namespace="$WORKSPACE"
+kubectl delete --ignore-not-found=true --filename="$BASE/service_account.yaml" --namespace="$WORKSPACE"
+kubectl delete --ignore-not-found=true --filename="$BASE/role_binding.yaml" --namespace="$WORKSPACE"
+kubectl delete --ignore-not-found=true --filename="$BASE/role.yaml" --namespace="$WORKSPACE"
+kubectl delete --ignore-not-found=true --filename="$BASE/crds/mariadb.persistentsys_mariadbs_crd.yaml"

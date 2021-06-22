@@ -49,7 +49,7 @@ func registerServiceTemplate(serviceTemplateName string, url urlpkg.URL) {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	spooler := turandot.Reposure.SpoolerClient(registry_)
+	spooler := turandot.Reposure.SurrogateSpoolerClient(registry_)
 
 	imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
 	err = spooler.PushTarballFromURL(imageName, url)

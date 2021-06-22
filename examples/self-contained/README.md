@@ -5,7 +5,7 @@ A stateless single-pod web workload comprising a deployment and a loadbalancer s
 
 This example demonstrates how a container image can be included as an artifact within a CSAR.
 
-Follow the [quickstart guide](../../QUICKSTART-SELF-CONTAINED.md) for complete instructions
+Follow the [tutorial](../../TUTORIAL-SELF-CONTAINED.md) for complete instructions
 on how to deploy it.
 
 

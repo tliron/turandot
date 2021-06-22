@@ -138,7 +138,7 @@ func (self *Client) CreateServiceFromTemplate(namespace string, serviceName stri
 }
 
 func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
-	spooler := self.Reposure.SpoolerClient(registry)
+	spooler := self.Reposure.SurrogateSpoolerClient(registry)
 	serviceTemplateName := fmt.Sprintf("%s-%s", serviceName, uuid.New().String())
 	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
 	if err := spooler.PushTarballFromURL(imageName, url); err == nil {

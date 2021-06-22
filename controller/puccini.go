@@ -59,11 +59,11 @@ func WriteClout(clout *cloutpkg.Clout, writer io.Writer) error {
 	return format.Write(clout, "yaml", terminal.Indent, false, writer)
 }
 
-func ExecCloutScriptlet(clout *cloutpkg.Clout, scriptletName string, arguments map[string]string, urlContext *urlpkg.Context) (string, error) {
+func RequireCloutScriptlet(clout *cloutpkg.Clout, scriptletName string, arguments map[string]string, urlContext *urlpkg.Context) (string, error) {
 	jsContext := js.NewContext(scriptletName, pucciniLog, arguments, false, "yaml", false, true, false, "", urlContext)
 	var builder strings.Builder
 	jsContext.Stdout = &builder
-	if err := jsContext.Exec(clout, scriptletName, nil); err == nil {
+	if _, err := jsContext.Require(clout, scriptletName, nil); err == nil {
 		return builder.String(), nil
 	} else {
 		return "", err

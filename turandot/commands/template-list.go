@@ -29,7 +29,7 @@ func ListServiceTemplates() {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	command, err := turandot.Reposure.CommandClient(registry_)
+	command, err := turandot.Reposure.SurrogateCommandClient(registry_)
 	util.FailOnError(err)
 	imageNames, err := command.ListImages()
 	util.FailOnError(err)

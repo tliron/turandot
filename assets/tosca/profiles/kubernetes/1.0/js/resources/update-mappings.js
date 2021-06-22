@@ -1,9 +1,9 @@
 
-clout.exec('tosca.lib.utils');
+const tosca = require('tosca.lib.utils');
 
-for (var vertexId in puccini.arguments) {
-	var mappings = puccini.arguments[vertexId];
-	var vertex = clout.vertexes[vertexId];
+for (let vertexId in puccini.arguments) {
+	let mappings = puccini.arguments[vertexId];
+	let vertex = clout.vertexes[vertexId];
 	if (vertex === undefined)
 		continue;
 

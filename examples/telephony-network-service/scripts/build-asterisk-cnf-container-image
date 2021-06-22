@@ -5,7 +5,7 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 . "$HERE/../../../scripts/_env"
 . "$ROOT/scripts/_trap"
 
-BASE_IMAGE=fedora:32
+BASE_IMAGE=fedora:33
 IMAGE=asterisk-cnf
 LOCAL=localhost/$IMAGE
 IMAGES=$(readlink --canonicalize "$HERE/../artifacts/images")

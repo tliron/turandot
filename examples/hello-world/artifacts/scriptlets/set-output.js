@@ -1,9 +1,9 @@
 
-clout.exec('tosca.lib.utils');
+const tosca = require('tosca.lib.utils');
 
-var nodeTemplateName = puccini.arguments.nodeTemplate;
-var name = puccini.arguments.name;
-var value = puccini.arguments.value;
+let nodeTemplateName = puccini.arguments.nodeTemplate;
+let name = puccini.arguments.name;
+let value = puccini.arguments.value;
 
 puccini.log.infof('execution for node template %q, setting output: %s -> %s', nodeTemplateName, name, value);
 

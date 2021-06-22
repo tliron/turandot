@@ -2,7 +2,6 @@ package commands
 
 import (
 	"io"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/ard"
@@ -12,7 +11,7 @@ import (
 )
 
 var template string
-var inputs []string
+var inputs map[string]string
 var inputsUrl string
 var mode string
 
@@ -25,7 +24,7 @@ func init() {
 	serviceDeployCommand.Flags().StringVarP(&filePath, "file", "f", "", "path to a local CSAR or TOSCA YAML file (will be uploaded)")
 	serviceDeployCommand.Flags().StringVarP(&directoryPath, "directory", "d", "", "path to a local directory of TOSCA YAML files (will be uploaded)")
 	serviceDeployCommand.Flags().StringVarP(&url, "url", "u", "", "URL to a CSAR or TOSCA YAML file (must be accessible from cluster)")
-	serviceDeployCommand.Flags().StringArrayVarP(&inputs, "input", "i", []string{}, "specify an input (name=YAML)")
+	serviceDeployCommand.Flags().StringToStringVarP(&inputs, "input", "i", nil, "specify an input (format is name=YAML)")
 	serviceDeployCommand.Flags().StringVarP(&inputsUrl, "inputs", "s", "", "load inputs from a PATH or URL to YAML content")
 	serviceDeployCommand.Flags().StringVarP(&mode, "mode", "e", "normal", "initial mode")
 }
@@ -122,14 +121,12 @@ func ParseInputs() {
 		}
 	}
 
-	for _, input := range inputs {
-		s := strings.SplitN(input, "=", 2)
-		if len(s) != 2 {
-			util.Failf("malformed input: %s", input)
+	if inputs != nil {
+		for name, input := range inputs {
+			input_, _, err := ard.DecodeYAML(input, false)
+			util.FailOnError(err)
+			inputValues[name] = input_
 		}
-		value, _, err := ard.DecodeYAML(s[1], false)
-		util.FailOnError(err)
-		inputValues[s[0]] = value
 	}
 }
 

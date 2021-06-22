@@ -4,7 +4,7 @@ Helm Example
 This example demonstrates a Helm chart included as an artifact within a CSAR.
 
 To deploy this example you can generally follow the instructions for the
-[Hello World example](../../QUICKSTART.md), though make sure to build the chart
+[Hello World example](../../TUTORIAL.md), though make sure to build the chart
 artifact first. E.g.:
 
     examples/scripts/build-chart

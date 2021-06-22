@@ -5,13 +5,14 @@ _HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 MODULE=github.com/tliron/turandot
 
-K8S_VERSION=0.21.0
-HELM_VERSION=3.5.3
-YQ_VERSION=4.6.3
+K8S_VERSION=0.21.2
+HELM_VERSION=3.6.1
+YQ_VERSION=4.9.6
 
 ROOT=$(readlink --canonicalize "$_HERE/..")
 
 GOPATH=${GOPATH:-$HOME/go}
+export PATH=$GOPATH/bin:$PATH
 
 WORKSPACE=${WORKSPACE:-workspace}
 

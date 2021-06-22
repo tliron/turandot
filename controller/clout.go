@@ -73,7 +73,7 @@ func (self *Controller) WriteServiceClout(yaml string, service *resources.Servic
 
 func (self *Controller) executeCloutGet(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (string, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := ExecCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := RequireCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			return yaml, nil
 		} else if js.IsScriptletNotFoundError(err) {
 			return "", nil
@@ -87,7 +87,7 @@ func (self *Controller) executeCloutGet(service *resources.Service, urlContext *
 
 func (self *Controller) executeCloutGetAll(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) ([]ard.StringMap, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := ExecCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := RequireCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if values, err := yamlkeys.DecodeAll(strings.NewReader(yaml)); err == nil {
 				list := make([]ard.StringMap, len(values))
 				for index, value := range values {
@@ -116,7 +116,7 @@ func (self *Controller) executeCloutGetAll(service *resources.Service, urlContex
 
 func (self *Controller) executeCloutUpdate(service *resources.Service, urlContext *urlpkg.Context, scriptletName string, arguments map[string]string) (*resources.Service, error) {
 	if clout, err := self.ReadClout(service.Status.CloutPath, false, false, urlContext); err == nil {
-		if yaml, err := ExecCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
+		if yaml, err := RequireCloutScriptlet(clout, scriptletName, arguments, urlContext); err == nil {
 			if yaml != "" {
 				return self.WriteServiceClout(yaml, service)
 			} else {

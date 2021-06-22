@@ -1,48 +1,49 @@
 
-clout.exec('tosca.lib.traversal');
+const traversal = require('tosca.lib.traversal');
+const tosca = require('tosca.lib.utils');
 
 // TODO: not here
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
+for (let vertexId in clout.vertexes) {
+	let vertex = clout.vertexes[vertexId];
 	if (!tosca.isNodeTemplate(vertex))
 		continue;
-	var nodeTemplate = vertex.properties;
+	let nodeTemplate = vertex.properties;
 
-	for (var artifactName in nodeTemplate.artifacts) {
-		var artifact = nodeTemplate.artifacts[artifactName];
+	for (let artifactName in nodeTemplate.artifacts) {
+		let artifact = nodeTemplate.artifacts[artifactName];
 
 		if ('cloud.puccini.turandot.orchestration::Key' in artifact.types)
 			artifact.$artifact = puccini.loadString(artifact.sourcePath);
 	}
 }
 
-tosca.coerce();
+traversal.coerce();
 
-var executions = [];
+let executions = [];
 
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
+for (let vertexId in clout.vertexes) {
+	let vertex = clout.vertexes[vertexId];
 	if (!tosca.isNodeTemplate(vertex))
 		continue;
-	var nodeTemplate = vertex.properties;
+	let nodeTemplate = vertex.properties;
 
 	// Sort names
-	var interfaceNames = [];
-	for (var interfaceName in nodeTemplate.interfaces)
+	let interfaceNames = [];
+	for (let interfaceName in nodeTemplate.interfaces)
 		interfaceNames.push(interfaceName);
 	interfaceNames.sort();
 
-	for (var i = 0, l = interfaceNames.length; i < l; i++) {
-		var interfaceName = interfaceNames[i];
-		var interface_ = nodeTemplate.interfaces[interfaceName];
+	for (let i = 0, l = interfaceNames.length; i < l; i++) {
+		let interfaceName = interfaceNames[i];
+		let interface_ = nodeTemplate.interfaces[interfaceName];
 
 		if ('cloud.puccini.turandot.orchestration::Execution' in interface_.types) {
-			var execution = {nodeTemplate: nodeTemplate.name};
+			let execution = {nodeTemplate: nodeTemplate.name};
 
 			if (interface_.inputs.mode)
 				execution.mode = interface_.inputs.mode;
 			else {
-				var last = interfaceName.lastIndexOf('.');
+				let last = interfaceName.lastIndexOf('.');
 				if (last !== -1)
 					execution.mode = interfaceName.substring(0, last);
 				else
@@ -62,10 +63,10 @@ for (var vertexId in clout.vertexes) {
 
 				// TODO: verify that the scriptlet exists
 				if (interface_.inputs.arguments)
-					for (var k in interface_.inputs.arguments)
+					for (let k in interface_.inputs.arguments)
 						execution.arguments[k] = interface_.inputs.arguments[k];
 			} else if ('cloud.puccini.kubernetes::Command' in interface_.types) {
-				var artifacts = getArtifacts(nodeTemplate, interface_.inputs.artifacts);
+				let artifacts = getArtifacts(nodeTemplate, interface_.inputs.artifacts);
 				if (artifacts)
 					execution.artifacts = artifacts;
 
@@ -75,7 +76,7 @@ for (var vertexId in clout.vertexes) {
 					if (interface_.inputs.container)
 						execution.container = interface_.inputs.container;
 
-					var metadata = getKubernetesMetadata(nodeTemplate);
+					let metadata = getKubernetesMetadata(nodeTemplate);
 					if (metadata.namespace)
 						execution.namespace = metadata.namespace;
 
@@ -99,8 +100,8 @@ for (var vertexId in clout.vertexes) {
 
 				// Process special "$$" command arguments
 				execution.command = interface_.inputs.command.slice();
-				for (var ii = 1, ll = execution.command.length; ii < ll; ii++) {
-					var arg = execution.command[ii];
+				for (let ii = 1, ll = execution.command.length; ii < ll; ii++) {
+					let arg = execution.command[ii];
 					if (arg.substring(0, 2) === '$$') {
 						arg = execution[arg.substring(2)];
 						if (arg !== undefined)
@@ -117,8 +118,8 @@ for (var vertexId in clout.vertexes) {
 puccini.write({executions: executions});
 
 function getKubernetesMetadata(nodeTemplate) {
-	for (var capabilityName in nodeTemplate.capabilities) {
-		var capability = nodeTemplate.capabilities[capabilityName];
+	for (let capabilityName in nodeTemplate.capabilities) {
+		let capability = nodeTemplate.capabilities[capabilityName];
 		if ('cloud.puccini.kubernetes::Metadata' in capability.types)
 			return puccini.deepCopy(capability.properties);
 	}
@@ -126,14 +127,14 @@ function getKubernetesMetadata(nodeTemplate) {
 }
 
 function getArtifacts(nodeTemplate, artifactNames) {
-	var artifacts = [];
+	let artifacts = [];
 	if (artifactNames && nodeTemplate.artifacts)
-		for (var i = 0, l = artifactNames.length; i < l; i++) {
-			var artifactName = artifactNames[i];
-			var artifact = nodeTemplate.artifacts[artifactName];
+		for (let i = 0, l = artifactNames.length; i < l; i++) {
+			let artifactName = artifactNames[i];
+			let artifact = nodeTemplate.artifacts[artifactName];
 			if (artifact === undefined)
 				throw puccini.sprintf('artifact not found: %s', artifactName);
-			var info = {
+			let info = {
 				sourceUrl: artifact.sourcePath,
 				targetPath: artifact.targetPath
 			};

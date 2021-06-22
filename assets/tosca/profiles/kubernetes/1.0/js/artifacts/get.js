@@ -1,18 +1,19 @@
 
-clout.exec('tosca.lib.traversal');
+const traversal = require('tosca.lib.traversal');
+const tosca = require('tosca.lib.utils');
 
-tosca.coerce();
+traversal.coerce();
 
-var artifacts = [];
+let artifacts = [];
 
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
+for (let vertexId in clout.vertexes) {
+	let vertex = clout.vertexes[vertexId];
 	if (!tosca.isNodeTemplate(vertex))
 		continue;
-	var nodeTemplate = vertex.properties;
+	let nodeTemplate = vertex.properties;
 
-	for (var artifactName in nodeTemplate.artifacts) {
-		var artifact = nodeTemplate.artifacts[artifactName];
+	for (let artifactName in nodeTemplate.artifacts) {
+		let artifact = nodeTemplate.artifacts[artifactName];
 
 		if ('cloud.puccini.kubernetes::Registry' in artifact.types)
 			artifacts.push({

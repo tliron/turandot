@@ -31,7 +31,7 @@ func DelistServiceTemplate(serviceTemplateName string) {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	spooler := turandot.Reposure.SpoolerClient(registry_)
+	spooler := turandot.Reposure.SurrogateSpoolerClient(registry_)
 
 	imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
 	err = spooler.DeleteImage(imageName)
@@ -42,11 +42,11 @@ func DelistAllTemplates() {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	command, err := turandot.Reposure.CommandClient(registry_)
+	command, err := turandot.Reposure.SurrogateCommandClient(registry_)
 	util.FailOnError(err)
 	imageNames, err := command.ListImages()
 	util.FailOnError(err)
-	spooler := turandot.Reposure.SpoolerClient(registry_)
+	spooler := turandot.Reposure.SurrogateSpoolerClient(registry_)
 
 	for _, imageName := range imageNames {
 		if serviceTemplateName, ok := turandot.ServiceTemplateNameForRegistryImageName(imageName); ok {

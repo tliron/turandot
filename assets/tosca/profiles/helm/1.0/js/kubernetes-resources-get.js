@@ -1,64 +1,68 @@
 
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
-	if (!tosca.isNodeTemplate(vertex, 'cloud.puccini.helm::Release'))
-		continue;
-	var nodeTemplate = vertex.properties;
+const tosca = require('tosca.lib.utils');
 
-	var tmp = puccini.temporaryFile('helm-chart-*.tar.gz');
+exports.plugin = function(resources) {
+	for (let vertexId in clout.vertexes) {
+		let vertex = clout.vertexes[vertexId];
+		if (!tosca.isNodeTemplate(vertex, 'cloud.puccini.helm::Release'))
+			continue;
+		let nodeTemplate = vertex.properties;
 
-	try {
-		puccini.download(nodeTemplate.properties.chart, tmp);
+		let tmp = puccini.temporaryFile('helm-chart-*.tar.gz');
 
-		var name = nodeTemplate.properties.name || nodeTemplate.name;
-		var namespace = nodeTemplate.properties.namespace;
+		try {
+			puccini.download(nodeTemplate.properties.chart, tmp);
 
-		var args = [
-			'install',
-			'--dry-run',
-			'--output', 'json'
-		];
+			let name = nodeTemplate.properties.name || nodeTemplate.name;
+			let namespace = nodeTemplate.properties.namespace;
 
-		if (nodeTemplate.properties.version)
-			args.push('--version', nodeTemplate.properties.version);
+			let args = [
+				'install',
+				'--dry-run',
+				'--output', 'json'
+			];
 
-		if (namespace)
-			args.push('--namespace', namespace);
+			if (nodeTemplate.properties.version)
+				args.push('--version', nodeTemplate.properties.version);
 
-		if (nodeTemplate.properties.valuesUrl)
-			args.push('--values', nodeTemplate.properties.valuesUrl);
+			if (namespace)
+				args.push('--namespace', namespace);
 
-		var values = nodeTemplate.properties.values;
-		if (values)
-			for (var key in values)
-				args.push('--set-string', puccini.sprintf('%s=%s', key, values[key]));
+			if (nodeTemplate.properties.valuesUrl)
+				args.push('--values', nodeTemplate.properties.valuesUrl);
 
-		args.push(name)
-		args.push(tmp);
+			let values = nodeTemplate.properties.values;
+			if (values)
+				for (let key in values)
+					args.push('--set-string', puccini.sprintf('%s=%s', key, values[key]));
 
-		puccini.log.infof('helm %s', args.join(' '));
-		var output = puccini.exec('helm', args);
-		output = JSON.parse(output);
-		//puccini.log.infof('%s', JSON.stringify(output, null, ' '));
-		if (output.manifest) {
-			var manifests = puccini.decode(output.manifest, 'yaml', true);
-			for (var m = 0, l = manifests.length; m < l; m++) {
-				var manifest = manifests[m];
-				processManifest(manifest, name, namespace);
-				resources.push(manifest);
+			args.push(name)
+			args.push(tmp);
+
+			puccini.log.infof('helm %s', args.join(' '));
+			let output = puccini.exec('helm', args);
+			output = JSON.parse(output);
+			//puccini.log.infof('%s', JSON.stringify(output, null, ' '));
+			if (output.manifest) {
+				let manifests = puccini.decode(output.manifest, 'yaml', true);
+				for (let m = 0, l = manifests.length; m < l; m++) {
+					let manifest = manifests[m];
+					processManifest(manifest, name, namespace);
+					resources.push(manifest);
+				}
 			}
-		}
-		if (nodeTemplate.properties.hooks && output.hooks) {
-			for (var h = 0, l = output.hooks.length; h < l; h++) {
-				var manifest = puccini.decode(output.hooks[h].manifest, 'yaml');
-				processManifest(manifest, name, namespace);
-				resources.push(manifest);
+			if (nodeTemplate.properties.hooks && output.hooks) {
+				for (let h = 0, l = output.hooks.length; h < l; h++) {
+					let manifest = puccini.decode(output.hooks[h].manifest, 'yaml');
+					processManifest(manifest, name, namespace);
+					resources.push(manifest);
+				}
 			}
+		} finally {
+			puccini.exec('rm', ['--force', tmp]);
 		}
-	} finally {
-		puccini.exec('rm', ['--force', tmp]);
 	}
-}
+};
 
 function processManifest(manifest, name, namespace) {
 	if (!manifest.metadata)

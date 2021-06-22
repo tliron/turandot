@@ -1,18 +1,18 @@
 
-clout.exec('tosca.lib.utils');
+const tosca = require('tosca.lib.utils');
 
-var serviceName = puccini.arguments.service;
-var nodeTemplateName = puccini.arguments.nodeTemplate;
+let serviceName = puccini.arguments.service;
+let nodeTemplateName = puccini.arguments.nodeTemplate;
 
-var mode = puccini.arguments.mode;
-var state = puccini.arguments.state;
-var message = puccini.arguments.message;
+let mode = puccini.arguments.mode;
+let state = puccini.arguments.state;
+let message = puccini.arguments.message;
 
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
+for (let vertexId in clout.vertexes) {
+	let vertex = clout.vertexes[vertexId];
 	if (!tosca.isNodeTemplate(vertex))
 		continue;
-	var nodeTemplate = vertex.properties;
+	let nodeTemplate = vertex.properties;
 	if (nodeTemplate.name !== nodeTemplateName)
 		continue;
 

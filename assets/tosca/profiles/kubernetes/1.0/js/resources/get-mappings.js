@@ -1,10 +1,8 @@
 
-clout.exec('tosca.lib.utils');
+let mappings = {};
 
-var mappings = {};
-
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
+for (let vertexId in clout.vertexes) {
+	let vertex = clout.vertexes[vertexId];
 	if (!vertex.metadata.turandot ||
 		(vertex.metadata.turandot.version !== '1.0'))
 		continue;

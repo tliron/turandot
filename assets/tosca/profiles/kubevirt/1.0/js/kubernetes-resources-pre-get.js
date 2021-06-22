@@ -1,31 +1,35 @@
 
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
-	if (!tosca.isNodeTemplate(vertex))
-		continue;
-	var nodeTemplate = vertex.properties;
+const tosca = require('tosca.lib.utils');
 
-	for (var artifactName in nodeTemplate.artifacts) {
-		var artifact = nodeTemplate.artifacts[artifactName];
+exports.plugin = function() {
+	for (let vertexId in clout.vertexes) {
+		let vertex = clout.vertexes[vertexId];
+		if (!tosca.isNodeTemplate(vertex))
+			continue;
+		let nodeTemplate = vertex.properties;
 
-		if ('cloud.puccini.kubevirt::CloudConfig' in artifact.types) {
-			var cloudConfig = puccini.loadString(artifact.sourcePath);
+		for (let artifactName in nodeTemplate.artifacts) {
+			let artifact = nodeTemplate.artifacts[artifactName];
 
-			var variables = artifact.properties.variables;
-			if (variables !== undefined) {
-				variables = clout.newCoercible(variables, vertex);
-				variables = variables.coerce();
-				if (variables)
-					for (var name in variables) {
-						var r = new RegExp(escapeRegExp(name), 'g');
-						cloudConfig = cloudConfig.replace(r, variables[name]);
-					}
+			if ('cloud.puccini.kubevirt::CloudConfig' in artifact.types) {
+				let cloudConfig = puccini.loadString(artifact.sourcePath);
+
+				let variables = artifact.properties.variables;
+				if (variables !== undefined) {
+					variables = clout.newCoercible(variables, vertex);
+					variables = variables.coerce();
+					if (variables)
+						for (let name in variables) {
+							let r = new RegExp(escapeRegExp(name), 'g');
+							cloudConfig = cloudConfig.replace(r, variables[name]);
+						}
+				}
+
+				if (artifact.properties.base64)
+					cloudConfig = puccini.btoa(cloudConfig);
+
+				artifact.$artifact = cloudConfig;
 			}
-
-			if (artifact.properties.base64)
-				cloudConfig = puccini.btoa(cloudConfig);
-
-			artifact.$artifact = cloudConfig;
 		}
 	}
 }

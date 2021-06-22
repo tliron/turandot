@@ -1,15 +1,16 @@
 
-clout.exec('tosca.lib.traversal');
+const traversal = require('tosca.lib.traversal');
+const tosca = require('tosca.lib.utils');
 
-tosca.coerce();
+traversal.coerce();
 
-var policies = {};
+let policies = {};
 
-for (var vertexId in clout.vertexes) {
-	var vertex = clout.vertexes[vertexId];
+for (let vertexId in clout.vertexes) {
+	let vertex = clout.vertexes[vertexId];
 	if (!tosca.isTosca(vertex, 'Policy'))
 		continue;
-	var policy = vertex.properties;
+	let policy = vertex.properties;
 
 	if ('cloud.puccini.turandot.orchestration::Provisioning' in policy.types)
 		generatePolicy(policy, tosca.getPolicyTargets(vertex), 'provisioning');
@@ -18,9 +19,9 @@ for (var vertexId in clout.vertexes) {
 puccini.write(policies);
 
 function generatePolicy(policy, targets, type) {
-	for (var t = 0, l = targets.length; t < l; t++) {
-		var target = targets[t];
- 		var targetPolicies = policies[target.name];
+	for (let t = 0, l = targets.length; t < l; t++) {
+		let target = targets[t];
+ 		let targetPolicies = policies[target.name];
  		if (targetPolicies === undefined)
  			targetPolicies = policies[target.name] = [];
  		targetPolicies.push({

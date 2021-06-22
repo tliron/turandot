@@ -13,7 +13,7 @@ Compose and orchestrate [Kubernetes](https://kubernetes.io/) workloads using
 Want to dive in?
 
 Check out the included [examples](examples/) to understand what you can do with Turandot, and then
-head to the [quickstart guide](QUICKSTART.md) to get up and running.
+head to the [tutorial](TUTORIAL.md) to get up and running.
 
 
 Get It
@@ -29,7 +29,8 @@ Features
 Many examples are found in the field of Network Function Virtualization (NFV) (e.g.
 [MANO](https://en.wikipedia.org/wiki/Network_function_virtualization#Management_and_orchestration_%28MANO%29)).
 Included with Turandot is a comprehensive example of a multi-cluster
-[telephony network service](examples/telephony-network-service/) modeled entirely in TOSCA.
+[telephony network service](https://github.com/tliron/turandot/tree/main/examples/telephony-network-service/)
+modeled entirely in TOSCA.
 
 **Diverse workloads**: Workloads can comprise both standard and
 [custom](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
@@ -236,11 +237,12 @@ cloud edge datacenters.
 ### Why use TOSCA and CSARs instead of packaged Helm charts?
 
 Turandot comes with a Helm profile that allows you to package one or more Helm charts inside the
-CSAR or install them from an external chart repository. See the [example](examples/helm/). This
-feature allows you to combine the advantages of TOSCA and Turandot with existing Helm packaging
-efforts. Up to Helm version 3, Helm had an in-cluster controller named Tiller. At version 3 it was
-removed, leaving Helm entirely devoted to text templating. Turandot can be understood in this
-context as a super-charged replacement for Tiller. 
+CSAR or install them from an external chart repository. See the
+[example](https://github.com/tliron/turandot/tree/main/examples/helm/). This feature allows you to
+combine the advantages of TOSCA and Turandot with existing Helm packaging efforts. Up to Helm version
+3, Helm had an in-cluster controller named Tiller. At version 3 it was removed, leaving Helm entirely
+devoted to text templating. Turandot can be understood in this context as a super-charged replacement
+for Tiller. 
 
 All that said, it is worth considering abandoning Helm entirely and converting your charts into pure
 TOSCA CSARs. A Helm chart is essentially a collection of text templates for low-level Kubernetes

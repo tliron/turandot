@@ -1,9 +1,9 @@
-Turandot Quickstart: Hello World
-================================
+Turandot Tutorial: Hello World
+==============================
 
-*Note that this quickstart guide is intentionally simplified in that it does not support
+*Note that this tutorial is intentionally simplified in that it does not support
 CSAR packages that include container images as artifacts. That feature is more complex to
-set up and is covered in [a more advanced quickstart guide](QUICKSTART-SELF-CONTAINED.md).*
+set up and is covered in [a more advanced tutorial](TUTORIAL-SELF-CONTAINED.md).*
 
 Start by cloning the Turandot git repository so that you'll have access to all the example
 files and helper scripts:
@@ -66,8 +66,9 @@ doing. (You can use `-vv` for even more verbosity.)
 Building the "Hello World" CSAR
 -------------------------------
 
-Let's use the included [Hello World](examples/hello-world/) example, which is based on
-[this Kubernetes demo](https://github.com/paulbouwer/hello-kubernetes).
+Let's use the included
+[Hello World](https://github.com/tliron/turandot/tree/main/examples/hello-world/) example,
+which is based on [this Kubernetes demo](https://github.com/paulbouwer/hello-kubernetes).
 
 You'll use the [build-csar](examples/hello-world/scripts/build-csar) script to package
 the TOSCA topology template, profiles, and artifacts into a CSAR:

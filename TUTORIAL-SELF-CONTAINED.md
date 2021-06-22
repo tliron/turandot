@@ -1,9 +1,9 @@
-Turandot Quickstart: Self-Contained
-===================================
+Turandot Tutorial: Self-Contained
+=================================
 
-*Note that this quickstart guide is complex in that it supports CSAR packages that include
+*Note that this tutorial is complex in that it supports CSAR packages that include
 container images as artifacts. You may prefer to start with the
-[simpler quickstart guide](QUICKSTART.md).*
+[simpler tutorial](TUTORIAL.md).*
 
 Start by cloning the Turandot git repository so that you'll have access to all the example
 files and helper scripts:
@@ -156,8 +156,9 @@ its certificate secrets within its namespace.)
 Building the Self-Contained CSAR
 --------------------------------
 
-Let's use the included [Self-Contained](examples/self-contained/) example, which is based on
-[this Kubernetes demo](https://github.com/paulbouwer/hello-kubernetes).
+Let's use the included
+[Self-Contained](https://github.com/tliron/turandot/tree/main/examples/self-contained/) example,
+which is based on [this Kubernetes demo](https://github.com/paulbouwer/hello-kubernetes).
 
 First you'll need to export the container image into a tarball so that you can use it as
 a TOSCA artifact. The
