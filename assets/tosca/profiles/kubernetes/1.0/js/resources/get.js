@@ -88,13 +88,10 @@ function generateResource(capability, apiVersion, kind, metadata, pathPrefix, ku
 	// Convert attribute mappings to annotation
 	let attributeMappings = {};
 	for (let attributeName in capability.attributes) {
-		let information = valueInformation[puccini.sprintf('%s.attributes.%s', pathPrefix, attributeName)];
-		if (information && information.definition && information.definition.metadata) {
-			let mapping = information.definition.metadata['turandot.mapping'];
-			if (mapping) {
-				puccini.log.infof('mapping: %s -> %s', mapping, attributeName);
-				attributeMappings[mapping] = attributeName;
-			}
+		let mapping = getInformation(pathPrefix, 'attributes', attributeName, 'turandot.mapping');
+		if (mapping) {
+			puccini.log.infof('mapping: %s -> %s', mapping, attributeName);
+			attributeMappings[mapping] = attributeName;
 		}
 	}
 	if (Object.keys(attributeMappings).length > 0)
@@ -103,17 +100,15 @@ function generateResource(capability, apiVersion, kind, metadata, pathPrefix, ku
 	let resource = {
 		apiVersion: apiVersion,
 		kind: kind,
-		metadata: kubernetesMetadata,
-		spec: {}
+		metadata: kubernetesMetadata
 	};
 
-	// Copy properties into spec
+	// Copy properties into resource
 	for (let propertyName in capability.properties) {
-		let information = valueInformation[puccini.sprintf('%s.properties.%s', pathPrefix, propertyName)];
-		if (information && information.definition && information.definition.metadata && (information.definition.metadata['turandot.ignore'] === 'true'))
+		if (getInformation(pathPrefix, 'properties', propertyName, 'turandot.ignore') === 'true')
 			continue;
 		let value = capability.properties[propertyName];
-		resource.spec[propertyName] = processValue(value, information);
+		resource[propertyName] = value;
 	}
 
 	let keys = Object.keys(metadata).sort();
@@ -141,7 +136,7 @@ function generateResource(capability, apiVersion, kind, metadata, pathPrefix, ku
 			let to_ = to.split('.');
 			value = getValue(resource, to_);
 			puccini.log.infof('current: %s = %v', to, value);
-			if (!value) {
+			if ((value === null) || (value === undefined)) {
 				value = getValue(resource, from.split('.'));
 				puccini.log.infof('set: %s = %v', to, value);
 				setValue(resource, to_, value);
@@ -177,8 +172,10 @@ function setValue(object, path, value) {
 	}
 	let first = path[0];
 	let property = object[first];
-	if ((property === null) || (property === undefined))
-		property = object[first] = {};
+	if (typeof property !== 'object') {
+		object[first] = {};
+		property = object[first];
+	}
 	setValue(property, path.slice(1), value);
 }
 
@@ -196,47 +193,9 @@ function deleteValue(object, path) {
 	deleteValue(object[path[0]], path.slice(1));
 }
 
-function processValue(value, information) {
-	if (value === null)
-		return null;
-
-	if (information) {
-		if (information.type && (typeof information.type === 'object')) {
-			switch (information.type.name) {
-			case 'scalar-unit.size':
-			case 'scalar-unit.time':
-			case 'scalar-unit.frequency':
-			case 'scalar-unit.bitrate':
-				puccini.log.infof('%s: %s -> %v', information.type.name, value.$originalString, value.$number);
-				value = value.$number;
-				break;
-			}
-
-			if (information.type.metadata) {
-				let format = information.type.metadata['turandot.format'];
-				switch (format) {
-				case 'percentage':
-					let percentage = (value * 100) + '%';
-					puccini.log.infof('format percentage: %s -> %s', String(value), percentage);
-					value = percentage;
-					break;
-
-				case 'json':
-					value = JSON.stringify(value, null, ' ');
-					puccini.log.infof('format JSON: %s', JSON.stringify(value));
-					break;
-				}
-			}
-		}
-
-		if (information.properties && (typeof value === 'object')) {
-			for (let key in value) {
-				let propertyInformation = information.properties[key];
-				if (propertyInformation)
-					value[key] = processValue(value[key], propertyInformation);
-			}
-		}
-	}
-
-	return value;
+function getInformation(pathPrefix, type, fieldName, name) {
+	let information = valueInformation[puccini.sprintf('%s.%s.%s', pathPrefix, type, fieldName)];
+	if (information && information.definition && information.definition.metadata)
+		return information.definition.metadata[name];
+	return undefined;
 }

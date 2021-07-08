@@ -61,21 +61,26 @@ topology_template:
               app.kubernetes.io/name: hello-world
         deployment:
           properties:
-            metadataNamePostfix: ''
-            template:
-              containers:
-              - name: hello-world
-                image: docker.io/paulbouwer/hello-kubernetes:1.8
-                imagePullPolicy: Always
+            spec:
+              #metadataNamePostfix: ''
+              template:
+                spec:
+                  containers:
+                  - name: hello-world
+                    image: docker.io/paulbouwer/hello-kubernetes:1.8 # newer versions have read-only files
+                    imagePullPolicy: Always
         web:
           properties:
-            ports:
-            - { name: http, protocol: TCP, port: 80, targetPort: 8080 }
+            spec:
+              ports:
+              - { name: http, protocol: TCP, port: 80, targetPort: { port: 8080 } }
           attributes:
-            # We're initializing this attribute to make sure the call to get_attribute in the ouput
-            # won't fail before a real value arrives
-            ingress:
-            - ip: <unknown>
+            status:
+              loadBalancer:
+                # We're initializing this attribute to make sure the call to get_attribute in the ouput
+                # won't fail before a real value arrives
+                ingress:
+                - ip: 0.0.0.0
       interfaces:
         # The interfaces are executed in alphabetical order
         # The previous execution must succeed before moving on to the next
@@ -108,7 +113,7 @@ topology_template:
     url:
       # Before a real attribute value arrives this will evaluate to "http://<unknown>:80"
       type: string
-      value: { concat: [ http://, { get_attribute: [ hello-world, web, ingress, 0, ip ] }, ':80' ] }
+      value: { concat: [ http://, { get_attribute: [ hello-world, web, status, loadBalancer, ingress, 0, ip ] }, ':80' ] }
 
     initialized:
       type: boolean

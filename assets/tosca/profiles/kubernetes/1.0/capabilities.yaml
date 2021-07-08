@@ -1,492 +1,1882 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
+# This file was automatically generated from data published at:
+# https://github.com/kubernetes-sigs/reference-docs/tree/master/gen-apidocs/config/v1_21/
+
+metadata:
+
+  specification.name: Kubernetes
+  specification.version: 1.21.0
+
 imports:
 
 - data.yaml
 
 capability_types:
 
+  APIService:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#apiservice-v1-apiregistration-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: APIServiceSpec, APIServiceStatus
+      turandot.apiVersion: apiregistration.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      APIService represents a server for a particular GroupVersion. Name must be
+      "version.group".
+    properties:
+      spec:
+        description: Spec contains information for locating and communicating with a server
+        type: APIServiceSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: Status contains derived information about an API server
+        type: APIServiceStatus
+
+  Binding:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#binding-v1-core
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      Binding ties one object to another; for example, a pod is bound to a node by a
+      scheduler. Deprecated in 1.7, please use the bindings subresource of pods
+      instead.
+    properties:
+      target:
+        description: The target object that you want to bind to the standard object.
+        type: ObjectReference
+        required: false
+
+  CSIDriver:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#csidriver-v1-storage-k8s-io
+      specification.version: 1.21.0
+      specification.category: Config and Storage APIs
+      specification.refersTo: CSIDriverSpec
+      turandot.apiVersion: storage.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      CSIDriver captures information about a Container Storage Interface (CSI) volume
+      driver deployed on the cluster. Kubernetes attach detach controller uses this
+      object to determine whether attach is required. Kubelet uses this object to
+      determine whether pod information needs to be passed on mount. CSIDriver objects
+      are non-namespaced.
+    properties:
+      spec:
+        description: Specification of the CSI Driver.
+        type: CSIDriverSpec
+        required: false
+
+  CSINode:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#csinode-v1-storage-k8s-io
+      specification.version: 1.21.0
+      specification.category: Config and Storage APIs
+      specification.refersTo: CSINodeSpec
+      turandot.apiVersion: storage.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      CSINode holds information about all CSI drivers installed on a node. CSI drivers
+      do not need to create the CSINode object directly. As long as they use the
+      node-driver-registrar sidecar container, the kubelet will automatically populate
+      the CSINode object for the CSI driver as part of kubelet plugin registration.
+      CSINode has the same name as a node. If the object is missing, it means either
+      there are no CSI Drivers available on the node, or the Kubelet version is low
+      enough that it doesn't create this object. CSINode has an OwnerReference that
+      points to the corresponding node object.
+    properties:
+      spec:
+        description: spec is the specification of CSINode
+        type: CSINodeSpec
+        required: false
+
+  CSIStorageCapacity:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#csistoragecapacity-v1beta1-storage-k8s-io
+      specification.version: 1.21.0
+      specification.category: Config and Storage APIs
+      turandot.apiVersion: storage.k8s.io/v1beta1
+      turandot.metadata: 'true'
+    description: >-
+      CSIStorageCapacity stores the result of one CSI GetCapacity call. For a given
+      StorageClass, this describes the available capacity in a particular topology
+      segment. This can be used when considering where to instantiate new
+      PersistentVolumes.
+
+      For example this can express things like: - StorageClass "standard" has "1234
+      GiB" available in "topology.kubernetes.io/zone=us-east1" - StorageClass
+      "localssd" has "10 GiB" available in "kubernetes.io/hostname=knode-abc123"
+
+      The following three cases all imply that no capacity is available for a certain
+      combination: - no object exists with suitable topology and storage class name -
+      such an object exists, but the capacity is unset - such an object exists, but
+      the capacity is zero
+
+      The producer of these objects can decide which approach is more suitable.
+
+      They are consumed by the kube-scheduler if the CSIStorageCapacity beta feature
+      gate is enabled there and a CSI driver opts into capacity-aware scheduling with
+      CSIDriver.StorageCapacity.
+    properties:
+      capacity:
+        description: >-
+          Capacity is the value reported by the CSI driver in its GetCapacityResponse for
+          a GetCapacityRequest with topology and parameters that match the previous
+          fields. The semantic is currently (CSI spec 1.2) defined as: The available
+          capacity, in bytes, of the storage that can be used to provision volumes. If not
+          set, that information is currently unavailable and treated like zero capacity.
+        type: Quantity
+        required: false
+      maximumVolumeSize:
+        description: >-
+          MaximumVolumeSize is the value reported by the CSI driver in its
+          GetCapacityResponse for a GetCapacityRequest with topology and parameters that
+          match the previous fields. This is defined since CSI spec 1.4.0 as the largest
+          size that may be used in a CreateVolumeRequest.capacity_range.required_bytes
+          field to create a volume with the same parameters as those in
+          GetCapacityRequest. The corresponding value in the Kubernetes API is
+          ResourceRequirements.Requests in a volume claim.
+        type: Quantity
+        required: false
+      nodeTopology:
+        description: >-
+          NodeTopology defines which nodes have access to the storage for which capacity
+          was reported. If not set, the storage is not accessible from any node in the
+          cluster. If empty, the storage is accessible from all nodes. This field is
+          immutable.
+        type: LabelSelector
+        required: false
+      storageClassName:
+        description: >-
+          The name of the StorageClass that the reported capacity applies to. It must meet
+          the same requirements as the name of a StorageClass object (non-empty, DNS
+          subdomain). If that object no longer exists, the CSIStorageCapacity object is
+          obsolete and should be removed by its creator. This field is immutable.
+        type: string
+        required: false
+
+  CertificateSigningRequest:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#certificatesigningrequest-v1-certificates-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: CertificateSigningRequestSpec, CertificateSigningRequestStatus
+      turandot.apiVersion: certificates.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      CertificateSigningRequest objects provide a mechanism to obtain x509
+      certificates by submitting a certificate signing request, and having it
+      asynchronously approved and issued.
+
+      Kubelets use this API to obtain:
+       1. client certificates to authenticate to kube-apiserver (with the
+      "kubernetes.io/kube-apiserver-client-kubelet" signerName).
+       2. serving certificates for TLS endpoints kube-apiserver can connect to
+      securely (with the "kubernetes.io/kubelet-serving" signerName).
+
+      This API can be used to request client certificates to authenticate to
+      kube-apiserver (with the "kubernetes.io/kube-apiserver-client" signerName), or
+      to obtain certificates from custom non-Kubernetes signers.
+    properties:
+      spec:
+        description: >-
+          spec contains the certificate request, and is immutable after creation. Only the
+          request, signerName, and usages fields can be set on creation. Other fields are
+          derived by Kubernetes and cannot be modified by users.
+        type: CertificateSigningRequestSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          status contains information about whether the request is approved or denied, and
+          the certificate issued by the signer, or the failure condition indicating signer
+          failure.
+        type: CertificateSigningRequestStatus
+
+  ClusterIP:
+    metadata:
+      specification.version: 1.21.0
+    derived_from: Service
+    properties:
+      spec:
+        type: ClusterIPSpec
+        required: false
+
+  ClusterRole:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#clusterrole-v1-rbac-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: rbac.authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      ClusterRole is a cluster level, logical grouping of PolicyRules that can be
+      referenced as a unit by a RoleBinding or ClusterRoleBinding.
+    properties:
+      aggregationRule:
+        description: >-
+          AggregationRule is an optional field that describes how to build the Rules for
+          this ClusterRole. If AggregationRule is set, then the Rules are controller
+          managed and direct changes to Rules will be stomped by the controller.
+        type: AggregationRule
+        required: false
+      rules:
+        description: Rules holds all the PolicyRules for this ClusterRole
+        type: list
+        entry_schema: PolicyRule
+        required: false
+
+  ClusterRoleBinding:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#clusterrolebinding-v1-rbac-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: rbac.authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      ClusterRoleBinding references a ClusterRole, but not contain it. It can
+      reference a ClusterRole in the global namespace, and adds who information via
+      Subject.
+    properties:
+      roleRef:
+        description: >-
+          RoleRef can only reference a ClusterRole in the global namespace. If the RoleRef
+          cannot be resolved, the Authorizer must return an error.
+        type: RoleRef
+        required: false
+      subjects:
+        description: Subjects holds references to the objects the role applies to.
+        type: list
+        entry_schema: Subject
+        required: false
+
+  ComponentStatus:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#componentstatus-v1-core
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      ComponentStatus (and ComponentStatusList) holds the cluster validation info.
+      Deprecated: This API is deprecated in v1.19+
+    properties:
+      conditions:
+        metadata:
+          turandot.patchStrategy: merge
+          turandot.patchMergeKey: type
+        description: List of component conditions observed
+        type: list
+        entry_schema: ComponentCondition
+        required: false
+
+  ConfigMap:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#configmap-v1-core
+      specification.version: 1.21.0
+      specification.category: Config and Storage APIs
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: ConfigMap holds configuration data for pods to consume.
+    properties:
+      binaryData:
+        description: >-
+          BinaryData contains the binary data. Each key must consist of alphanumeric
+          characters, '-', '_' or '.'. BinaryData can contain byte sequences that are not
+          in the UTF-8 range. The keys stored in BinaryData must not overlap with the ones
+          in the Data field, this is enforced during validation process. Using this field
+          will require 1.10+ apiserver and kubelet.
+        type: map
+        entry_schema: string # base64-encoded
+        required: false
+      data:
+        description: >-
+          Data contains the configuration data. Each key must consist of alphanumeric
+          characters, '-', '_' or '.'. Values with non-UTF-8 byte sequences must use the
+          BinaryData field. The keys stored in Data must not overlap with the keys in the
+          BinaryData field, this is enforced during validation process.
+        type: map
+        entry_schema: string
+        required: false
+      immutable:
+        description: >-
+          Immutable, if set to true, ensures that data stored in the ConfigMap cannot be
+          updated (only object metadata can be modified). If not set to true, the field
+          can be modified at any time. Defaulted to nil.
+        type: boolean
+        required: false
+
+  ControllerRevision:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#controllerrevision-v1-apps
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      turandot.apiVersion: apps/v1
+      turandot.metadata: 'true'
+    description: >-
+      ControllerRevision implements an immutable snapshot of state data. Clients are
+      responsible for serializing and deserializing the objects that contain their
+      internal state. Once a ControllerRevision has been successfully created, it can
+      not be updated. The API Server will fail validation of all requests that attempt
+      to mutate the Data field. ControllerRevisions may, however, be deleted. Note
+      that, due to its use by both the DaemonSet and StatefulSet controllers for
+      update and rollback, this object is beta. However, it may be subject to name and
+      representation changes in future releases, and clients should not depend on its
+      stability. It is primarily for internal use by controllers.
+    properties:
+      data:
+        description: Data is the serialized representation of the state.
+        type: Any
+        required: false
+      revision:
+        description: Revision indicates the revision of the state represented by Data.
+        type: integer
+        required: false
+
+  CronJob:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#cronjob-v1-batch
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: CronJobSpec, CronJobStatus
+      turandot.apiVersion: batch/v1
+      turandot.metadata: 'true'
+    description: CronJob represents the configuration of a single cron job.
+    properties:
+      spec:
+        description: >-
+          Specification of the desired behavior of a cron job, including the schedule.
+          More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: CronJobSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Current status of a cron job. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: CronJobStatus
+
+  CustomResourceDefinition:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#customresourcedefinition-v1-apiextensions-k8s-io
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      specification.refersTo: CustomResourceDefinitionSpec, CustomResourceDefinitionStatus
+      turandot.apiVersion: apiextensions.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      CustomResourceDefinition represents a resource that should be exposed on the API
+      server. Its name MUST be in the format <.spec.name>.<.spec.group>.
+    properties:
+      spec:
+        description: spec describes how the user wants the resources to appear
+        type: CustomResourceDefinitionSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: status indicates the actual state of the CustomResourceDefinition
+        type: CustomResourceDefinitionStatus
+
+  DaemonSet:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#daemonset-v1-apps
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: DaemonSetSpec, DaemonSetStatus, RollingUpdateDaemonSet
+      turandot.apiVersion: apps/v1
+      turandot.metadata: 'true'
+    description: DaemonSet represents the configuration of a daemon set.
+    properties:
+      spec:
+        description: >-
+          The desired behavior of this daemon set. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: DaemonSetSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          The current status of this daemon set. This data may be out of date by some
+          window of time. Populated by the system. Read-only. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: DaemonSetStatus
+
+  Deployment:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#deployment-v1-apps
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: DeploymentSpec, DeploymentStatus, DeploymentStrategy, RollingUpdateDeployment
+      turandot.apiVersion: apps/v1
+      turandot.metadata: 'true'
+      turandot.copy.1: metadata.labels->spec.selector.matchLabels
+      turandot.copy.2: metadata.labels->spec.template.metadata.labels
+      turandot.copy.3: metadata.annotations->spec.template.metadata.annotations
+    description: Deployment enables declarative updates for Pods and ReplicaSets.
+    properties:
+      spec:
+        description: Specification of the desired behavior of the Deployment.
+        type: DeploymentSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: Most recently observed status of the Deployment.
+        type: DeploymentStatus
+
+  EndpointSlice:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#endpointslice-v1-discovery-k8s-io
+      specification.version: 1.21.0
+      specification.category: Service APIs
+      turandot.apiVersion: discovery.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      EndpointSlice represents a subset of the endpoints that implement a service. For
+      a given service there may be multiple EndpointSlice objects, selected by labels,
+      which must be joined to produce the full set of endpoints.
+    properties:
+      addressType:
+        description: >-
+          addressType specifies the type of address carried by this EndpointSlice. All
+          addresses in this slice must be the same type. This field is immutable after
+          creation. The following address types are currently supported: * IPv4:
+          Represents an IPv4 Address. * IPv6: Represents an IPv6 Address. * FQDN:
+          Represents a Fully Qualified Domain Name.
+        type: string
+        constraints:
+        - valid_values: [ IPv4, IPv6, FQDN ]
+        required: false
+      endpoints:
+        description: >-
+          endpoints is a list of unique endpoints in this slice. Each slice may include a
+          maximum of 1000 endpoints.
+        type: list
+        entry_schema: Endpoint
+        required: false
+      ports:
+        description: >-
+          ports specifies the list of network ports exposed by each endpoint in this
+          slice. Each port must have a unique name. When ports is empty, it indicates that
+          there are no defined ports. When a port is defined with a nil port value, it
+          indicates "all ports". Each slice may include a maximum of 100 ports.
+        type: list
+        entry_schema: EndpointPort
+        required: false
+
+  Endpoints:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#endpoints-v1-core
+      specification.version: 1.21.0
+      specification.category: Service APIs
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      Endpoints is a collection of endpoints that implement the actual service.
+      Example:
+       Name: "mysvc",
+       Subsets: [
+       {
+       Addresses: [{"ip": "10.10.1.1"}, {"ip": "10.10.2.2"}],
+       Ports: [{"name": "a", "port": 8675}, {"name": "b", "port": 309}]
+       },
+       {
+       Addresses: [{"ip": "10.10.3.3"}],
+       Ports: [{"name": "a", "port": 93}, {"name": "b", "port": 76}]
+       },
+       ]
+    properties:
+      subsets:
+        description: >-
+          The set of all endpoints is the union of all subsets. Addresses are placed into
+          subsets according to the IPs they share. A single address with multiple ports,
+          some of which are ready and some of which are not (because they come from
+          different containers) will result in the address being displayed in different
+          subsets for the different ports. No address will appear in both Addresses and
+          NotReadyAddresses in the same subset. Sets of addresses and ports that comprise
+          a service.
+        type: list
+        entry_schema: EndpointSubset
+        required: false
+
+  EphemeralContainers:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#ephemeralcontainers-v1-core
+      specification.version: 1.21.0
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      A list of ephemeral containers used with the Pod ephemeralcontainers
+      subresource.
+    properties:
+      ephemeralContainers:
+        metadata:
+          turandot.patchStrategy: merge
+          turandot.patchMergeKey: name
+        description: >-
+          A list of ephemeral containers associated with this pod. New ephemeral
+          containers may be appended to this list, but existing ephemeral containers may
+          not be removed or modified.
+        type: list
+        entry_schema: EphemeralContainer
+        required: false
+
+  Event:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#event-v1-core
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      Event is a report of an event somewhere in the cluster. Events have a limited
+      retention time and triggers and messages may evolve with time. Event consumers
+      should not rely on the timing of an event with a given Reason reflecting a
+      consistent underlying trigger, or the continued existence of events with that
+      Reason. Events should be treated as informative, best-effort, supplemental data.
+    properties:
+      action:
+        description: What action was taken/failed regarding to the Regarding object.
+        type: string
+        required: false
+      count:
+        description: The number of times this event has occurred.
+        type: integer
+        required: false
+      eventTime:
+        description: Time when this Event was first observed.
+        type: timestamp
+        required: false
+      firstTimestamp:
+        description: >-
+          The time at which the event was first recorded. (Time of server receipt is in
+          TypeMeta.)
+        type: timestamp
+        required: false
+      involvedObject:
+        description: The object that this event is about.
+        type: ObjectReference
+        required: false
+      lastTimestamp:
+        description: The time at which the most recent occurrence of this event was recorded.
+        type: timestamp
+        required: false
+      message:
+        description: A human-readable description of the status of this operation.
+        type: string
+        required: false
+      reason:
+        description: >-
+          This should be a short, machine understandable string that gives the reason for
+          the transition into the object's current status.
+        type: string
+        required: false
+      related:
+        description: Optional secondary object for more complex actions.
+        type: ObjectReference
+        required: false
+      reportingComponent:
+        description: Name of the controller that emitted this Event, e.g. `kubernetes.io/kubelet`.
+        type: string
+        required: false
+      reportingInstance:
+        description: ID of the controller instance, e.g. `kubelet-xyzf`.
+        type: string
+        required: false
+      series:
+        description: >-
+          Data about the Event series this event represents or nil if it's a singleton
+          Event.
+        type: EventSeries
+        required: false
+      source:
+        description: >-
+          The component reporting this event. Should be a short machine understandable
+          string.
+        type: EventSource
+        required: false
+      type:
+        description: Type of this event (Normal, Warning), new types could be added in the future
+        type: string
+        required: false
+
+  Eviction:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#eviction-v1beta1-policy
+      specification.version: 1.21.0
+      turandot.apiVersion: policy/v1beta1
+      turandot.metadata: 'true'
+    description: >-
+      Eviction evicts a pod from its node subject to certain policies and safety
+      constraints. This is a subresource of Pod. A request to cause such an eviction
+      is created by POSTing to .../pods/<pod name>/evictions.
+    properties:
+      deleteOptions:
+        description: DeleteOptions may be provided
+        type: DeleteOptions
+        required: false
+
+  ExternalName:
+    metadata:
+      specification.version: 1.21.0
+    derived_from: Service
+    properties:
+      spec:
+        type: ExternalNameSpec
+        required: false
+
+  FlowSchema:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#flowschema-v1beta1-flowcontrol-apiserver-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: FlowSchemaSpec, FlowSchemaStatus
+      turandot.apiVersion: flowcontrol.apiserver.k8s.io/v1beta1
+      turandot.metadata: 'true'
+    description: >-
+      FlowSchema defines the schema of a group of flows. Note that a flow is made up
+      of a set of inbound API requests with similar attributes and is identified by a
+      pair of strings: the name of the FlowSchema and a "flow distinguisher".
+    properties:
+      spec:
+        description: >-
+          `spec` is the specification of the desired behavior of a FlowSchema. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: FlowSchemaSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          `status` is the current status of a FlowSchema. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: FlowSchemaStatus
+
+  HorizontalPodAutoscaler:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#horizontalpodautoscaler-v1-autoscaling
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      specification.refersTo: HorizontalPodAutoscalerSpec, HorizontalPodAutoscalerStatus
+      turandot.apiVersion: autoscaling/v1
+      turandot.metadata: 'true'
+    description: configuration of a horizontal pod autoscaler.
+    properties:
+      spec:
+        description: >-
+          behaviour of autoscaler. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.
+        type: HorizontalPodAutoscalerSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: current information about the autoscaler.
+        type: HorizontalPodAutoscalerStatus
+
+  Ingress:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#ingress-v1-networking-k8s-io
+      specification.version: 1.21.0
+      specification.category: Service APIs
+      specification.refersTo: IngressSpec, IngressStatus
+      turandot.apiVersion: networking.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      Ingress is a collection of rules that allow inbound connections to reach the
+      endpoints defined by a backend. An Ingress can be configured to give services
+      externally-reachable urls, load balance traffic, terminate SSL, offer name based
+      virtual hosting etc.
+    properties:
+      spec:
+        description: >-
+          Spec is the desired state of the Ingress. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: IngressSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is the current state of the Ingress. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: IngressStatus
+
+  IngressClass:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#ingressclass-v1-networking-k8s-io
+      specification.version: 1.21.0
+      specification.category: Service APIs
+      specification.refersTo: IngressClassSpec
+      turandot.apiVersion: networking.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      IngressClass represents the class of the Ingress, referenced by the Ingress
+      Spec. The `ingressclass.kubernetes.io/is-default-class` annotation can be used
+      to indicate that an IngressClass should be considered default. When a single
+      IngressClass resource has this annotation set to true, new Ingress resources
+      without a class specified will be assigned this default class.
+    properties:
+      spec:
+        description: >-
+          Spec is the desired state of the IngressClass. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: IngressClassSpec
+        required: false
+
+  Job:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#job-v1-batch
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: JobSpec, JobStatus
+      turandot.apiVersion: batch/v1
+      turandot.metadata: 'true'
+    description: Job represents the configuration of a single job.
+    properties:
+      spec:
+        description: >-
+          Specification of the desired behavior of a job. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: JobSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Current status of a job. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: JobStatus
+
+  Lease:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#lease-v1-coordination-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: LeaseSpec
+      turandot.apiVersion: coordination.k8s.io/v1
+      turandot.metadata: 'true'
+    description: Lease defines a lease concept.
+    properties:
+      spec:
+        description: >-
+          Specification of the Lease. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: LeaseSpec
+        required: false
+
+  LimitRange:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#limitrange-v1-core
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      specification.refersTo: LimitRangeSpec
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: LimitRange sets resource usage limits for each kind of resource in a Namespace.
+    properties:
+      spec:
+        description: >-
+          Spec defines the limits enforced. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: LimitRangeSpec
+        required: false
+
+  LoadBalancer:
+    metadata:
+      specification.version: 1.21.0
+    derived_from: Service
+    properties:
+      spec:
+        type: LoadBalancerSpec
+        required: false
+
+  LocalSubjectAccessReview:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#localsubjectaccessreview-v1-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      LocalSubjectAccessReview checks whether or not a user or group can perform an
+      action in a given namespace. Having a namespace scoped resource makes it much
+      easier to grant namespace scoped policy that includes permissions checking.
+    properties:
+      spec:
+        description: >-
+          Spec holds information about the request being evaluated. spec.namespace must be
+          equal to the namespace you made the request against. If empty, it is defaulted.
+        type: SubjectAccessReviewSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is filled in by the server and indicates whether the request is allowed
+          or not
+        type: SubjectAccessReviewStatus
+
+  MutatingWebhookConfiguration:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#mutatingwebhookconfiguration-v1-admissionregistration-k8s-io
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      turandot.apiVersion: admissionregistration.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      MutatingWebhookConfiguration describes the configuration of and admission
+      webhook that accept or reject and may change the object.
+    properties:
+      webhooks:
+        metadata:
+          turandot.patchStrategy: merge
+          turandot.patchMergeKey: name
+        description: Webhooks is a list of webhooks and the affected resources and operations.
+        type: list
+        entry_schema: MutatingWebhook
+        required: false
+
+  Namespace:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#namespace-v1-core
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: NamespaceSpec, NamespaceStatus
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: Namespace provides a scope for Names. Use of multiple namespaces is optional.
+    properties:
+      spec:
+        description: >-
+          Spec defines the behavior of the Namespace. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: NamespaceSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status describes the current status of a Namespace. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: NamespaceStatus
+
+  NetworkPolicy:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#networkpolicy-v1-networking-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: NetworkPolicySpec
+      turandot.apiVersion: networking.k8s.io/v1
+      turandot.metadata: 'true'
+    description: NetworkPolicy describes what network traffic is allowed for a set of Pods
+    properties:
+      spec:
+        description: Specification of the desired behavior for this NetworkPolicy.
+        type: NetworkPolicySpec
+        required: false
+
+  KNode:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#node-v1-core
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: NodeSpec, NodeStatus
+      turandot.apiVersion: v1
+      turandot.kind: Node
+      turandot.metadata: 'true'
+    description: >-
+      Node is a worker node in Kubernetes. Each node will have a unique identifier in
+      the cache (i.e. in etcd).
+    properties:
+      spec:
+        description: >-
+          Spec defines the behavior of a node.
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: NodeSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Most recently observed status of the node. Populated by the system. Read-only.
+          More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: NodeStatus
+
+  NodePort:
+    metadata:
+      specification.version: 1.21.0
+    derived_from: Service
+    properties:
+      spec:
+        type: NodePortSpec
+        required: false
+
   Metadata:
     metadata:
-      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta'
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#objectmeta-v1-meta
+      specification.version: 1.21.0
     description: >-
-      ObjectMeta is metadata that all persisted resources must have, which includes all objects
-      users must create.
+      ObjectMeta is metadata that all persisted resources must have, which includes
+      all objects users must create.
     properties:
-      # Identification
-      name:
+      annotations:
         description: >-
-          Name must be unique within a namespace. Is required when creating resources, although some
-          resources may allow a client to request the generation of an appropriate name
-          automatically. Name is primarily intended for creation idempotence and configuration
-          definition. Cannot be updated.
+          Annotations is an unstructured key value map stored with a resource that may be
+          set by external tools to store and retrieve arbitrary metadata. They are not
+          queryable and should be preserved when modifying objects. More info:
+          http://kubernetes.io/docs/user-guide/annotations
+        type: Any
+        required: false
+      clusterName:
+        description: >-
+          The name of the cluster which the object belongs to. This is used to distinguish
+          resources with same name and namespace in different clusters. This field is not
+          set anywhere right now and apiserver is going to ignore it if set in create or
+          update request.
         type: string
+        required: false
+      creationTimestamp:
+        description: >-
+          CreationTimestamp is a timestamp representing the server time when this object
+          was created. It is not guaranteed to be set in happens-before order across
+          separate operations. Clients may not set this value. It is represented in
+          RFC3339 form and is in UTC. Populated by the system. Read-only. Null for lists.
+          More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+        type: timestamp
+        required: false
+      deletionGracePeriodSeconds:
+        description: >-
+          Number of seconds allowed for this object to gracefully terminate before it will
+          be removed from the system. Only set when deletionTimestamp is also set. May
+          only be shortened. Read-only.
+        type: integer
+        required: false
+      deletionTimestamp:
+        description: >-
+          DeletionTimestamp is RFC 3339 date and time at which this resource will be
+          deleted. This field is set by the server when a graceful deletion is requested
+          by the user, and is not directly settable by a client. The resource is expected
+          to be deleted (no longer visible from resource lists, and not reachable by name)
+          after the time in this field, once the finalizers list is empty. As long as the
+          finalizers list contains items, deletion is blocked. Once the deletionTimestamp
+          is set, this value may not be unset or be set further into the future, although
+          it may be shortened or the resource may be deleted prior to this time. For
+          example, a user may request that a pod is deleted in 30 seconds. The Kubelet
+          will react by sending a graceful termination signal to the containers in the
+          pod. After that 30 seconds, the Kubelet will send a hard termination signal
+          (SIGKILL) to the container and after cleanup, remove the pod from the API. In
+          the presence of network partitions, this object may still exist after this
+          timestamp, until an administrator or automated process can determine the
+          resource is fully terminated. If not set, graceful deletion of the object has
+          not been requested. Populated by the system when a graceful deletion is
+          requested. Read-only. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+        type: timestamp
+        required: false
+      finalizers:
+        metadata:
+          turandot.patchStrategy: merge
+        description: >-
+          Must be empty before the object is deleted from the registry. Each entry is an
+          identifier for the responsible component that will remove the entry from the
+          list. If the deletionTimestamp of the object is non-nil, entries in this list
+          can only be removed. Finalizers may be processed and removed in any order. Order
+          is NOT enforced because it introduces significant risk of stuck finalizers.
+          finalizers is a shared field, any actor with permission can reorder it. If the
+          finalizer list is processed in order, then this can lead to a situation in which
+          the component responsible for the first finalizer in the list is waiting for a
+          signal (field value, external system, or other) produced by a component
+          responsible for a finalizer later in the list, resulting in a deadlock. Without
+          enforced ordering finalizers are free to order amongst themselves and are not
+          vulnerable to ordering changes in the list.
+        type: list
+        entry_schema: string
         required: false
       generateName:
         description: >-
-          GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF
-          the Name field has not been provided. If this field is used, the name returned to the
-          client will be different than the name passed. This value will also be combined with a
-          unique suffix. The provided value has the same validation rules as the Name field, and may
-          be truncated by the length of the suffix required to make the value unique on the server.
-          If this field is specified and the generated name exists, the server will NOT return a 409
-          - instead, it will either return 201 Created or 500 with Reason ServerTimeout indicating a
-          unique name could not be found in the time allotted, and the client should retry
-          (optionally after the time indicated in the Retry-After header). Applied only if Name is
-          not specified.
+          GenerateName is an optional prefix, used by the server, to generate a unique
+          name ONLY IF the Name field has not been provided. If this field is used, the
+          name returned to the client will be different than the name passed. This value
+          will also be combined with a unique suffix. The provided value has the same
+          validation rules as the Name field, and may be truncated by the length of the
+          suffix required to make the value unique on the server. If this field is
+          specified and the generated name exists, the server will NOT return a 409 -
+          instead, it will either return 201 Created or 500 with Reason ServerTimeout
+          indicating a unique name could not be found in the time allotted, and the client
+          should retry (optionally after the time indicated in the Retry-After header).
+          Applied only if Name is not specified. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency
+        type: string
+        required: false
+      generation:
+        description: >-
+          A sequence number representing a specific generation of the desired state.
+          Populated by the system. Read-only.
+        type: integer
+        required: false
+      labels:
+        description: >-
+          Map of string keys and values that can be used to organize and categorize (scope
+          and select) objects. May match selectors of replication controllers and
+          services. More info: http://kubernetes.io/docs/user-guide/labels
+        type: map
+        entry_schema: string
+        required: false
+      managedFields:
+        description: >-
+          ManagedFields maps workflow-id and version to the set of fields that are managed
+          by that workflow. This is mostly for internal housekeeping, and users typically
+          shouldn't need to set or understand this field. A workflow can be the user's
+          name, a controller's name, or the name of a specific apply path like "ci-cd".
+          The set of fields is always in the version that the workflow used when modifying
+          the object.
+        type: list
+        entry_schema: ManagedFieldsEntry
+        required: false
+      name:
+        description: >-
+          Name must be unique within a namespace. Is required when creating resources,
+          although some resources may allow a client to request the generation of an
+          appropriate name automatically. Name is primarily intended for creation
+          idempotence and configuration definition. Cannot be updated. More info:
+          http://kubernetes.io/docs/user-guide/identifiers#names
         type: string
         required: false
       namespace:
         description: >-
-          Namespace defines the space within each name must be unique. An empty namespace is
-          equivalent to the "default" namespace, but "default" is the canonical representation. Not
-          all objects are required to be scoped to a namespace - the value of this field for those
-          objects will be empty. Must be a DNS_LABEL. Cannot be updated.
+          Namespace defines the space within which each name must be unique. An empty
+          namespace is equivalent to the "default" namespace, but "default" is the
+          canonical representation. Not all objects are required to be scoped to a
+          namespace - the value of this field for those objects will be empty. Must be a
+          DNS_LABEL. Cannot be updated. More info:
+          http://kubernetes.io/docs/user-guide/namespaces
         type: string
-        required: false
-      labels:
-        description: >-
-          Map of string keys and values that can be used to organize and categorize (scope and
-          select) objects. May match selectors of replication controllers and services.
-        type: map
-        entry_schema: string
-        required: false
-
-      # Extra
-      annotations:
-        description: >-
-          Annotations is an unstructured key value map stored with a resource that may be set by
-          external tools to store and retrieve arbitrary metadata. They are not queryable and should
-          be preserved when modifying objects.
-        type: map
-        entry_schema: string # TODO
-        required: false
-
-      # Lifecycle
-      initializers:
-        description: >-
-          An initializer is a controller which enforces some system invariant at object creation
-          time. This field is a list of initializers that have not yet acted on this object. If nil
-          or empty, this object has been completely initialized. Otherwise, the object is considered
-          uninitialized and is hidden (in list/watch and get calls) from clients that haven't
-          explicitly asked to observe uninitialized objects. When an object is created, the system
-          will populate this list with the current set of initializers. Only privileged users may
-          set or modify this list. Once it is empty, it may not be modified further by any user.
-        type: list
-        entry_schema: string # TODO
-        required: false
-      finalizers:
-        description: >-
-          Must be empty before the object is deleted from the registry. Each entry is an identifier
-          for the responsible component that will remove the entry from the list. If the
-          deletionTimestamp of the object is non-nil, entries in this list can only be removed.
-        type: list
-        entry_schema: string # TODO
         required: false
       ownerReferences:
+        metadata:
+          turandot.patchStrategy: merge
+          turandot.patchMergeKey: uid
         description: >-
-          List of objects depended by this object. If ALL objects in the list have been deleted,
-          this object will be garbage collected. If this object is managed by a controller, then an
-          entry in this list will point to this controller, with the controller field set to true.
-          There cannot be more than one managing controller.
+          List of objects depended by this object. If ALL objects in the list have been
+          deleted, this object will be garbage collected. If this object is managed by a
+          controller, then an entry in this list will point to this controller, with the
+          controller field set to true. There cannot be more than one managing controller.
         type: list
-        entry_schema: string # TODO
+        entry_schema: OwnerReference
         required: false
-
-    attributes:
-      # Identification
-      uid:
+      resourceVersion:
         description: >-
-          UID is the unique in time and space value for this object. It is typically generated by
-          the server on successful creation of a resource and is not allowed to change on PUT
-          operations. Populated by the system. Read-only.
+          An opaque value that represents the internal version of this object that can be
+          used by clients to determine when objects have changed. May be used for
+          optimistic concurrency, change detection, and the watch operation on a resource
+          or set of resources. Clients must treat these values as opaque and passed
+          unmodified back to the server. They may only be valid for a particular resource
+          or set of resources. Populated by the system. Read-only. Value must be treated
+          as opaque by clients and . More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
         type: string
+        required: false
       selfLink:
         description: >-
           SelfLink is a URL representing this object. Populated by the system. Read-only.
+          DEPRECATED Kubernetes will stop propagating this field in 1.20 release and the
+          field is planned to be removed in 1.21 release.
         type: string
-      resourceVersion:
+        required: false
+      uid:
         description: >-
-          An opaque value that represents the internal version of this object that can be used by
-          clients to determine when objects have changed. May be used for optimistic concurrency,
-          change detection, and the watch operation on a resource or set of resources. Clients must
-          treat these values as opaque and passed unmodified back to the server. They may only be
-          valid for a particular resource or set of resources. Populated by the system. Read-only.
-          Value must be treated as opaque by clients.
-        type: string
-      clusterName:
-        description: >-
-          The name of the cluster which the object belongs to. This is used to distinguish resources
-          with same name and namespace in different clusters. This field is not set anywhere right
-          now and apiserver is going to ignore it if set in create or update request.
-        type: string
-      generation:
-        description: >-
-          A sequence number representing a specific generation of the desired state. Populated by
-          the system. Read-only.
-        type: Count
-        default: 0
-
-      # Lifecycle
-      creationTimestamp:
-        description: >-
-          CreationTimestamp is a timestamp representing the server time when this object was
-          created. It is not guaranteed to be set in happens-before order across separate
-          operations. Clients may not set this value. It is represented in RFC3339 form and is in
-          UTC. Populated by the system. Read-only. Null for lists.
-        type: timestamp
-      deletionTimestamp:
-        description: >-
-          DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This
-          field is set by the server when a graceful deletion is requested by the user, and is not
-          directly settable by a client. The resource is expected to be deleted (no longer visible
-          from resource lists, and not reachable by name) after the time in this field, once the
-          finalizers list is empty. As long as the finalizers list contains items, deletion is
-          blocked. Once the deletionTimestamp is set, this value may not be unset or be set further
-          into the future, although it may be shortened or the resource may be deleted prior to this
-          time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet
-          will react by sending a graceful termination signal to the containers in the pod. After
-          that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the
-          container and after cleanup, remove the pod from the API. In the presence of network
-          partitions, this object may still exist after this timestamp, until an administrator or
-          automated process can determine the resource is fully terminated. If not set, graceful
-          deletion of the object has not been requested. Populated by the system when a graceful
-          deletion is requested. Read-only.
-        type: timestamp
-      deletionGracePeriodSeconds:
-        description: >-
-          Number of seconds allowed for this object to gracefully terminate before it will be
-          removed from the system. Only set when deletionTimestamp is also set. May only be
-          shortened. Read-only.
-        type: scalar-unit.time
-        default: 0 s
-
-  Resource:
-    description: >-
-      Kubernetes resources can derive from this, but don't have to. As long as the
-      "turandot.apiVersion" metadata is set, a Kubernetes resource will be created for that
-      capability.
-    properties:
-      metadataNamePostfix:
-        metadata:
-          puccini.information:turandot.ignore: 'true'
-        description: >-
-          If specified and not empty, this will be appended to the metadata capability's name after
-          a '-'. If specified and an empty string, the metadata capability's name will be used as
-          is. If not specified, the capability name will be used.
+          UID is the unique in time and space value for this object. It is typically
+          generated by the server on successful creation of a resource and is not allowed
+          to change on PUT operations. Populated by the system. Read-only. More info:
+          http://kubernetes.io/docs/user-guide/identifiers#uids
         type: string
         required: false
 
-  CustomResourceDefinition:
+  PersistentVolume:
     metadata:
-      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#customresourcedefinition-v1-apiextensions-k8s-io'
-      turandot.apiVersion: apiextensions.k8s.io/v1
-    derived_from: Resource
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#persistentvolume-v1-core
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: PersistentVolumeSpec, PersistentVolumeStatus
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      PersistentVolume (PV) is a storage resource provisioned by an administrator. It
+      is analogous to a node. More info:
+      https://kubernetes.io/docs/concepts/storage/persistent-volumes
     properties:
-      conversion:
+      spec:
         description: >-
-          conversion defines conversion settings for the CRD.
-        type: CustomResourceConversion
-      group:
+          Spec defines a specification of a persistent volume owned by the cluster.
+          Provisioned by an administrator. More info:
+          https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistent-volumes
+        type: PersistentVolumeSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
         description: >-
-          group is the API group of the defined custom resource. The custom resources are served
-          under `/apis/<group>/...`. Must match the name of the CustomResourceDefinition (in the
-          form `<names.plural>.<group>`).
-        type: string
-      names:
-        description: >-
-          names specify the resource and kind names for the custom resource.
-        type: CustomResourceDefinitionNames
-      scope:
-        description: >-
-          scope indicates whether the defined custom resource is cluster- or namespace-scoped.
-          Allowed values are `Cluster` and `Namespaced`.
-        type: string
-        constraints:
-        - valid_values: [ Cluster, Namespaced ]
-      versions:
-        description: >-
-          versions is the list of all API versions of the defined custom resource. Version names are
-          used to compute the order in which served versions are listed in API discovery. If the
-          version string is "kube-like", it will sort above non "kube-like" version strings, which
-          are ordered lexicographically. "Kube-like" versions start with a "v", then are followed by
-          a number (the major version), then optionally the string "alpha" or "beta" and another
-          number (the minor version). These are sorted first by GA > beta > alpha (where GA is a
-          version with no suffix such as beta or alpha), and then by comparing major version, then
-          minor version. An example sorted list of versions: v10, v2, v1, v11beta2, v10beta3,
-          v3beta1, v12alpha1, v11alpha2, foo1, foo10.
-        type: list
-        entry_schema: CustomResourceDefinitionVersion
+          Status represents the current information/status for the persistent volume.
+          Populated by the system. Read-only. More info:
+          https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistent-volumes
+        type: PersistentVolumeStatus
 
-  #
-  # Service
-  #
+  Pod:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#pod-v1-core
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: PodSpec, PodStatus
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      Pod is a collection of containers that can run on a host. This resource is
+      created by clients and scheduled onto hosts.
+    properties:
+      spec:
+        description: >-
+          Specification of the desired behavior of the pod. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: PodSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Most recently observed status of the pod. This data may not be up to date.
+          Populated by the system. Read-only. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: PodStatus
+
+  PodDisruptionBudget:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#poddisruptionbudget-v1-policy
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      specification.refersTo: PodDisruptionBudgetSpec, PodDisruptionBudgetStatus
+      turandot.apiVersion: policy/v1
+      turandot.metadata: 'true'
+    description: >-
+      PodDisruptionBudget is an object to define the max disruption that can be caused
+      to a collection of pods
+    properties:
+      spec:
+        description: Specification of the desired behavior of the PodDisruptionBudget.
+        type: PodDisruptionBudgetSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: Most recently observed status of the PodDisruptionBudget.
+        type: PodDisruptionBudgetStatus
+
+  PodSecurityPolicy:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#podsecuritypolicy-v1beta1-policy
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      specification.refersTo: PodSecurityPolicySpec
+      turandot.apiVersion: policy/v1beta1
+      turandot.metadata: 'true'
+    description: >-
+      PodSecurityPolicy governs the ability to make requests that affect the Security
+      Context that will be applied to a pod and container. Deprecated in 1.21.
+    properties:
+      spec:
+        description: spec defines the policy enforced.
+        type: PodSecurityPolicySpec
+        required: false
+
+  PriorityClass:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#priorityclass-v1-scheduling-k8s-io
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      turandot.apiVersion: scheduling.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      PriorityClass defines mapping from a priority class name to the priority integer
+      value. The value can be any valid integer.
+    properties:
+      description:
+        description: >-
+          description is an arbitrary string that usually provides guidelines on when this
+          priority class should be used.
+        type: string
+        required: false
+      globalDefault:
+        description: >-
+          globalDefault specifies whether this PriorityClass should be considered as the
+          default priority for pods that do not have any priority class. Only one
+          PriorityClass can be marked as `globalDefault`. However, if more than one
+          PriorityClasses exists with their `globalDefault` field set to true, the
+          smallest value of such global default PriorityClasses will be used as the
+          default priority.
+        type: boolean
+        required: false
+      preemptionPolicy:
+        description: >-
+          PreemptionPolicy is the Policy for preempting pods with lower priority. One of
+          Never, PreemptLowerPriority. Defaults to PreemptLowerPriority if unset. This
+          field is beta-level, gated by the NonPreemptingPriority feature-gate.
+        type: string
+        required: false
+      value:
+        description: >-
+          The value of this priority class. This is the actual priority that pods receive
+          when they have the name of this class in their pod spec.
+        type: integer
+        required: false
+
+  PriorityLevelConfiguration:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#prioritylevelconfiguration-v1beta1-flowcontrol-apiserver-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: PriorityLevelConfigurationSpec, PriorityLevelConfigurationStatus
+      turandot.apiVersion: flowcontrol.apiserver.k8s.io/v1beta1
+      turandot.metadata: 'true'
+    description: PriorityLevelConfiguration represents the configuration of a priority level.
+    properties:
+      spec:
+        description: >-
+          `spec` is the specification of the desired behavior of a "request-priority".
+          More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: PriorityLevelConfigurationSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          `status` is the current status of a "request-priority". More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: PriorityLevelConfigurationStatus
+
+  ReplicaSet:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#replicaset-v1-apps
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: ReplicaSetSpec, ReplicaSetStatus
+      turandot.apiVersion: apps/v1
+      turandot.metadata: 'true'
+    description: >-
+      ReplicaSet ensures that a specified number of pod replicas are running at any
+      given time.
+    properties:
+      spec:
+        description: >-
+          Spec defines the specification of the desired behavior of the ReplicaSet. More
+          info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ReplicaSetSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is the most recently observed status of the ReplicaSet. This data may be
+          out of date by some window of time. Populated by the system. Read-only. More
+          info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ReplicaSetStatus
+
+  ReplicationController:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#replicationcontroller-v1-core
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: ReplicationControllerSpec, ReplicationControllerStatus
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+      turandot.copy.1: metadata.labels->spec.selector.matchLabels
+      turandot.copy.2: metadata.labels->spec.template.metadata.labels
+      turandot.copy.3: metadata.annotations->spec.template.metadata.annotations
+    description: ReplicationController represents the configuration of a replication controller.
+    properties:
+      spec:
+        description: >-
+          Spec defines the specification of the desired behavior of the replication
+          controller. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ReplicationControllerSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is the most recently observed status of the replication controller. This
+          data may be out of date by some window of time. Populated by the system.
+          Read-only. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ReplicationControllerStatus
+
+  ResourceQuota:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#resourcequota-v1-core
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: ResourceQuotaSpec, ResourceQuotaStatus
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: ResourceQuota sets aggregate quota restrictions enforced per namespace
+    properties:
+      spec:
+        description: >-
+          Spec defines the desired quota.
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ResourceQuotaSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status defines the actual enforced quota and its current usage.
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ResourceQuotaStatus
+
+  Role:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#role-v1-rbac-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: rbac.authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      Role is a namespaced, logical grouping of PolicyRules that can be referenced as
+      a unit by a RoleBinding.
+    properties:
+      rules:
+        description: Rules holds all the PolicyRules for this Role
+        type: list
+        entry_schema: PolicyRule
+        required: false
+
+  RoleBinding:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#rolebinding-v1-rbac-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: rbac.authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      RoleBinding references a role, but does not contain it. It can reference a Role
+      in the same namespace or a ClusterRole in the global namespace. It adds who
+      information via Subjects and namespace information by which namespace it exists
+      in. RoleBindings in a given namespace only have effect in that namespace.
+    properties:
+      roleRef:
+        description: >-
+          RoleRef can reference a Role in the current namespace or a ClusterRole in the
+          global namespace. If the RoleRef cannot be resolved, the Authorizer must return
+          an error.
+        type: RoleRef
+        required: false
+      subjects:
+        description: Subjects holds references to the objects the role applies to.
+        type: list
+        entry_schema: Subject
+        required: false
+
+  RuntimeClass:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#runtimeclass-v1-node-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: node.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      RuntimeClass defines a class of container runtime supported in the cluster. The
+      RuntimeClass is used to determine which container runtime is used to run all
+      containers in a pod. RuntimeClasses are manually defined by a user or cluster
+      provisioner, and referenced in the PodSpec. The Kubelet is responsible for
+      resolving the RuntimeClassName reference before running the pod. For more
+      details, see https://kubernetes.io/docs/concepts/containers/runtime-class/
+    properties:
+      handler:
+        description: >-
+          Handler specifies the underlying runtime and configuration that the CRI
+          implementation will use to handle pods of this class. The possible values are
+          specific to the node & CRI configuration. It is assumed that all handlers are
+          available on every node, and handlers of the same name are equivalent on every
+          node. For example, a handler called "runc" might specify that the runc OCI
+          runtime (using native Linux containers) will be used to run the containers in a
+          pod. The Handler must be lowercase, conform to the DNS Label (RFC 1123)
+          requirements, and is immutable.
+        type: string
+        required: false
+      overhead:
+        description: >-
+          Overhead represents the resource overhead associated with running a pod for a
+          given RuntimeClass. For more details, see
+          https://kubernetes.io/docs/concepts/scheduling-eviction/pod-overhead/ This field
+          is in beta starting v1.18 and is only honored by servers that enable the
+          PodOverhead feature.
+        type: Overhead
+        required: false
+      scheduling:
+        description: >-
+          Scheduling holds the scheduling constraints to ensure that pods running with
+          this RuntimeClass are scheduled to nodes that support it. If scheduling is nil,
+          this RuntimeClass is assumed to be supported by all nodes.
+        type: Scheduling
+        required: false
+
+  Scale:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#scale-v1-autoscaling
+      specification.version: 1.21.0
+      specification.refersTo: ScaleSpec, ScaleStatus
+      turandot.apiVersion: autoscaling/v1
+      turandot.metadata: 'true'
+    description: Scale represents a scaling request for a resource.
+    properties:
+      spec:
+        description: >-
+          defines the behavior of the scale. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.
+        type: ScaleSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          current status of the scale. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.
+          Read-only.
+        type: ScaleStatus
+
+  Secret:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#secret-v1-core
+      specification.version: 1.21.0
+      specification.category: Config and Storage APIs
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      Secret holds secret data of a certain type. The total bytes of the values in the
+      Data field must be less than MaxSecretSize bytes.
+    properties:
+      data:
+        description: >-
+          Data contains the secret data. Each key must consist of alphanumeric characters,
+          '-', '_' or '.'. The serialized form of the secret data is a base64 encoded
+          string, representing the arbitrary (possibly non-string) data value here.
+          Described in https://tools.ietf.org/html/rfc4648#section-4
+        type: Any
+        required: false
+      immutable:
+        description: >-
+          Immutable, if set to true, ensures that data stored in the Secret cannot be
+          updated (only object metadata can be modified). If not set to true, the field
+          can be modified at any time. Defaulted to nil.
+        type: boolean
+        required: false
+      stringData:
+        description: >-
+          stringData allows specifying non-binary secret data in string form. It is
+          provided as a write-only input field for convenience. All keys and values are
+          merged into the data field on write, overwriting any existing values. The
+          stringData field is never output when reading from the API.
+        type: Any
+        required: false
+      type:
+        description: Used to facilitate programmatic handling of secret data.
+        type: string
+        required: false
+
+  SelfSubjectAccessReview:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#selfsubjectaccessreview-v1-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: SelfSubjectAccessReviewSpec
+      turandot.apiVersion: authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      SelfSubjectAccessReview checks whether or the current user can perform an
+      action. Not filling in a spec.namespace means "in all namespaces". Self is a
+      special case, because users should always be able to check whether they can
+      perform an action
+    properties:
+      spec:
+        description: >-
+          Spec holds information about the request being evaluated. user and groups must
+          be empty
+        type: SelfSubjectAccessReviewSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is filled in by the server and indicates whether the request is allowed
+          or not
+        type: SubjectAccessReviewStatus
+
+  SelfSubjectRulesReview:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#selfsubjectrulesreview-v1-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: SelfSubjectRulesReviewSpec
+      turandot.apiVersion: authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      SelfSubjectRulesReview enumerates the set of actions the current user can
+      perform within a namespace. The returned list of actions may be incomplete
+      depending on the server's authorization mode, and any errors experienced during
+      the evaluation. SelfSubjectRulesReview should be used by UIs to show/hide
+      actions, or to quickly let an end user reason about their permissions. It should
+      NOT Be used by external systems to drive authorization decisions as this raises
+      confused deputy, cache lifetime/revocation, and correctness concerns.
+      SubjectAccessReview, and LocalAccessReview are the correct way to defer
+      authorization decisions to the API server.
+    properties:
+      spec:
+        description: Spec holds information about the request being evaluated.
+        type: SelfSubjectRulesReviewSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is filled in by the server and indicates the set of actions a user can
+          perform.
+        type: SubjectRulesReviewStatus
 
   Service:
     metadata:
-      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#service-v1-core'
-      specification.guide.url: 'https://kubernetes.io/docs/concepts/services-networking/service/'
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#service-v1-core
+      specification.version: 1.21.0
+      specification.category: Service APIs
+      specification.refersTo: ServiceSpec, ServiceStatus
       turandot.apiVersion: v1
+      turandot.metadata: 'true'
       turandot.copy: metadata.labels->spec.selector
-    derived_from: Resource
     description: >-
-      Service is a named abstraction of software service (for example, mysql) consisting of local
-      port (for example 3306) that the proxy listens on, and the selector that determines which pods
-      will answer requests sent through the proxy.
+      Service is a named abstraction of software service (for example, mysql)
+      consisting of local port (for example 3306) that the proxy listens on, and the
+      selector that determines which pods will answer requests sent through the proxy.
     properties:
-      type:
+      spec:
         description: >-
-          type determines how the Service is exposed. Defaults to ClusterIP. Valid options are
-          ExternalName, ClusterIP, NodePort, and LoadBalancer. "ExternalName" maps to the specified
-          externalName. "ClusterIP" allocates a cluster-internal IP address for load-balancing to
-          endpoints. Endpoints are determined by the selector or if that is not specified, by manual
-          construction of an Endpoints object. If clusterIP is "None", no virtual IP is allocated
-          and the endpoints are published as a set of endpoints rather than a stable IP. "NodePort"
-          builds on ClusterIP and allocates a port on every node which routes to the clusterIP.
-          "LoadBalancer" builds on NodePort and creates an external load-balancer (if supported in
-          the current cloud) which routes to the clusterIP.
-        type: string
-        constraints:
-        - valid_values: [ ExternalName, ClusterIP, NodePort, LoadBalancer ]
+          Spec defines the behavior of a service.
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ServiceSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Most recently observed status of the service. Populated by the system.
+          Read-only. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: ServiceStatus
 
-      ports:
+  ServiceAccount:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#serviceaccount-v1-core
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      turandot.apiVersion: v1
+      turandot.metadata: 'true'
+    description: >-
+      ServiceAccount binds together: * a name, understood by users, and perhaps by
+      peripheral systems, for an identity * a principal that can be authenticated and
+      authorized * a set of secrets
+    properties:
+      automountServiceAccountToken:
         description: >-
-          The list of ports that are exposed by this service.
+          AutomountServiceAccountToken indicates whether pods running as this service
+          account should have an API token automatically mounted. Can be overridden at the
+          pod level.
+        type: boolean
+        required: false
+      imagePullSecrets:
+        description: >-
+          ImagePullSecrets is a list of references to secrets in the same namespace to use
+          for pulling any images in pods that reference this ServiceAccount.
+          ImagePullSecrets are distinct from Secrets because Secrets can be mounted in the
+          pod, but ImagePullSecrets are only accessed by the kubelet. More info:
+          https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
         type: list
-        entry_schema: ServicePort
-
-      # Pods
-      selector:
+        entry_schema: LocalObjectReference
+        required: false
+      secrets:
+        metadata:
+          turandot.patchStrategy: merge
+          turandot.patchMergeKey: name
         description: >-
-          Route service traffic to pods with label keys and values matching this selector. If empty
-          or not present, the service is assumed to have an external process managing its endpoints,
-          which Kubernetes will not modify. Only applies to types ClusterIP, NodePort, and
-          LoadBalancer. Ignored if type is ExternalName.
-        type: map
+          Secrets is the list of secrets allowed to be used by pods running using this
+          ServiceAccount. More info:
+          https://kubernetes.io/docs/concepts/configuration/secret
+        type: list
+        entry_schema: ObjectReference
+        required: false
+
+  StatefulSet:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#statefulset-v1-apps
+      specification.version: 1.21.0
+      specification.category: Workloads APIs
+      specification.refersTo: StatefulSetSpec, StatefulSetStatus
+      turandot.apiVersion: apps/v1
+      turandot.metadata: 'true'
+    description: >-
+      StatefulSet represents a set of pods with consistent identities. Identities are
+      defined as:
+       - Network: A single stable DNS and hostname.
+       - Storage: As many VolumeClaims as requested.
+      The StatefulSet guarantees that a given network identity will always map to the
+      same storage identity.
+    properties:
+      spec:
+        description: Spec defines the desired identities of pods in this set.
+        type: StatefulSetSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is the current status of Pods in this StatefulSet. This data may be out
+          of date by some window of time.
+        type: StatefulSetStatus
+
+  StorageClass:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#storageclass-v1-storage-k8s-io
+      specification.version: 1.21.0
+      specification.category: Config and Storage APIs
+      turandot.apiVersion: storage.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      StorageClass describes the parameters for a class of storage for which
+      PersistentVolumes can be dynamically provisioned.
+
+      StorageClasses are non-namespaced; the name of the storage class according to
+      etcd is in ObjectMeta.Name.
+    properties:
+      allowVolumeExpansion:
+        description: AllowVolumeExpansion shows whether the storage class allow volume expand
+        type: boolean
+        required: false
+      allowedTopologies:
+        description: >-
+          Restrict the node topologies where volumes can be dynamically provisioned. Each
+          volume plugin defines its own supported topology specifications. An empty
+          TopologySelectorTerm list means there is no topology restriction. This field is
+          only honored by servers that enable the VolumeScheduling feature.
+        type: list
+        entry_schema: TopologySelectorTerm
+        required: false
+      mountOptions:
+        description: >-
+          Dynamically provisioned PersistentVolumes of this storage class are created with
+          these mountOptions, e.g. ["ro", "soft"]. Not validated - mount of the PVs will
+          simply fail if one is invalid.
+        type: list
         entry_schema: string
         required: false
-
-      # DNS
-      publishNotReadyAddresses:
+      parameters:
         description: >-
-          publishNotReadyAddresses, when set to true, indicates that DNS implementations must
-          publish the notReadyAddresses of subsets for the Endpoints associated with the Service.
-          The default value is false. The primary use case for setting this field is to use a
-          StatefulSet's Headless Service to propagate SRV records for its Pods without respect to
-          their readiness for purpose of peer discovery.
-        type: boolean
-        default: false
-
-      # External
-      externalIPs:
-        description: >-
-          externalIPs is a list of IP addresses for which nodes in the cluster will also accept
-          traffic for this service. These IPs are not managed by Kubernetes. The user is responsible
-          for ensuring that traffic arrives at a node with this IP. A common example is external
-          load-balancers that are not part of the Kubernetes system.
-        type: map
-        entry_schema: IP
+          Parameters holds the parameters for the provisioner that should create volumes
+          of this storage class.
+        type: Any
         required: false
-      externalTrafficPolicy:
-        description: >-
-          externalTrafficPolicy denotes if this Service desires to route external traffic to
-          node-local or cluster-wide endpoints. "Local" preserves the client source IP and avoids a
-          second hop for LoadBalancer and Nodeport type services, but risks potentially imbalanced
-          traffic spreading. "Cluster" obscures the client source IP and may cause a second hop to
-          another node, but should have good overall load-spreading.
+      provisioner:
+        description: Provisioner indicates the type of the provisioner.
         type: string
-        constraints:
-        - valid_values: [ Local, Cluster ]
         required: false
-
-      # Session
-      sessionAffinity:
+      reclaimPolicy:
         description: >-
-          Supports "ClientIP" and "None". Used to maintain session affinity. Enable client IP based
-          session affinity. Must be ClientIP or None. Defaults to None.
+          Dynamically provisioned PersistentVolumes of this storage class are created with
+          this reclaimPolicy. Defaults to Delete.
         type: string
-        default: None
-        constraints:
-        - valid_values: [ ClientIP, None ]
-      # TODO: sessionAffinityConfig
-    attributes:
-      clusterIP:
-        metadata:
-          puccini.information:turandot.mapping: spec.clusterIP
-        description: >-
-          clusterIP is the IP address of the service and is usually assigned randomly by the master.
-          If an address is specified manually and is not in use by others, it will be allocated to
-          the service; otherwise, creation of the service will fail. This field can not be changed
-          through updates. Valid values are "None", empty string (""), or a valid IP address.
-          "None" can be specified for headless services when proxying is not required.
-        type: IP
-
-  ClusterIP:
-    description: >-
-      "ClusterIP" allocates a cluster-internal IP address for load-balancing to endpoints. Endpoints
-      are determined by the selector or if that is not specified, by manual construction of an
-      Endpoints object. If clusterIP is "None", no virtual IP is allocated and the endpoints are
-      published as a set of endpoints rather than a stable IP.
-    derived_from: Service
-    properties:
-      type:
-        default: ClusterIP
-
-  NodePort:
-    description: >-
-      "NodePort" builds on ClusterIP and allocates a port on every node which routes to the
-      clusterIP.
-    derived_from: ClusterIP
-    properties:
-      type:
-        default: NodePort
-
-  LoadBalancer:
-    description: >-
-      "LoadBalancer" builds on NodePort and creates an external load-balancer (if supported in the
-      current cloud) which routes to the clusterIP.
-    derived_from: NodePort
-    properties:
-      type:
-        default: LoadBalancer
-      loadBalancerIP:
-        description: >-
-          LoadBalancer will get created with the IP specified in this field. This feature depends on
-          whether the underlying cloud-provider supports specifying the loadBalancerIP when a load
-          balancer is created. This field will be ignored if the cloud-provider does not support the
-          feature.
-        type: IP
         required: false
-      loadBalancerSourceRanges:
+      volumeBindingMode:
         description: >-
-          If specified and supported by the platform, this will restrict traffic through the
-          cloud-provider load-balancer will be restricted to the specified client IPs. This field
-          will be ignored if the cloud-provider does not support the feature.
-        type: list
-        entry_schema: IP
+          VolumeBindingMode indicates how PersistentVolumeClaims should be provisioned and
+          bound. When unset, VolumeBindingImmediate is used. This field is only honored by
+          servers that enable the VolumeScheduling feature.
+        type: string
+        required: false
+
+  StorageVersion:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#storageversion-v1alpha1-internal-apiserver-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: StorageVersionSpec, StorageVersionStatus
+      turandot.apiVersion: internal.apiserver.k8s.io/v1alpha1
+      turandot.metadata: 'true'
+    description: Storage version of a specific resource.
+    properties:
+      spec:
+        description: Spec is an empty spec. It is here to comply with Kubernetes API style.
+        type: StorageVersionSpec
         required: false
     attributes:
-      ingress:
+      status:
         metadata:
-          puccini.information:turandot.mapping: status.loadBalancer.ingress
+          puccini.information:turandot.mapping: status
         description: >-
-          Ingress is a list containing ingress points for the load-balancer. Traffic intended for
-          the service should be sent to these ingress points.
-        type: list
-        entry_schema: LoadBalancerIngress
-      healthCheckNodePort:
-        description: >-
-          healthCheckNodePort specifies the healthcheck nodePort for the service. If not specified,
-          HealthCheckNodePort is created by the service api backend with the allocated nodePort.
-          Will use user-specified nodePort value if specified by the client. Only effects when
-          ExternalTrafficPolicy is set to Local.
-        type: string # TODO
+          API server instances report the version they can decode and the version they
+          encode objects to when persisting objects in the backend.
+        type: StorageVersionStatus
 
-  ExternalName:
-    description: >-
-      "ExternalName" maps to the specified externalName.
-    derived_from: Service
-    properties:
-      type:
-        default: ExternalName
-      externalName:
-        description: >-
-          externalName is the external reference that kubedns or equivalent will return as a CNAME
-          record for this service. No proxying will be involved. Must be a valid RFC-1123 hostname.
-        type: Hostname
-
-  #
-  # Controllers
-  #
-
-  Controller:
-    derived_from: Resource
-    description: >-
-      Controller
-
-  Deployment:
+  SubjectAccessReview:
     metadata:
-      specification.url: 'https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#deployment-v1-apps'
-      specification.guide.url: 'https://kubernetes.io/docs/concepts/workloads/controllers/deployment/'
-      turandot.apiVersion: apps/v1
-      turandot.move: spec.template->spec.template.spec
-      turandot.copy.1: metadata.labels->spec.template.metadata.labels
-      turandot.copy.2: metadata.annotations->spec.template.metadata.annotations
-      turandot.copy.3: metadata.labels->spec.selector.matchLabels
-    description: >-
-      Deployment enables declarative updates for Pods and ReplicaSets.
-    derived_from: Controller
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#subjectaccessreview-v1-authorization-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: SubjectAccessReviewSpec, SubjectAccessReviewStatus
+      turandot.apiVersion: authorization.k8s.io/v1
+      turandot.metadata: 'true'
+    description: SubjectAccessReview checks whether or not a user or group can perform an action.
     properties:
-      # Resources
-      template:
-        description: >-
-          Template describes the pods that will be created.
-        type: Pod
-      selector:
-        description: >-
-          Label selector for pods. Existing ReplicaSets whose pods are selected by this will be the
-          ones affected by this deployment. It must match the pod template's labels.
-        type: LabelSelector
-        default: {}
-
-      # Deployment
-      replicas:
-        description: >-
-          Number of desired pods. This is a pointer to distinguish between explicit zero and not
-          specified. Defaults to 1.
-        type: Count
-        default: 1
-      revisionHistoryLimit:
-        description: >-
-          The number of old ReplicaSets to retain to allow rollback. This is a pointer to
-          distinguish between explicit zero and not specified. Defaults to 10.
-        type: Count
-        default: 10
-      strategy:
-        description: >-
-          The deployment strategy to use to replace existing pods with new ones.
-        type: DeploymentStrategy
-        default: {}
-
-      # Lifecycle
-      minReadySeconds:
-        description: >-
-          Minimum number of seconds for which a newly created pod should be ready without any of its
-          container crashing, for it to be considered available. Defaults to 0 (pod will be
-          considered available as soon as it is ready).
-        type: scalar-unit.time
-        default: 0s
-      progressDeadlineSeconds:
-        description: >-
-          The maximum time in seconds for a deployment to make progress before it is considered to
-          be failed. The deployment controller will continue to process failed deployments and a
-          condition with a ProgressDeadlineExceeded reason will be surfaced in the deployment
-          status. Note that progress will not be estimated during the time a deployment is paused.
-          Defaults to 600s.
-        type: scalar-unit.time
-        default: 600s
-
+      spec:
+        description: Spec holds information about the request being evaluated
+        type: SubjectAccessReviewSpec
+        required: false
     attributes:
-      paused:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
         description: >-
-          Indicates that the deployment is paused.
-        type: boolean
+          Status is filled in by the server and indicates whether the request is allowed
+          or not
+        type: SubjectAccessReviewStatus
 
-  #
-  # Multus
-  #
-
-  NetworkAttachmentDefinition:
+  TokenRequest:
     metadata:
-      specification.url: 'https://github.com/k8snetworkplumbingwg/network-attachment-definition-client/blob/master/artifacts/networks-crd.yaml'
-      turandot.apiVersion: k8s.cni.cncf.io/v1
-    derived_from: Resource
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#tokenrequest-v1-authentication-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: TokenRequestSpec, TokenRequestStatus
+      turandot.apiVersion: authentication.k8s.io/v1
+      turandot.metadata: 'true'
+    description: TokenRequest requests a token for a given service account.
     properties:
-      config:
-        type: CNIConfig
+      spec:
+        type: TokenRequestSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        type: TokenRequestStatus
 
-  BridgeNetworkAttachmentDefinition:
-    derived_from: NetworkAttachmentDefinition
+  TokenReview:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#tokenreview-v1-authentication-k8s-io
+      specification.version: 1.21.0
+      specification.category: Cluster APIs
+      specification.refersTo: TokenReviewSpec, TokenReviewStatus
+      turandot.apiVersion: authentication.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      TokenReview attempts to authenticate a token to a known user. Note: TokenReview
+      requests may be cached by the webhook token authenticator plugin in the
+      kube-apiserver.
     properties:
-      config:
-        type: BridgeCNIConfig
+      spec:
+        description: Spec holds information about the request being evaluated
+        type: TokenReviewSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status is filled in by the server and indicates whether the request can be
+          authenticated.
+        type: TokenReviewStatus
+
+  ValidatingWebhookConfiguration:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#validatingwebhookconfiguration-v1-admissionregistration-k8s-io
+      specification.version: 1.21.0
+      specification.category: Metadata APIs
+      turandot.apiVersion: admissionregistration.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      ValidatingWebhookConfiguration describes the configuration of and admission
+      webhook that accept or reject and object without changing it.
+    properties:
+      webhooks:
+        metadata:
+          turandot.patchStrategy: merge
+          turandot.patchMergeKey: name
+        description: Webhooks is a list of webhooks and the affected resources and operations.
+        type: list
+        entry_schema: ValidatingWebhook
+        required: false
+
+  VolumeAttachment:
+    metadata:
+      specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#volumeattachment-v1-storage-k8s-io
+      specification.version: 1.21.0
+      specification.category: Config and Storage APIs
+      specification.refersTo: VolumeAttachmentSpec, VolumeAttachmentStatus
+      turandot.apiVersion: storage.k8s.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      VolumeAttachment captures the intent to attach or detach the specified volume
+      to/from the specified node.
+
+      VolumeAttachment objects are non-namespaced.
+    properties:
+      spec:
+        description: >-
+          Specification of the desired attach/detach volume behavior. Populated by the
+          Kubernetes system.
+        type: VolumeAttachmentSpec
+        required: false
+    attributes:
+      status:
+        metadata:
+          puccini.information:turandot.mapping: status
+        description: >-
+          Status of the VolumeAttachment request. Populated by the entity completing the
+          attach or detach operation, i.e. the external-attacher.
+        type: VolumeAttachmentStatus

@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+
+HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
+. "$HERE/_env"
+. "$HERE/_trap"
+
+VERSION_DIR=v${K8S_API_VERSION//./_}
+SOURCE_URL_BASE=https://github.com/kubernetes-sigs/reference-docs/tree/master/gen-apidocs/config/$VERSION_DIR
+URL_BASE=https://raw.githubusercontent.com/kubernetes-sigs/reference-docs/master/gen-apidocs/config/$VERSION_DIR
+
+WORK=$(mktemp --directory)
+PROFILE=$ROOT/assets/tosca/profiles/kubernetes/1.0
+
+mkdir --parents "$WORK/config/$VERSION_DIR"
+
+if [ ! -f "$WORK/config/$VERSION_DIR/config.yaml" ]; then
+	curl \
+		"$URL_BASE/config.yaml" \
+		--output "$WORK/config/$VERSION_DIR/config.yaml"
+fi
+
+if [ ! -f "$WORK/config/$VERSION_DIR/swagger.json" ]; then
+	curl \
+		"$URL_BASE/swagger.json" \
+		--output "$WORK/config/$VERSION_DIR/swagger.json"
+fi
+
+go install "$ROOT/turandot-profile-generator"
+
+turandot-profile-generator \
+	-kubernetes-release="$K8S_API_VERSION" \
+	-source-url="$SOURCE_URL_BASE/" \
+	-work-dir="$WORK" \
+	-output="$WORK"
+
+rsync "$WORK/capabilities.yaml" "$PROFILE/"
+rsync "$WORK/data.yaml" "$PROFILE/"
+
+rm --recursive --force "$WORK"

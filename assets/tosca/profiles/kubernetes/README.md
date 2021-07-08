@@ -29,10 +29,6 @@ Data Type Metadata
 Note that TOSCA scalar-unit types will always be converted to numbers (floats or integers as
 appropriate).
 
-`puccini.information:turandot.format`: Special conversions. Supported values:
-* "percentage": for float types, e.g. converts 0.15 -> "15%"
-* "json": for complex types converts to JSON string
-
 Property Metadata
 -----------------
 
