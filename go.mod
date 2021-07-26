@@ -6,7 +6,7 @@ go 1.16
 
 // replace github.com/tliron/reposure => /Depot/Projects/RedHat/reposure
 
-replace github.com/tliron/puccini => /Depot/Projects/RedHat/puccini
+// replace github.com/tliron/puccini => /Depot/Projects/RedHat/puccini
 
 require (
 	github.com/gofrs/flock v0.8.1
@@ -16,8 +16,8 @@ require (
 	github.com/kubernetes-sigs/reference-docs/gen-apidocs v0.0.0-20210707015243-9142bb8fe078
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/spf13/cobra v1.2.1
-	github.com/tliron/kutil v0.1.45
-	github.com/tliron/puccini v0.0.0-00010101000000-000000000000
+	github.com/tliron/kutil v0.1.47
+	github.com/tliron/puccini v0.19.0
 	github.com/tliron/reposure v0.1.5
 	github.com/tliron/yamlkeys v1.3.5
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97

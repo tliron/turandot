@@ -111,7 +111,7 @@ topology_template:
   outputs:
 
     url:
-      # Before a real attribute value arrives this will evaluate to "http://<unknown>:80"
+      # Before a real attribute value arrives this will evaluate to "http://0.0.0.0:80"
       type: string
       value: { concat: [ http://, { get_attribute: [ hello-world, web, status, loadBalancer, ingress, 0, ip ] }, ':80' ] }
 

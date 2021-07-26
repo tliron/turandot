@@ -32,6 +32,3 @@ kubectl_apply_template "$ROOT/assets/kubernetes/hello-world.yaml"
 
 m "waiting for operator to start..."
 kubectl_wait_for_deployment turandot-operator
-
-#kubectl_apply_template "$ROOT/assets/hello-world.yaml"
-#"$HERE/push" "$ROOT/../puccini/dist/bookinfo.csar" /cache

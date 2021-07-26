@@ -61,27 +61,31 @@ topology_template:
               app.kubernetes.io/name: self-contained
         deployment:
           properties:
-            metadataNamePostfix: ''
-            template:
-              containers:
-              - name: hello-world
-                # You can, of course, specify any container image URL
-                # (from the Docker Hub default or some other container image registry)
-                # In this case, because the "image" is a ContainerImage, get_artifact will return
-                # a URL for the Turandot inventory *after* the container image is pushed to it
-                image: { get_artifact: [ SELF, image ] }
-                imagePullPolicy: Always
-              #imagePullSecrets:
-              #- name: turandot-inventory 
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: hello-world
+                    # You can, of course, specify any container image URL
+                    # (from the Docker Hub default or some other container image registry)
+                    # In this case, because the "image" is a ContainerImage, get_artifact will return
+                    # a URL for the Turandot inventory *after* the container image is pushed to it
+                    image: { get_artifact: [ SELF, image ] }
+                    imagePullPolicy: Always
+                  #imagePullSecrets:
+                  #- name: turandot-inventory 
         web:
           properties:
-            ports:
-            - { name: http, protocol: TCP, port: 80, targetPort: 8080 }
+            spec:
+              ports:
+              - { name: http, protocol: TCP, port: 80, targetPort: { port: 8080 } }
           attributes:
-            # We're initializing this attribute to make sure the call to get_attribute in the ouput
-            # won't fail before a real value arrives
-            ingress:
-            - ip: <unknown>
+            status:
+              loadBalancer:
+                # We're initializing this attribute to make sure the call to get_attribute in the ouput
+                # won't fail before a real value arrives
+                ingress:
+                - ip: 0.0.0.0
       interfaces:
         # The interfaces are executed in alphabetical order
         # The previous execution must succeed before moving on to the next
@@ -123,9 +127,9 @@ topology_template:
   outputs:
 
     url:
-      # Before a real attribute value arrives this will evaluate to "http://<unknown>:80"
+      # Before a real attribute value arrives this will evaluate to "http://0.0.0.0:80"
       type: string
-      value: { concat: [ http://, { get_attribute: [ self-contained, web, ingress, 0, ip ] }, ':80' ] }
+      value: { concat: [ http://, { get_attribute: [ self-contained, web, status, loadBalancer, ingress, 0, ip ] }, ':80' ] }
 
     initialized:
       type: boolean
