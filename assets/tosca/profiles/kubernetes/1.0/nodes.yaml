@@ -9,8 +9,7 @@ node_types:
 
   Service:
     description: >-
-      Represents a collection of workloads (pods and controllers) and resources that all use the
-      same selector.
+      Represents a microservice: a controlled pod (Deployment) plus a controlled endpoint (Service).
     capabilities:
       metadata: Metadata
       service: Service

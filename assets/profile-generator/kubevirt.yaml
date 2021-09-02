@@ -1,0 +1,31 @@
+name: KubeVirt
+version: 0.44.1
+
+open-api: https://raw.githubusercontent.com/kubevirt/kubevirt/v0.44.1/api/openapi-spec/swagger.json
+reference-url: http://kubevirt.io/api-reference/v0.44.1/definitions.html
+output-dir: ../tosca/profiles/kubevirt/1.0
+
+groups:
+
+  default: kubevirt.io
+  imports:
+    k8s.io.api.core:
+      namespace_prefix: k8s
+      file: ../../kubernetes/1.0/profile.yaml
+
+rename:
+
+  # TOSCA types
+  object: k8s:Any
+  number: float
+  Time: timestamp
+  MicroTime: timestamp
+
+override:
+
+  DataVolumeTemplateSpec:
+    entity: data
+
+  SourceSpec:
+    fields:
+      virtualMachine: { type: k8s:Any } # hack

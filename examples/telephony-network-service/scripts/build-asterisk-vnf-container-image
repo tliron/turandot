@@ -30,7 +30,7 @@ virt-customize \
 
 CONTAINER_ID=$(buildah from "$BASE_IMAGE")
 
-buildah add "$CONTAINER_ID" "$DISK" "/disk/$DISK_NAME"
+buildah copy "$CONTAINER_ID" "$DISK" "/disk/$DISK_NAME"
 
 buildah config \
 	--author Turandot \

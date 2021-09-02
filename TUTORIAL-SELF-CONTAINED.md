@@ -193,7 +193,7 @@ To list all deployed services:
 Note that the "Self-Contained" example includes a LoadBalancer Kubernetes service that would
 allow you to access its web page from outside the cluster. If your cluster is not configured
 with LoadBalancer support then the service will never get an IP address, and the TOSCA "url"
-output for your "Self-Contained" service will show `http://<unknown>:80`, even when successfully
+output for your "Self-Contained" service will show `http://0.0.0.0:80`, even when successfully
 deployed.
 
 If you're using Minikube, it comes with a

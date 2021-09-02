@@ -34,6 +34,10 @@ data_types:
         entry_schema: Any
         required: false
 
+  StringList:
+    derived_from: list
+    entry_schema: string
+
   Count:
     derived_from: integer
     constraints:

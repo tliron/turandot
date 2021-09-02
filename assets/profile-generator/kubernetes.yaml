@@ -1,0 +1,482 @@
+name: Kubernetes
+version: 1.22.1
+
+open-api: https://raw.githubusercontent.com/kubernetes/kubernetes/v1.22.1/api/openapi-spec/swagger.json
+reference-url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22
+output-dir: ../tosca/profiles/kubernetes/1.0
+
+exclude:
+
+- PodTemplate
+- ListMeta
+- Time
+- MicroTime
+
+# These don't have ListMeta but are still lists
+- APIGroupList 
+- APIResourceList
+
+rename:
+
+  # TOSCA types
+  object: Any # defined in _data.yaml
+  number: float
+  io.k8s.apimachinery.pkg.apis.meta.v1.Time: timestamp
+  io.k8s.apimachinery.pkg.apis.meta.v1.MicroTime: timestamp
+
+  # Convenience
+  io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta: Metadata
+
+  # Conflicts with Simple Profile 1.3
+  io.k8s.api.core.v1.Node: KNode
+
+  # Conflicts with core/EndpointPort
+  io.k8s.api.discovery.v1.EndpointPort: DiscoveryEndpointPort
+  io.k8s.api.discovery.v1beta1.EndpointPort: DiscoveryEndpointPort
+
+  # Conflict with core/Event
+  io.k8s.api.events.v1.Event: EventsEvent
+  io.k8s.api.events.v1beta1.Event: EventsEvent
+
+  # Conflict with core/EventSeries
+  io.k8s.api.events.v1.EventSeries: EventsEventSeries
+  io.k8s.api.events.v1beta1.EventSeries: EventsEventSeries
+
+  # Conflict with rbac/Subject
+  io.k8s.api.flowcontrol.v1beta1.Subject: FlowControlSubject
+
+  # Conflict with apiextensions
+  io.k8s.api.admissionregistration.v1.WebhookClientConfig: AdmissionRegistrationWebhookClientConfig
+
+  # Other conflicts
+  io.k8s.api.admissionregistration.v1.ServiceReference: AdmissionRegistrationServiceReference
+  io.k8s.apiextensions-apiserver.pkg.apis.apiextensions.v1.ServiceReference: APIExtensionsServiceReference
+  io.k8s.kube-aggregator.pkg.apis.apiregistration.v1.ServiceReference: KubeAggregatorServiceReference
+
+add:
+
+  PodTemplateOwner:
+    metadata:
+    - turandot.copy.1: metadata.labels->spec.selector.matchLabels
+    - turandot.copy.2: metadata.labels->spec.template.metadata.labels
+    - turandot.copy.3: metadata.annotations->spec.template.metadata.annotations
+    description: >-
+      Base for types that contain a pod template.
+    fields:
+      selector:
+        description: >-
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors"
+        type: LabelSelector
+      template:
+        description: >-
+          More info: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller#pod-template
+        type: PodTemplateSpec
+
+override:
+
+  # Special resources
+
+  Metadata:
+    entity: capability
+
+  PersistentVolumeClaim:
+    entity: data
+
+  # Refinements
+
+  APIServiceSpec:
+    fields:
+      versionPriority:
+        constraints:
+        - "greater_than: 0"
+
+  AzureDiskVolumeSource:
+    fields:
+      kind:
+        constraints:
+        - "valid_values: [ Shared, Dedicated, Managed ]"
+
+  CertificateSigningRequestSpec:
+    fields:
+      extra: { type: map, entry_schema: StringList }
+
+  ConfigMap:
+    fields:
+      binaryData: { type: map, entry_schema: string } # base64-encoded
+      data: { type: map, entry_schema: string }
+
+  ConfigMapVolumeSource:
+    fields:
+      defaultMode: { type: FileMode } # instead of integer
+
+  ContainerPort:
+    fields:
+      containerPort: { type: Port } # instead of integer
+      hostIP: { type: IPAddress } # instead of string
+      hostPort: { type: Port } # instead of integer
+      name: { type: ServiceName } # instead of string
+      protocol:
+        constraints:
+        - "valid_values: [ UDP, TCP, SCTP ]"
+
+  CronJobSpec:
+    fields:
+      concurrencyPolicy:
+        constraints:
+        - "valid_values: [ Allow, Forbid, Replace ]"
+      failedJobsHistoryLimit: { type: Count } # instead of integer
+      successfulJobsHistoryLimit: { type: Count } # instead of integer
+
+  CustomResourceConversion:
+    fields:
+      strategy:
+        constraints:
+        - "valid_values: [ None, Webhook ]"
+
+  CustomResourceDefinitionSpec:
+    fields:
+      scope:
+        constraints:
+        - "valid_values: [ Cluster, Namespaced ]"
+
+  DaemonSetSpec:
+    derived_from: PodTemplateOwner
+
+  DeleteOptions:
+    fields:
+      propagationPolicy:
+        constraints:
+        - "valid_values: [ Orphan, Background, Foreground ]"
+
+  Deployment:
+    metadata:
+    - turandot.copy.1: metadata.labels->spec.selector.matchLabels
+    - turandot.copy.2: metadata.labels->spec.template.metadata.labels
+    - turandot.copy.3: metadata.annotations->spec.template.metadata.annotations
+
+  DeploymentSpec:
+    derived_from: PodTemplateOwner
+    fields:
+      selector: { required: false }
+
+  DownwardAPIVolumeSource:
+    fields:
+      defaultMode: { type: FileMode } # instead of integer
+
+  DownwardAPIVolumeFile:
+    fields:
+      mode: { type: FileMode } # instead of integer
+
+  EmptyDirVolumeSource:
+    fields:
+      medium:
+        constraints:
+        - "valid_values: [ '', Memory ]"
+        default: ''
+
+  Endpoint:
+    fields:
+      hostname: { type: Hostname } # instead of string
+
+  EndpointAddress:
+    fields:
+      ip: { type: IPAddress } # instead of string
+
+  EndpointPort:
+    fields:
+      port: { type: Port } # instead of integer
+      protocol:
+        constraints:
+        - "valid_values: [ UDP, TCP, SCTP ]"
+
+  EndpointSlice:
+    fields:
+      addressType:
+        constraints:
+        - "valid_values: [ IPv4, IPv6, FQDN ]"
+
+  HorizontalPodAutoscalerSpec:
+    fields:
+      targetCPUUtilizationPercentage: { type: Factor } # instead of integer
+
+  HorizontalPodAutoscalerStatus:
+    fields:
+      currentCPUUtilizationPercentage: { type: Factor } # instead of integer
+
+  HostAlias:
+    fields:
+      ip: { type: IPAddress } # instead of string
+
+  HPAScalingRules:
+    fields:
+      stabilizationWindowSeconds:
+        constraints:
+        - "in_range: [ 0, 3600 ]"
+
+  IPBlock:
+    fields:
+      cidr: { type: IPSubnet } # instead of string
+      except: { type: list, entry_schema: IPSubnet } # instead of string
+
+  JobSpec:
+    derived_from: PodTemplateOwner
+
+  JSONSchemaProps:
+    fields:
+      x-kubernetes-list-type:
+        constraints:
+        - "valid_values: [ atomic, set, map ]"
+      x-kubernetes-map-type:
+        constraints:
+        - "valid_values: [ granular, atomic ]"
+
+  KeyToPath:
+    fields:
+      mode: { type: FileMode } # instead of integer
+
+  LabelSelectorRequirement:
+    fields:
+      operator:
+        constraints:
+        - "valid_values: [ In, NotIn, Exists, DoesNotExist ]"
+
+  LoadBalancerIngress:
+    fields:
+      ip: { type: IPAddress } # instead of string
+
+  ManagedFieldsEntry:
+    fields:
+      operation:
+        constraints:
+        - "valid_values: [ Apply, Update ]"
+
+  MetricTarget:
+    fields:
+      averageUtilization: { type: Factor } # instead of integer
+
+  MetricValueStatus:
+    fields:
+      averageUtilization: { type: Factor } # instead of integer
+
+  MutatingWebhook:
+    fields:
+      failurePolicy:
+        constraints:
+        - "valid_values: [ Ignore, Fail ]"
+      matchPolicy:
+        constraints:
+        - "valid_values: [ Exact, Equivalent ]"
+      reinvocationPolicy:
+        constraints:
+        - "valid_values: [ Never, IfNeeded ]"
+      sideEffects:
+        constraints:
+        - "valid_values: [ None, NoneOnDryRun ]"
+      timeoutSeconds:
+        constraints:
+        - "in_range: [ 1, 30 ]"
+
+  NodeSelectorRequirement:
+    fields:
+      operator:
+        constraints:
+        - "valid_values: [ In, NotIn, Exists, DoesNotExist, Gt, Lt ]"
+
+  PodDNSConfig:
+    fields:
+      nameservers: { type: list, entry_schema: IPAddress } # instead of string
+
+  PodID:
+    fields:
+      ip: { type: IPAddress } # instead of string
+
+  PodSecurityContext:
+    fields:
+      fsGroupChangePolicy:
+        constraints:
+        - "valid_values: [ OnRootMismatch, Always ]"
+
+  PodSpec:
+    fields:
+      dnsPolicy:
+        constraints:
+        - "valid_values: [ ClusterFirstWithHostNet, ClusterFirst, Default, None ]"
+
+  PodStatus:
+    fields:
+      hostIP: { type: IPAddress } # instead of string
+      phase:
+        constraints:
+        - "valid_values: [ Pending, Running, Succeeded, Unknown ]"
+      podIP: { type: IPAddress } # instead of string
+
+  PortStatus:
+    fields:
+      protocol:
+        constraints:
+        - "valid_values: [ TCP, UDP, SCTP ]"
+
+  Probe:
+    fields:
+      successThreshold:
+        constraints:
+        - "greater_than: 0"
+
+  ProjectedVolumeSource:
+    fields:
+      defaultMode: { type: FileMode } # instead of integer
+
+  ReplicationController:
+    metadata:
+    - turandot.copy.1: metadata.labels->spec.selector.matchLabels # not a LabelSelector, so we can't inherit PodTemplateOwner
+    - turandot.copy.2: metadata.labels->spec.template.metadata.labels
+    - turandot.copy.3: metadata.annotations->spec.template.metadata.annotations
+
+  ReplicaSetSpec:
+    derived_from: PodTemplateOwner
+
+  RollingUpdateDaemonSet:
+    fields:
+      maxSurge: { type: Amount } # instead of integer|string
+      maxUnavailable: { type: Amount } # instead of integer|string
+
+  RollingUpdateDeployment:
+    fields:
+      maxSurge: { type: Amount } # instead of integer|string
+      maxUnavailable: { type: Amount } # instead of integer|string
+
+  RuleWithOperations:
+    fields:
+      operations:
+        constraints:
+        - "min_length: 1"
+      scope:
+        constraints:
+        - "valid_values: [ Cluster, Namespaced, '*' ]"
+
+  ScopedResourceSelectorRequirement:
+    fields:
+      operator:
+        constraints:
+        - "valid_values: [ In, NotIn, Exists, DoesNotExist ]"
+
+  SecretVolumeSource:
+    fields:
+      defaultMode: { type: FileMode } # instead of integer
+
+  Service:
+    metadata:
+    - turandot.copy: metadata.labels->spec.selector
+    derive:
+      ClusterIP: []
+      ExternalName: []
+      LoadBalancer: []
+      NodePort: []
+
+  ServiceSpec:
+    fields:
+      clusterIP: { type: IPAddress } # instead of string
+      clusterIPs: { type: list, entry_schema: IPAddress } # instead of string
+      externalIPs: { type: list, entry_schema: IPAddress } # instead of string
+      externalTrafficPolicy:
+        constraints:
+        - "valid_values: [ Local, Cluster ]"
+      healthCheckNodePort: { type: Port } # instead of integer
+      internalTrafficPolicy:
+        constraints:
+        - "valid_values: [ Local, Cluster ]"
+      ipFamilies:
+        constraints:
+        - "valid_values: [ IPv4, IPv6 ]"
+      ipFamilyPolicy:
+        constraints:
+        - "valid_values: [ SingleStack, PreferDualStack, RequireDualStack ]"
+      sessionAffinity:
+        constraints:
+        - "valid_values: [ ClientIP, None ]"
+      type:
+        constraints:
+        - "valid_values: [ ExternalName, ClusterIP, NodePort, LoadBalancer ]"
+    derive:
+      ClusterIPSpec: []
+      ExternalNameSpec:
+      - externalName
+      LoadBalancerSpec:
+      - allocateLoadBalancerNodePorts
+      - loadBalancerClass
+      - loadBalancerIP
+      - loadBalancerSourceRanges
+      NodePortSpec: []
+
+  ServicePort:
+    fields:
+      targetPort: { type: PortOrServiceName } # instead of Any
+
+  StatefulSetSpec:
+    derived_from: PodTemplateOwner
+
+  SubjectAccessReviewSpec:
+    fields:
+      extra: { type: map, entry_schema: StringList }
+
+  Toleration:
+    fields:
+      effect:
+        constraints:
+        - "valid_values: [ NoSchedule, PreferNoSchedule, NoExecute ]"
+      operator:
+        constraints:
+        - "valid_values: [ Exists, Equal ]"
+
+  UserInfo:
+    fields:
+      extra: { type: map, entry_schema: StringList }
+
+  ValidatingWebhook:
+    fields:
+      failurePolicy:
+        constraints:
+        - "valid_values: [ Ignore, Fail ]"
+      matchPolicy:
+        constraints:
+        - "valid_values: [ Exact, Equivalent ]"
+      sideEffects:
+        constraints:
+        - "valid_values: [ None, NoneOnDryRun ]"
+      timeoutSeconds:
+        constraints:
+        - "in_range: [ 1, 30 ]"
+
+  # New types
+
+  ClusterIP:
+    fields:
+      spec: { type: ClusterIPSpec }
+
+  ClusterIPSpec:
+    fields:
+      type: { default: ClusterIP }
+
+  ExternalName:
+    fields:
+      spec: { type: ExternalNameSpec }
+
+  ExternalNameSpec:
+    fields:
+      type: { default: ExternalName }
+
+  LoadBalancer:
+    fields:
+      spec: { type: LoadBalancerSpec }
+
+  LoadBalancerSpec:
+    fields:
+      type: { default: LoadBalancer }
+
+  NodePort:
+    fields:
+      spec: { type: NodePortSpec }
+
+  NodePortSpec:
+    fields:
+      type: { default: NodePort }

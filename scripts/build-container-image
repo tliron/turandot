@@ -19,8 +19,8 @@ function build () {
 	local CONTAINER_ID=$(buildah from "$BASE_IMAGE")
 	#buildah run "$CONTAINER_ID" -- dnf --assumeyes install ansible
 	#buildah run "$CONTAINER_ID" -- dnf --assumeyes clean all
-	buildah add "$CONTAINER_ID" "$GOPATH/bin/$EXECUTABLE" /usr/bin/
-	buildah add "$CONTAINER_ID" "$(which helm)" /usr/bin/
+	buildah copy "$CONTAINER_ID" "$GOPATH/bin/$EXECUTABLE" /usr/bin/
+	buildah copy "$CONTAINER_ID" "$(which helm)" /usr/bin/
 	buildah config \
 		--entrypoint "/usr/bin/$EXECUTABLE" \
 		--author Turandot \

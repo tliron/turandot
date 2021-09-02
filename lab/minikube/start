@@ -11,11 +11,13 @@ PROFILE=${1:-central}
 case "$PROFILE" in
 	central)
 		IP_RANGE=10.96.0.0/12  # Binary: 00001010.01100000.00000000.00000000 (the default)
+		CPUS=6
 		MEMORY=8g
 		DISK_SIZE=20g
 		;;
 	edge)
 		IP_RANGE=10.112.0.0/12 # Binary: 00001010.01110000.00000000.00000000
+		CPUS=4
 		MEMORY=4g
 		DISK_SIZE=10g
 		;;
@@ -40,7 +42,7 @@ minikube start \
 	--container-runtime=cri-o \
 	--cni=bridge \
 	--addons=registry \
-	--cpus=4 \
+	--cpus="$CPUS" \
 	--memory="$MEMORY" \
 	--disk-size="$DISK_SIZE" \
 	--service-cluster-ip-range="$IP_RANGE" \

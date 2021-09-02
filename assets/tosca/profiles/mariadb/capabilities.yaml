@@ -7,8 +7,7 @@ imports:
 
 capability_types:
 
-  Connectable:
-    derived_from: k8s:Resource
+  Connectable: {}
 
   # See: https://github.com/abalki001/mariadb-operator/tree/master/deploy
   DB:

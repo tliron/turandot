@@ -15,7 +15,7 @@ imports:
   file: profiles/mariadb/profile.yaml
 - namespace_prefix: k8s
   file: profiles/kubernetes/1.0/profile.yaml
-- namespace_prefix: kubevirt
+- namespace_prefix: kv
   file: profiles/kubevirt/1.0/profile.yaml
 - namespace_prefix: o11n
   file: profiles/orchestration/1.0/profile.yaml
@@ -25,10 +25,10 @@ node_types:
   Asterisk:
     capabilities:
       metadata: k8s:Metadata
-      virtual-machine: kubevirt:VirtualMachine
+      virtual-machine: kv:VirtualMachine
       tcp: k8s:LoadBalancer
       udp: k8s:LoadBalancer
-      connection: ns:Connectable
+      trunks: telephony:Trunks
     requirements:
     - db:
         capability: mariadb:Connectable
@@ -60,73 +60,81 @@ topology_template:
               app.kubernetes.io/name: asterisk-vnf
         virtual-machine:
           properties:
-            metadataNamePostfix: ''
-            running: true
-            template:
-              # Multithreadedness breaks the machine (because of nested virtualization?)
-              #cpu:
-              #  cores: 2
-              #  threads: 4
-              domain:
-                resources:
-                  requests:
-                    memory: 1024M
-                devices:
-                  disks:
-                  - name: containerdisk
-                    disk: {}
-                  - name: cloudinitdisk
-                    disk: {}
-                  interfaces:
+            spec:
+              running: true
+              template:
+                spec:
+                  # Multithreadedness breaks the machine (because of nested virtualization?)
+                  #cpu:
+                  #  cores: 2
+                  #  threads: 4
+                  domain:
+                    resources:
+                      requests:
+                        map:
+                          memory: { string: 1024M }
+                    devices:
+                      disks:
+                      - name: containerdisk
+                        disk: {}
+                      - name: cloudinitdisk
+                        disk: {}
+                      interfaces:
+                      - name: control-plane
+                        bridge: {}
+                      - name: data-plane
+                        bridge: {}
+                  networks:
                   - name: control-plane
-                    bridge: {}
+                    pod: {}
                   - name: data-plane
-                    bridge: {}
-              networks:
-              - name: control-plane
-                pod: {}
-              - name: data-plane
-                multus:
-                  networkName: { get_property: [ data-plane, annotations, name ] }
-              volumes:
-              - name: containerdisk
-                containerDisk:
-                  image: { get_artifact: [ SELF, image ] }
-                  imagePullPolicy: Always
-              - name: cloudinitdisk
-                cloudInitNoCloud:
-                  userDataBase64: { get_artifact: [ SELF, cloudConfig ] }
+                    multus:
+                      networkName: { get_property: [ data-plane, annotations, name ] }
+                  volumes:
+                  - name: containerdisk
+                    containerDisk:
+                      image: { get_artifact: [ SELF, image ] }
+                      imagePullPolicy: Always
+                  - name: cloudinitdisk
+                    cloudInitNoCloud:
+                      userDataBase64: { get_artifact: [ SELF, cloudConfig ] }
         tcp:
           properties:
-            ports:
-            - { name: ssh, protocol: TCP, targetPort: 22, port: 22 }
+            spec:
+              ports:
+              - { name: ssh, protocol: TCP, targetPort: { port: 22 }, port: 22 }
           attributes:
-            ingress:
-            - ip: <unknown>
+            status:
+              loadBalancer:
+                ingress:
+                - ip: 0.0.0.0
         udp:
           properties:
-            ports:
-            - { name: sip,  protocol: UDP, targetPort: 5060,  port: 5060  }
-            - { name: rtp0, protocol: UDP, targetPort: 10000, port: 10000 }
-            - { name: rtp1, protocol: UDP, targetPort: 10001, port: 10001 }
-            - { name: rtp2, protocol: UDP, targetPort: 10002, port: 10002 }
-            - { name: rtp3, protocol: UDP, targetPort: 10003, port: 10003 }
-            - { name: rtp4, protocol: UDP, targetPort: 10004, port: 10004 }
-            - { name: rtp5, protocol: UDP, targetPort: 10005, port: 10005 }
-            - { name: rtp6, protocol: UDP, targetPort: 10006, port: 10006 }
-            - { name: rtp7, protocol: UDP, targetPort: 10007, port: 10007 }
+            spec:
+              ports:
+              - { name: sip,  protocol: UDP, targetPort: { port: 5060  }, port: 5060  }
+              - { name: rtp0, protocol: UDP, targetPort: { port: 10000 }, port: 10000 }
+              - { name: rtp1, protocol: UDP, targetPort: { port: 10001 }, port: 10001 }
+              - { name: rtp2, protocol: UDP, targetPort: { port: 10002 }, port: 10002 }
+              - { name: rtp3, protocol: UDP, targetPort: { port: 10003 }, port: 10003 }
+              - { name: rtp4, protocol: UDP, targetPort: { port: 10004 }, port: 10004 }
+              - { name: rtp5, protocol: UDP, targetPort: { port: 10005 }, port: 10005 }
+              - { name: rtp6, protocol: UDP, targetPort: { port: 10006 }, port: 10006 }
+              - { name: rtp7, protocol: UDP, targetPort: { port: 10007 }, port: 10007 }
           attributes:
-            ingress:
-            - ip: <unknown>
+            status:
+              loadBalancer:
+                ingress:
+                - ip: 0.0.0.0
       interfaces:
         normal:
           inputs:
-            host: { get_attribute: [ SELF, tcp, clusterIP ] }
+            host: { get_attribute: [ SELF, tcp, status, loadBalancer, clusterIP ] }
             username: admin
             key: { get_artifact: [ SELF, privateKey ] }
             command:
             - /tmp/configure.sh
-            - { get_attribute: [ SELF, udp, ingress, 0, ip ] }
+            - { get_attribute: [ SELF, udp, status, loadBalancer, ingress, 0, ip ] }
             artifacts:
             - configure.sh
             - puccini-clout
@@ -140,7 +148,7 @@ topology_template:
           properties:
             name: asterisk-vnf
         cloudConfig:
-          type: kubevirt:CloudConfig
+          type: kv:CloudConfig
           file: artifacts/cloud-config/asterisk-vnf.yaml
           properties:
             base64: true
@@ -200,17 +208,17 @@ topology_template:
 
     tcp-ip:
       type: string
-      value: { get_attribute: [ asterisk, tcp, ingress, 0, ip ] }
+      value: { get_attribute: [ asterisk, tcp, status, loadBalancer, ingress, 0, ip ] }
 
     udp-ip:
       type: string
-      value: { get_attribute: [ asterisk, udp, ingress, 0, ip ] }
+      value: { get_attribute: [ asterisk, udp, status, loadBalancer, ingress, 0, ip ] }
 
   substitution_mappings:
 
     node_type: telephony:PBX
     capabilities:
-      connection: [ asterisk, connection ]
+      trunks: [ asterisk, trunks ]
 
   policies:
 

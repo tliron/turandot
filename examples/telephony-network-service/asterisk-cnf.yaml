@@ -23,7 +23,7 @@ node_types:
       metadata: k8s:Metadata
       deployment: k8s:Deployment
       udp: k8s:LoadBalancer
-      connection: ns:Connectable
+      trunks: telephony:Trunks
     requirements:
     - data-plane:
         capability: ns:Connectable
@@ -55,33 +55,37 @@ topology_template:
               k8s.v1.cni.cncf.io/networks: { get_property: [ data-plane, annotations, name ] }
         deployment:
           properties:
-            metadataNamePostfix: ''
-            template:
-              containers:
-              - name: all-in-one
-                image: { get_artifact: [ SELF, image ] }
-                imagePullPolicy: Always
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: all-in-one
+                    image: { get_artifact: [ SELF, image ] }
+                    imagePullPolicy: Always
         udp:
           properties:
-            ports:
-            - { name: sip,  protocol: UDP, targetPort: 5060,  port: 5060  }
-            - { name: rtp0, protocol: UDP, targetPort: 10000, port: 10000 }
-            - { name: rtp1, protocol: UDP, targetPort: 10001, port: 10001 }
-            - { name: rtp2, protocol: UDP, targetPort: 10002, port: 10002 }
-            - { name: rtp3, protocol: UDP, targetPort: 10003, port: 10003 }
-            - { name: rtp4, protocol: UDP, targetPort: 10004, port: 10004 }
-            - { name: rtp5, protocol: UDP, targetPort: 10005, port: 10005 }
-            - { name: rtp6, protocol: UDP, targetPort: 10006, port: 10006 }
-            - { name: rtp7, protocol: UDP, targetPort: 10007, port: 10007 }
+            spec:
+              ports:
+              - { name: sip,  protocol: UDP, targetPort: { port: 5060  }, port: 5060  }
+              - { name: rtp0, protocol: UDP, targetPort: { port: 10000 }, port: 10000 }
+              - { name: rtp1, protocol: UDP, targetPort: { port: 10001 }, port: 10001 }
+              - { name: rtp2, protocol: UDP, targetPort: { port: 10002 }, port: 10002 }
+              - { name: rtp3, protocol: UDP, targetPort: { port: 10003 }, port: 10003 }
+              - { name: rtp4, protocol: UDP, targetPort: { port: 10004 }, port: 10004 }
+              - { name: rtp5, protocol: UDP, targetPort: { port: 10005 }, port: 10005 }
+              - { name: rtp6, protocol: UDP, targetPort: { port: 10006 }, port: 10006 }
+              - { name: rtp7, protocol: UDP, targetPort: { port: 10007 }, port: 10007 }
           attributes:
-            ingress:
-            - ip: <unknown>
+            status:
+              loadBalancer:
+                ingress:
+                - ip: 0.0.0.0
       interfaces:
         normal:
           inputs:
             command:
             - /tmp/configure.sh
-            - { get_attribute: [ SELF, udp, ingress, 0, ip ] }
+            - { get_attribute: [ SELF, udp, status, loadBalancer, ingress, 0, ip ] }
             artifacts:
             - configure.sh
             - puccini-clout
@@ -126,13 +130,13 @@ topology_template:
 
     udp-ip:
       type: string
-      value: { get_attribute: [ asterisk, udp, ingress, 0, ip ] }
+      value: { get_attribute: [ asterisk, udp, status, loadBalancer, ingress, 0, ip ] }
 
   substitution_mappings:
 
     node_type: telephony:PBX
     capabilities:
-      connection: [ asterisk, connection ]
+      trunks: [ asterisk, trunks ]
 
   policies:
 

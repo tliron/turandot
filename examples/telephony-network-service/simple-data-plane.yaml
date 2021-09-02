@@ -55,7 +55,6 @@ topology_template:
               app.kubernetes.io/name: { get_input: name }
         network-attachment-definition:
           properties:
-            metadataNamePostfix: ''
             config:
               name: { get_input: name }
               bridge: { get_input: name }

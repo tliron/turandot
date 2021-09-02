@@ -97,7 +97,7 @@ Note that the "Hello World" example includes a LoadBalancer Kubernetes service t
 allow you to access its web page from outside the cluster. If your cluster is not configured
 with LoadBalancer support then, even when successfully
 deployed, the service will never get an IP address, and the TOSCA "url"
-output for your "Hello World" service will show `http://<unknown>:80`.
+output for your "Hello World" service will show `http://0.0.0.0:80`.
 
 If you're using Minikube, it comes with a
 [primitive ingress solution](https://minikube.sigs.k8s.io/docs/commands/tunnel/) based on ssh

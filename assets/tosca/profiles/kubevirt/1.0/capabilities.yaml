@@ -1,5 +1,14 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
+# This file was automatically generated from data published at:
+# https://raw.githubusercontent.com/kubevirt/kubevirt/v0.44.1/api/openapi-spec/swagger.json
+
+metadata:
+
+  specification.name: KubeVirt
+  specification.version: 0.44.1
+  specification.url: http://kubevirt.io/api-reference/v0.44.1/definitions.html
+
 imports:
 
 - data.yaml
@@ -8,39 +17,160 @@ imports:
 
 capability_types:
 
+  KubeVirt:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      KubeVirt represents the object deploying all KubeVirt resources
+    properties:
+      spec:
+        type: KubeVirtSpec
+    attributes:
+      status:
+        type: KubeVirtStatus
+
   VirtualMachine:
     metadata:
-      specification.url: 'https://kubevirt.io/api-reference/v0.30.0/definitions.html#_v1_virtualmachine' 
-      turandot.apiVersion: kubevirt.io/v1alpha3
-      turandot.move: spec.template->spec.template.spec
-      turandot.copy: metadata->spec.template.metadata
-    derived_from: k8s:Resource
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1
+      turandot.metadata: 'true'
     description: >-
-      VirtualMachine handles the VirtualMachines that are not running or are in a stopped state. The
-      VirtualMachine contains the template to create the VirtualMachineInstance. It also mirrors the
-      running state of the created VirtualMachineInstance in its status.
+      VirtualMachine handles the VirtualMachines that are not running or are in a
+      stopped state The VirtualMachine contains the template to create the
+      VirtualMachineInstance. It also mirrors the running state of the created
+      VirtualMachineInstance in its status.
     properties:
-      dataVolumeTemplates:
+      spec:
         description: >-
-          dataVolumeTemplates is a list of dataVolumes that the VirtualMachineInstance template can
-          reference. DataVolumes in this list are dynamically created for the VirtualMachine and are
-          tied to the VirtualMachine's life-cycle.
-        type: list
-        entry_schema: DataVolume
+          Spec contains the specification of VirtualMachineInstance created
+        type: VirtualMachineSpec
+    attributes:
+      status:
+        description: >-
+          Status holds the current state of the controller and brief information about its
+          associated VirtualMachineInstance
+        type: VirtualMachineStatus
+
+  VirtualMachineInstance:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      VirtualMachineInstance is *the* VirtualMachineInstance Definition. It represents
+      a virtual machine in the runtime environment of kubernetes.
+    properties:
+      spec:
+        description: >-
+          VirtualMachineInstance Spec contains the VirtualMachineInstance specification.
+        type: VirtualMachineInstanceSpec
+    attributes:
+      status:
+        description: >-
+          Status is the high level overview of how the VirtualMachineInstance is doing. It
+          contains information available to controllers and users.
+        type: VirtualMachineInstanceStatus
+
+  VirtualMachineInstanceMigration:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      VirtualMachineInstanceMigration represents the object tracking a VMI's migration
+      to another host in the cluster
+    properties:
+      spec:
+        type: VirtualMachineInstanceMigrationSpec
+    attributes:
+      status:
+        type: VirtualMachineInstanceMigrationStatus
+
+  VirtualMachineInstancePreset:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      VirtualMachineInstancePreset defines a VMI spec.domain to be applied to all VMIs
+      that match the provided label selector More info:
+      https://kubevirt.io/user-guide/virtual_machines/presets/#overrides
+    properties:
+      spec:
+        description: >-
+          VirtualMachineInstance Spec contains the VirtualMachineInstance specification.
+        type: VirtualMachineInstancePresetSpec
         required: false
-      runStrategy:
+
+  VirtualMachineInstanceReplicaSet:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1
+      turandot.metadata: 'true'
+    description: >-
+      VirtualMachineInstance is *the* VirtualMachineInstance Definition. It represents
+      a virtual machine in the runtime environment of kubernetes.
+    properties:
+      spec:
         description: >-
-          Running state indicates the requested running state of the VirtualMachineInstance.
-          Mutually exclusive with running.
-        type: string # VirtualMachineRunStrategy not in docs
-        required: false
-      running:
+          VirtualMachineInstance Spec contains the VirtualMachineInstance specification.
+        type: VirtualMachineInstanceReplicaSetSpec
+    attributes:
+      status:
         description: >-
-          Running controls whether the associatied VirtualMachineInstance is created or not.
-          Mutually exclusive with runStrategy.
-        type: boolean
-        required: false
-      template:
-        description: >-
-          Template is the direct specification of VirtualMachineInstance.
-        type: VirtualMachineInstanceTemplate
+          Status is the high level overview of how the VirtualMachineInstance is doing. It
+          contains information available to controllers and users.
+        type: VirtualMachineInstanceReplicaSetStatus
+
+  VirtualMachineRestore:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1alpha1
+      turandot.metadata: 'true'
+    description: >-
+      VirtualMachineRestore defines the operation of restoring a VM
+    properties:
+      spec:
+        type: VirtualMachineRestoreSpec
+    attributes:
+      status:
+        type: VirtualMachineRestoreStatus
+
+  VirtualMachineSnapshot:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1alpha1
+      turandot.metadata: 'true'
+    description: >-
+      VirtualMachineSnapshot defines the operation of snapshotting a VM
+    properties:
+      spec:
+        type: VirtualMachineSnapshotSpec
+    attributes:
+      status:
+        type: VirtualMachineSnapshotStatus
+
+  VirtualMachineSnapshotContent:
+    metadata:
+      specification.name: KubeVirt
+      specification.version: 0.44.1
+      turandot.apiVersion: kubevirt.io/v1alpha1
+      turandot.metadata: 'true'
+    description: >-
+      VirtualMachineSnapshotContent contains the snapshot data
+    properties:
+      spec:
+        type: VirtualMachineSnapshotContentSpec
+    attributes:
+      status:
+        type: VirtualMachineSnapshotContentStatus
