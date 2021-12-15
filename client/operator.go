@@ -272,7 +272,7 @@ func (self *Client) createOperatorDeployment(site string, sourceRegistryHost str
 								// TODO: cluster mode and role
 							},
 							LivenessProbe: &core.Probe{
-								Handler: core.Handler{
+								ProbeHandler: core.ProbeHandler{
 									HTTPGet: &core.HTTPGetAction{
 										Port: intstr.FromInt(8086),
 										Path: "/live",
@@ -280,7 +280,7 @@ func (self *Client) createOperatorDeployment(site string, sourceRegistryHost str
 								},
 							},
 							ReadinessProbe: &core.Probe{
-								Handler: core.Handler{
+								ProbeHandler: core.ProbeHandler{
 									HTTPGet: &core.HTTPGetAction{
 										Port: intstr.FromInt(8086),
 										Path: "/ready",
