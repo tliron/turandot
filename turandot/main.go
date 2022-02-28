@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	util.ExitOnSIGTERM()
 	commands.Execute()
 	util.Exit(0)
 }

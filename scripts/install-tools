@@ -18,5 +18,5 @@ install_tool helm "$HELM_VERSION" \
 "https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz" 1 \
 "linux-amd64/"
 
-install_tool dasel "$DASEL_VERSION" \
-"https://github.com/TomWright/dasel/releases/download/v$DASEL_VERSION/dasel_linux_amd64"
+install_tool yq "$YQ_VERSION" \
+"https://github.com/mikefarah/yq/releases/download/v$YQ_VERSION/yq_linux_amd64"

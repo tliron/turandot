@@ -14,17 +14,18 @@ import (
 	urlpkg "github.com/tliron/kutil/url"
 	cloutpkg "github.com/tliron/puccini/clout"
 	"github.com/tliron/puccini/clout/js"
-	"github.com/tliron/puccini/tosca/compiler"
 	"github.com/tliron/puccini/tosca/parser"
 )
 
 var pucciniLog = logging.GetLogger("turandot.puccini")
 
+var parserContext = parser.NewContext()
+
 func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, urlContext *urlpkg.Context) error {
 	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-		if _, serviceTemplate, problems, err := parser.Parse(url_, terminal.NewStylist(false), nil, inputs); err == nil {
+		if _, serviceTemplate, problems, err := parserContext.Parse(url_, terminal.NewStylist(false), nil, inputs); err == nil {
 			if problems.Empty() {
-				if clout, err := compiler.Compile(serviceTemplate, true); err == nil {
+				if clout, err := serviceTemplate.Compile(true); err == nil {
 					return WriteClout(clout, writer)
 				} else {
 					return err
@@ -45,7 +46,7 @@ func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, url
 func ReadClout(reader io.Reader, urlContext *urlpkg.Context) (*cloutpkg.Clout, error) {
 	if clout, err := cloutpkg.Read(reader, "yaml"); err == nil {
 		var problems problemspkg.Problems
-		if compiler.Resolve(clout, &problems, urlContext, false, "yaml", false, true, false); problems.Empty() {
+		if js.Resolve(clout, &problems, urlContext, false, "yaml", false, true, false); problems.Empty() {
 			return clout, nil
 		} else {
 			return nil, errors.New(problems.ToString(true))

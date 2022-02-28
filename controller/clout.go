@@ -13,7 +13,6 @@ import (
 	"github.com/tliron/kutil/util"
 	cloutpkg "github.com/tliron/puccini/clout"
 	"github.com/tliron/puccini/clout/js"
-	"github.com/tliron/puccini/tosca/compiler"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	"github.com/tliron/yamlkeys"
@@ -27,13 +26,13 @@ func (self *Controller) ReadClout(cloutPath string, resolve bool, coerce bool, u
 				problems := &problemspkg.Problems{}
 
 				if resolve {
-					if compiler.Resolve(clout, problems, urlContext, false, "yaml", false, true, true); !problems.Empty() {
+					if js.Resolve(clout, problems, urlContext, false, "yaml", false, true, true); !problems.Empty() {
 						return nil, fmt.Errorf("could not resolve Clout\n%s", problems.ToString(true))
 					}
 				}
 
 				if coerce {
-					if compiler.Coerce(clout, problems, urlContext, false, "yaml", false, true, true); !problems.Empty() {
+					if js.Coerce(clout, problems, urlContext, false, "yaml", false, true, true); !problems.Empty() {
 						return nil, fmt.Errorf("could not coerce Clout\n%s", problems.ToString(true))
 					}
 				}
