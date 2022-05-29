@@ -25,10 +25,10 @@ type OrchestrationCloutExecution struct {
 func ParseOrchestrationCloutExecution(value ard.Value) (*OrchestrationCloutExecution, bool) {
 	execution := ard.NewNode(value)
 
-	if mode, ok := execution.Get("mode").String(false); ok {
-		if scriptletName, ok := execution.Get("scriptlet").String(false); ok {
+	if mode, ok := execution.Get("mode").String(); ok {
+		if scriptletName, ok := execution.Get("scriptlet").String(); ok {
 			arguments := make(map[string]string)
-			if arguments_, ok := execution.Get("arguments").Map(false); ok {
+			if arguments_, ok := execution.Get("arguments").Map(); ok {
 				for key, value := range arguments_ {
 					if key_, ok := key.(string); ok {
 						if value_, ok := value.(string); ok {
@@ -71,13 +71,13 @@ type OrchestrationArtifact struct {
 
 func ParseOrchestrationArtifact(value ard.Value) (*OrchestrationArtifact, bool) {
 	artifact := ard.NewNode(value)
-	if sourceUrl, ok := artifact.Get("sourceUrl").String(false); ok {
-		if targetPath, ok := artifact.Get("targetPath").String(false); ok {
+	if sourceUrl, ok := artifact.Get("sourceUrl").String(); ok {
+		if targetPath, ok := artifact.Get("targetPath").String(); ok {
 			self := OrchestrationArtifact{
 				SourceURL:  sourceUrl,
 				TargetPath: targetPath,
 			}
-			if permissions, ok := artifact.Get("permissions").Integer(false); ok {
+			if permissions, ok := artifact.Get("permissions").Integer(); ok {
 				self.Permissions = &permissions
 			}
 			return &self, true
@@ -116,7 +116,7 @@ type OrchestrationContainerExecution struct {
 	Command          []string // len > 0
 	Namespace        string   // can be emtpy
 	MatchLabels      map[string]string
-	MatchExpressions interface{}
+	MatchExpressions any
 	ContainerName    string // can be emtpy
 	Artifacts        OrchestrationArtifacts
 }
@@ -124,10 +124,10 @@ type OrchestrationContainerExecution struct {
 func ParseOrchestrationContainerExecution(value ard.Value) (*OrchestrationContainerExecution, bool) {
 	execution := ard.NewNode(value)
 
-	if mode, ok := execution.Get("mode").String(false); ok {
-		if command, ok := execution.Get("command").List(false); ok {
-			namespace, _ := execution.Get("namespace").String(false)
-			containerName, _ := execution.Get("container").String(false)
+	if mode, ok := execution.Get("mode").String(); ok {
+		if command, ok := execution.Get("command").List(); ok {
+			namespace, _ := execution.Get("namespace").String()
+			containerName, _ := execution.Get("container").String()
 
 			command_ := make([]string, 0, len(command))
 			for _, value := range command {
@@ -140,7 +140,7 @@ func ParseOrchestrationContainerExecution(value ard.Value) (*OrchestrationContai
 			}
 
 			matchLabels := make(map[string]string)
-			if matchLabels_, ok := execution.Get("selector").Get("matchLabels").Map(false); ok {
+			if matchLabels_, ok := execution.Get("selector").Get("matchLabels").Map(); ok {
 				for key, value := range matchLabels_ {
 					if key_, ok := key.(string); ok {
 						if value_, ok := value.(string); ok {
@@ -156,7 +156,7 @@ func ParseOrchestrationContainerExecution(value ard.Value) (*OrchestrationContai
 			// TODO: matchExpressions
 
 			var artifacts OrchestrationArtifacts
-			if artifacts_, ok := execution.Get("artifacts").List(false); ok {
+			if artifacts_, ok := execution.Get("artifacts").List(); ok {
 				if artifacts, ok = ParseOrchestrationArtifacts(artifacts_); !ok {
 					return nil, false
 				}
@@ -199,11 +199,11 @@ type OrchestrationSSHExecution struct {
 func ParseOrchestrationSSHExecution(value ard.Value) (*OrchestrationSSHExecution, bool) {
 	execution := ard.NewNode(value)
 
-	if mode, ok := execution.Get("mode").String(false); ok {
-		if command, ok := execution.Get("command").List(false); ok {
-			if host, ok := execution.Get("host").String(false); ok {
-				if username, ok := execution.Get("username").String(false); ok {
-					if key, ok := execution.Get("key").String(false); ok {
+	if mode, ok := execution.Get("mode").String(); ok {
+		if command, ok := execution.Get("command").List(); ok {
+			if host, ok := execution.Get("host").String(); ok {
+				if username, ok := execution.Get("username").String(); ok {
+					if key, ok := execution.Get("key").String(); ok {
 
 						command_ := make([]string, 0, len(command))
 						for _, value := range command {
@@ -216,7 +216,7 @@ func ParseOrchestrationSSHExecution(value ard.Value) (*OrchestrationSSHExecution
 						}
 
 						var artifacts OrchestrationArtifacts
-						if artifacts_, ok := execution.Get("artifacts").List(false); ok {
+						if artifacts_, ok := execution.Get("artifacts").List(); ok {
 							if artifacts, ok = ParseOrchestrationArtifacts(artifacts_); !ok {
 								return nil, false
 							}
@@ -260,14 +260,14 @@ type OrchestrationExecutions map[string][]OrchestrationExecution
 
 func DecodeOrchestrationExecutions(code string) (OrchestrationExecutions, bool) {
 	if value, _, err := ard.DecodeYAML(code, false); err == nil {
-		if executions, ok := ard.NewNode(value).Get("executions").List(false); ok {
+		if executions, ok := ard.NewNode(value).Get("executions").List(); ok {
 			self := make(OrchestrationExecutions)
 
 			for _, execution := range executions {
-				if nodeTemplateName, ok := ard.NewNode(execution).Get("nodeTemplate").String(false); ok {
+				if nodeTemplateName, ok := ard.NewNode(execution).Get("nodeTemplate").String(); ok {
 					nodeTemplateExecutions, _ := self[nodeTemplateName]
 
-					if type_, ok := ard.NewNode(execution).Get("type").String(false); ok {
+					if type_, ok := ard.NewNode(execution).Get("type").String(); ok {
 						switch type_ {
 						case "clout":
 							if execution_, ok := ParseOrchestrationCloutExecution(execution); ok {

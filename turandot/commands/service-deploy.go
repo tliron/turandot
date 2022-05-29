@@ -15,7 +15,7 @@ var inputs map[string]string
 var inputsUrl string
 var mode string
 
-var inputValues = make(map[string]interface{})
+var inputValues = make(map[string]any)
 
 func init() {
 	serviceCommand.AddCommand(serviceDeployCommand)

@@ -52,7 +52,7 @@ func (self *Client) ListServicesForImageName(registryName string, imageName stri
 	}
 }
 
-func (self *Client) CreateServiceDirect(namespace string, serviceName string, url urlpkg.URL, tlsSecretName string, authSecretName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceDirect(namespace string, serviceName string, url urlpkg.URL, tlsSecretName string, authSecretName string, inputs map[string]any, mode string) (*resources.Service, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -86,7 +86,7 @@ func (self *Client) CreateServiceDirect(namespace string, serviceName string, ur
 	return self.createService(namespace, serviceName, service)
 }
 
-func (self *Client) CreateServiceIndirect(namespace string, serviceName string, registryName string, imageName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceIndirect(namespace string, serviceName string, registryName string, imageName string, inputs map[string]any, mode string) (*resources.Service, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -124,7 +124,7 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 	return self.createService(namespace, serviceName, service)
 }
 
-func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]interface{}, mode string, urlContext *urlpkg.Context) (*resources.Service, error) {
+func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]any, mode string, urlContext *urlpkg.Context) (*resources.Service, error) {
 	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
 		return self.CreateServiceDirect(namespace, serviceName, url_, "", "", inputs, mode)
 	} else {
@@ -132,12 +132,12 @@ func (self *Client) CreateServiceFromURL(namespace string, serviceName string, u
 	}
 }
 
-func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, registry *reposure.Registry, serviceTemplateName string, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceFromTemplate(namespace string, serviceName string, registry *reposure.Registry, serviceTemplateName string, inputs map[string]any, mode string) (*resources.Service, error) {
 	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
 	return self.CreateServiceIndirect(namespace, serviceName, registry.Name, imageName, inputs, mode)
 }
 
-func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url urlpkg.URL, inputs map[string]interface{}, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url urlpkg.URL, inputs map[string]any, mode string) (*resources.Service, error) {
 	spooler := self.Reposure.SurrogateSpoolerClient(registry)
 	serviceTemplateName := fmt.Sprintf("%s-%s", serviceName, uuid.New().String())
 	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
@@ -262,7 +262,7 @@ func (self *Client) GetServiceClout(namespace string, serviceName string) (strin
 
 // Utils
 
-func encodeServiceInputs(inputs map[string]interface{}) (map[string]string, error) {
+func encodeServiceInputs(inputs map[string]any) (map[string]string, error) {
 	var inputs_ map[string]string
 	if (inputs != nil) && len(inputs) > 0 {
 		inputs_ = make(map[string]string)

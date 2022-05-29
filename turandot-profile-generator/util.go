@@ -14,18 +14,18 @@ const textWidth = 80
 
 var whitespaceRe = regexp.MustCompile(`[ \t][ \t]+`)
 
-func (self *Generator) Writeln(args ...interface{}) {
+func (self *Generator) Writeln(args ...any) {
 	for _, arg := range args {
 		self.Writer.WriteString(fmt.Sprintf("%s", arg))
 	}
 	self.Writer.WriteString("\n")
 }
 
-func (self *Generator) Writef(format string, args ...interface{}) {
+func (self *Generator) Writef(format string, args ...any) {
 	self.Writer.WriteString(fmt.Sprintf(format, args...))
 }
 
-func (self *Generator) Writelnf(format string, args ...interface{}) {
+func (self *Generator) Writelnf(format string, args ...any) {
 	self.Writer.WriteString(fmt.Sprintf(format, args...))
 	self.Writer.WriteString("\n")
 }

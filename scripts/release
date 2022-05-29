@@ -6,9 +6,9 @@ HERE=$(dirname "$(readlink --canonicalize "$BASH_SOURCE")")
 
 "$HERE/build"
 
-curl --silent --fail --location https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | \
-sh -s -- -b "$GOPATH/bin"
-#go get github.com/goreleaser/goreleaser
+#curl --silent --fail --location https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | \
+#sh -s -- -b "$GOPATH/bin"
+go install github.com/goreleaser/goreleaser@latest
 
 # Uses the current tag for the release version
 # (So you likely want to tag before running this)

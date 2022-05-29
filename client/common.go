@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	certmanagerpkg "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
+	certmanager "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	certmanagerpkg "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
 	"github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/version"
 	apps "k8s.io/api/apps/v1"
@@ -21,7 +21,7 @@ func (self *Client) GetSourceRegistryHost(registryHost string) (string, error) {
 		if registryHost, err := kubernetes.GetInternalRegistryHost(self.Context, self.Kubernetes); err == nil {
 			return registryHost, nil
 		} else {
-			return "", fmt.Errorf("could not discover internal registry: %s", err.Error())
+			return "", fmt.Errorf("could not discover internal registry: %w", err)
 		}
 	} else if registryHost != "" {
 		return registryHost, nil

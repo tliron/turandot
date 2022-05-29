@@ -8,15 +8,15 @@ import (
 	"github.com/tliron/kutil/kubernetes"
 	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/controller"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 func Shell(appNameSuffix string, containerName string) {
 	// We need stdout to be in "raw" mode
 	fd := int(os.Stdout.Fd())
-	state, err := terminal.MakeRaw(fd)
+	state, err := term.MakeRaw(fd)
 	util.FailOnError(err)
-	defer terminal.Restore(fd, state)
+	defer term.Restore(fd, state)
 	err = NewClient().Shell(appNameSuffix, containerName, os.Stdin, os.Stdout, os.Stderr)
 	util.FailOnError(err)
 }

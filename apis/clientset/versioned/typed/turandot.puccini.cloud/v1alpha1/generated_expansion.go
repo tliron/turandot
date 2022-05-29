@@ -2,4 +2,4 @@
 
 package v1alpha1
 
-type ServiceExpansion interface{}
+type ServiceExpansion any

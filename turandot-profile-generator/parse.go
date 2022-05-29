@@ -23,9 +23,9 @@ func (self *Generator) GetTypeName(schema spec.Schema) string {
 	}
 }
 
-func parseExtension(extension interface{}) (string, string, string) {
-	extension_ := extension.([]interface{})
-	map_ := extension_[0].(map[string]interface{})
+func parseExtension(extension any) (string, string, string) {
+	extension_ := extension.([]any)
+	map_ := extension_[0].(map[string]any)
 	group := fixGroup(map_["group"].(string))
 	version := map_["version"].(string)
 	kind := map_["kind"].(string)

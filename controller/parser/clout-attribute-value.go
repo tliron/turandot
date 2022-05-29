@@ -9,9 +9,9 @@ import (
 //
 
 type CloutAttributeValue struct {
-	CapabilityName string      `json:"capability"`
-	AttributeName  string      `json:"attribute"`
-	Value          interface{} `json:"value"`
+	CapabilityName string `json:"capability"`
+	AttributeName  string `json:"attribute"`
+	Value          any    `json:"value"`
 }
 
 //
@@ -30,7 +30,7 @@ func NewCloutAttributeValues() CloutAttributeValues {
 	return make(CloutAttributeValues)
 }
 
-func (self CloutAttributeValues) Set(vertexId string, capabilityName string, attributeName string, value interface{}) {
+func (self CloutAttributeValues) Set(vertexId string, capabilityName string, attributeName string, value any) {
 	self[vertexId] = append(self[vertexId], &CloutAttributeValue{
 		CapabilityName: capabilityName,
 		AttributeName:  attributeName,

@@ -139,14 +139,15 @@ func (self *Generator) WriteField(name string, schema spec.Schema, required bool
 		description = schema.Description
 	}
 
-	if (entrySchema == "") && (len(schema.Type) > 0) {
+	//format.WriteGo(schema, os.Stdout, " ")
+
+	if (type_ == "") && (len(schema.Type) > 0) {
 		switch schema.Type[0] {
 		case "array":
 			if (schema.Items != nil) && (schema.Items.Schema != nil) {
 				type_ = "list"
 				entrySchema = self.GetTypeName(*schema.Items.Schema)
 			}
-
 		case "object":
 			if (schema.AdditionalProperties != nil) && (schema.AdditionalProperties.Schema != nil) {
 				type_ = "map"

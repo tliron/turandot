@@ -4,7 +4,7 @@ import (
 	contextpkg "context"
 	"fmt"
 
-	certmanagerpkg "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
+	certmanagerpkg "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
 	"github.com/tliron/kutil/logging"
 	reposurepkg "github.com/tliron/reposure/apis/clientset/versioned"
 	reposureclient "github.com/tliron/reposure/client/admin"

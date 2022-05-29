@@ -55,7 +55,7 @@ func (self *Controller) processExecutions(executions parser.OrchestrationExecuti
 		}
 
 		if message, ok := arguments["message"]; ok {
-			self.Log.Errorf("execution error: %s", message)
+			self.Log.Errorf("execution: %s", message)
 		}
 
 		if service, err = self.executeCloutUpdate(service, urlContext, "orchestration.states.set", arguments); err != nil {

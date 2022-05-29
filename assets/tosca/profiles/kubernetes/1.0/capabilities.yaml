@@ -1,13 +1,13 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
 # This file was automatically generated from data published at:
-# https://raw.githubusercontent.com/kubernetes/kubernetes/v1.22.1/api/openapi-spec/swagger.json
+# https://raw.githubusercontent.com/kubernetes/kubernetes/v1.24.1/api/openapi-spec/swagger.json
 
 metadata:
 
   specification.name: Kubernetes
-  specification.version: 1.22.1
-  specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22
+  specification.version: 1.24.1
+  specification.url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24
 
 imports:
 
@@ -18,7 +18,7 @@ capability_types:
   APIService:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: apiregistration.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -39,7 +39,7 @@ capability_types:
   Binding:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -55,7 +55,7 @@ capability_types:
   CSIDriver:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: storage.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -73,7 +73,7 @@ capability_types:
   CSINode:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: storage.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -94,8 +94,8 @@ capability_types:
   CSIStorageCapacity:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
-      turandot.apiVersion: storage.k8s.io/v1beta1
+      specification.version: 1.24.1
+      turandot.apiVersion: storage.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
       CSIStorageCapacity stores the result of one CSI GetCapacity call. For a given
@@ -114,9 +114,12 @@ capability_types:
 
       The producer of these objects can decide which approach is more suitable.
 
-      They are consumed by the kube-scheduler if the CSIStorageCapacity beta feature
-      gate is enabled there and a CSI driver opts into capacity-aware scheduling with
-      CSIDriver.StorageCapacity.
+      They are consumed by the kube-scheduler when a CSI driver opts into
+      capacity-aware scheduling with CSIDriverSpec.StorageCapacity. The scheduler
+      compares the MaximumVolumeSize against the requested size of pending volumes to
+      filter out unsuitable nodes. If MaximumVolumeSize is unset, it falls back to a
+      comparison against the less precise Capacity. If that is also unset, the
+      scheduler assumes that capacity is insufficient and tries some other node.
     properties:
       capacity:
         description: >-
@@ -126,7 +129,7 @@ capability_types:
 
           The semantic is currently (CSI spec 1.2) defined as: The available capacity, in
           bytes, of the storage that can be used to provision volumes. If not set, that
-          information is currently unavailable and treated like zero capacity.
+          information is currently unavailable.
         type: Quantity
         required: false
       maximumVolumeSize:
@@ -160,7 +163,7 @@ capability_types:
   CertificateSigningRequest:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: certificates.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -196,7 +199,7 @@ capability_types:
   ClusterIP:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
     derived_from: Service
     properties:
       spec:
@@ -205,7 +208,7 @@ capability_types:
   ClusterRole:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: rbac.authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -229,7 +232,7 @@ capability_types:
   ClusterRoleBinding:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: rbac.authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -252,7 +255,7 @@ capability_types:
   ComponentStatus:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -269,7 +272,7 @@ capability_types:
   ConfigMap:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -305,7 +308,7 @@ capability_types:
   ControllerRevision:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: apps/v1
       turandot.metadata: 'true'
     description: >-
@@ -332,7 +335,7 @@ capability_types:
   CronJob:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: batch/v1
       turandot.metadata: 'true'
     description: >-
@@ -355,7 +358,7 @@ capability_types:
   CustomResourceDefinition:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: apiextensions.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -375,7 +378,7 @@ capability_types:
   DaemonSet:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: apps/v1
       turandot.metadata: 'true'
     description: >-
@@ -398,7 +401,7 @@ capability_types:
   Deployment:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: apps/v1
       turandot.metadata: 'true'
       turandot.copy.1: metadata.labels->spec.selector.matchLabels
@@ -421,7 +424,7 @@ capability_types:
   EndpointSlice:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: discovery.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -458,7 +461,7 @@ capability_types:
   Endpoints:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -492,7 +495,7 @@ capability_types:
   Event:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -579,7 +582,7 @@ capability_types:
   EventsEvent:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: events.k8s.io/v1
       turandot.kind: Event
       turandot.metadata: 'true'
@@ -682,7 +685,7 @@ capability_types:
   Eviction:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: policy/v1
       turandot.metadata: 'true'
     description: >-
@@ -699,7 +702,7 @@ capability_types:
   ExternalName:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
     derived_from: Service
     properties:
       spec:
@@ -708,8 +711,8 @@ capability_types:
   FlowSchema:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
-      turandot.apiVersion: flowcontrol.apiserver.k8s.io/v1beta1
+      specification.version: 1.24.1
+      turandot.apiVersion: flowcontrol.apiserver.k8s.io/v1beta2
       turandot.metadata: 'true'
     description: >-
       FlowSchema defines the schema of a group of flows. Note that a flow is made up
@@ -732,8 +735,8 @@ capability_types:
   HorizontalPodAutoscaler:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
-      turandot.apiVersion: autoscaling/v2beta2
+      specification.version: 1.24.1
+      turandot.apiVersion: autoscaling/v2
       turandot.metadata: 'true'
     description: >-
       HorizontalPodAutoscaler is the configuration for a horizontal pod autoscaler,
@@ -755,7 +758,7 @@ capability_types:
   Ingress:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: networking.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -780,7 +783,7 @@ capability_types:
   IngressClass:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: networking.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -800,7 +803,7 @@ capability_types:
   Job:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: batch/v1
       turandot.metadata: 'true'
     description: >-
@@ -822,7 +825,7 @@ capability_types:
   KNode:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.kind: Node
       turandot.metadata: 'true'
@@ -847,7 +850,7 @@ capability_types:
   Lease:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: coordination.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -863,7 +866,7 @@ capability_types:
   LimitRange:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -879,7 +882,7 @@ capability_types:
   LoadBalancer:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
     derived_from: Service
     properties:
       spec:
@@ -888,7 +891,7 @@ capability_types:
   LocalSubjectAccessReview:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -911,7 +914,7 @@ capability_types:
   Metadata:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
     description: >-
       ObjectMeta is metadata that all persisted resources must have, which includes
       all objects users must create.
@@ -927,10 +930,10 @@ capability_types:
         required: false
       clusterName:
         description: >-
-          The name of the cluster which the object belongs to. This is used to distinguish
-          resources with same name and namespace in different clusters. This field is not
-          set anywhere right now and apiserver is going to ignore it if set in create or
-          update request.
+          Deprecated: ClusterName is a legacy field that was always cleared by the system
+          and never used; it will be removed completely in 1.25.
+
+          The name in the go struct is changed to help clients detect accidental use.
         type: string
         required: false
       creationTimestamp:
@@ -1001,11 +1004,8 @@ capability_types:
           validation rules as the Name field, and may be truncated by the length of the
           suffix required to make the value unique on the server.
 
-          If this field is specified and the generated name exists, the server will NOT
-          return a 409 - instead, it will either return 201 Created or 500 with Reason
-          ServerTimeout indicating a unique name could not be found in the time allotted,
-          and the client should retry (optionally after the time indicated in the
-          Retry-After header).
+          If this field is specified and the generated name exists, the server will return
+          a 409.
 
           Applied only if Name is not specified. More info:
           https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency
@@ -1081,10 +1081,8 @@ capability_types:
         required: false
       selfLink:
         description: >-
-          SelfLink is a URL representing this object. Populated by the system. Read-only.
-
-          DEPRECATED Kubernetes will stop propagating this field in 1.20 release and the
-          field is planned to be removed in 1.21 release.
+          Deprecated: selfLink is a legacy read-only field that is no longer populated by
+          the system.
         type: string
         required: false
       uid:
@@ -1101,7 +1099,7 @@ capability_types:
   MutatingWebhookConfiguration:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: admissionregistration.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1118,7 +1116,7 @@ capability_types:
   Namespace:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -1140,7 +1138,7 @@ capability_types:
   NetworkPolicy:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: networking.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1151,11 +1149,17 @@ capability_types:
           Specification of the desired behavior for this NetworkPolicy.
         type: NetworkPolicySpec
         required: false
+    attributes:
+      status:
+        description: >-
+          Status is the current state of the NetworkPolicy. More info:
+          https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+        type: NetworkPolicyStatus
 
   NodePort:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
     derived_from: Service
     properties:
       spec:
@@ -1164,7 +1168,7 @@ capability_types:
   PersistentVolume:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -1174,7 +1178,7 @@ capability_types:
     properties:
       spec:
         description: >-
-          Spec defines a specification of a persistent volume owned by the cluster.
+          spec defines a specification of a persistent volume owned by the cluster.
           Provisioned by an administrator. More info:
           https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistent-volumes
         type: PersistentVolumeSpec
@@ -1182,7 +1186,7 @@ capability_types:
     attributes:
       status:
         description: >-
-          Status represents the current information/status for the persistent volume.
+          status represents the current information/status for the persistent volume.
           Populated by the system. Read-only. More info:
           https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistent-volumes
         type: PersistentVolumeStatus
@@ -1190,7 +1194,7 @@ capability_types:
   Pod:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -1214,7 +1218,7 @@ capability_types:
   PodDisruptionBudget:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: policy/v1
       turandot.metadata: 'true'
     description: >-
@@ -1235,7 +1239,7 @@ capability_types:
   PodSecurityPolicy:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: policy/v1beta1
       turandot.metadata: 'true'
     description: >-
@@ -1251,7 +1255,7 @@ capability_types:
   PriorityClass:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: scheduling.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1277,8 +1281,7 @@ capability_types:
       preemptionPolicy:
         description: >-
           PreemptionPolicy is the Policy for preempting pods with lower priority. One of
-          Never, PreemptLowerPriority. Defaults to PreemptLowerPriority if unset. This
-          field is beta-level, gated by the NonPreemptingPriority feature-gate.
+          Never, PreemptLowerPriority. Defaults to PreemptLowerPriority if unset.
         type: string
         required: false
       value:
@@ -1290,8 +1293,8 @@ capability_types:
   PriorityLevelConfiguration:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
-      turandot.apiVersion: flowcontrol.apiserver.k8s.io/v1beta1
+      specification.version: 1.24.1
+      turandot.apiVersion: flowcontrol.apiserver.k8s.io/v1beta2
       turandot.metadata: 'true'
     description: >-
       PriorityLevelConfiguration represents the configuration of a priority level.
@@ -1313,7 +1316,7 @@ capability_types:
   ReplicaSet:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: apps/v1
       turandot.metadata: 'true'
     description: >-
@@ -1339,7 +1342,7 @@ capability_types:
   ReplicationController:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
       turandot.copy.1: metadata.labels->spec.selector.matchLabels
@@ -1367,7 +1370,7 @@ capability_types:
   ResourceQuota:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -1389,7 +1392,7 @@ capability_types:
   Role:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: rbac.authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1406,7 +1409,7 @@ capability_types:
   RoleBinding:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: rbac.authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1431,7 +1434,7 @@ capability_types:
   RuntimeClass:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: node.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1458,8 +1461,6 @@ capability_types:
           Overhead represents the resource overhead associated with running a pod for a
           given RuntimeClass. For more details, see
            https://kubernetes.io/docs/concepts/scheduling-eviction/pod-overhead/
-          This field is in beta starting v1.18 and is only honored by servers that enable
-          the PodOverhead feature.
         type: Overhead
         required: false
       scheduling:
@@ -1473,7 +1474,7 @@ capability_types:
   Scale:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: autoscaling/v1
       turandot.metadata: 'true'
     description: >-
@@ -1496,7 +1497,7 @@ capability_types:
   Secret:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -1530,14 +1531,15 @@ capability_types:
         required: false
       type:
         description: >-
-          Used to facilitate programmatic handling of secret data.
+          Used to facilitate programmatic handling of secret data. More info:
+          https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
         type: string
         required: false
 
   SelfSubjectAccessReview:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1561,7 +1563,7 @@ capability_types:
   SelfSubjectRulesReview:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1589,7 +1591,7 @@ capability_types:
   Service:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
       turandot.copy: metadata.labels->spec.selector
@@ -1615,7 +1617,7 @@ capability_types:
   ServiceAccount:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: v1
       turandot.metadata: 'true'
     description: >-
@@ -1642,8 +1644,13 @@ capability_types:
         required: false
       secrets:
         description: >-
-          Secrets is the list of secrets allowed to be used by pods running using this
-          ServiceAccount. More info:
+          Secrets is a list of the secrets in the same namespace that pods running using
+          this ServiceAccount are allowed to use. Pods are only limited to this list if
+          this service account has a "kubernetes.io/enforce-mountable-secrets" annotation
+          set to "true". This field should not be used to find auto-generated service
+          account token secrets for use outside of pods. Instead, tokens can be requested
+          directly using the TokenRequest API, or service account token secrets can be
+          manually created. More info:
           https://kubernetes.io/docs/concepts/configuration/secret
         type: list
         entry_schema: ObjectReference
@@ -1652,7 +1659,7 @@ capability_types:
   StatefulSet:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: apps/v1
       turandot.metadata: 'true'
     description: >-
@@ -1678,7 +1685,7 @@ capability_types:
   StorageClass:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: storage.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1738,7 +1745,7 @@ capability_types:
   StorageVersion:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: internal.apiserver.k8s.io/v1alpha1
       turandot.metadata: 'true'
     description: >-
@@ -1758,7 +1765,7 @@ capability_types:
   SubjectAccessReview:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: authorization.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1778,7 +1785,7 @@ capability_types:
   TokenRequest:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: authentication.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1798,7 +1805,7 @@ capability_types:
   TokenReview:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: authentication.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1820,7 +1827,7 @@ capability_types:
   ValidatingWebhookConfiguration:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: admissionregistration.k8s.io/v1
       turandot.metadata: 'true'
     description: >-
@@ -1837,7 +1844,7 @@ capability_types:
   VolumeAttachment:
     metadata:
       specification.name: Kubernetes
-      specification.version: 1.22.1
+      specification.version: 1.24.1
       turandot.apiVersion: storage.k8s.io/v1
       turandot.metadata: 'true'
     description: >-

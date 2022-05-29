@@ -129,7 +129,7 @@ certificates (so-called "insecure" mode, which in Minikube is enabled via the
 then Reposure's "simple" registry can provision such a self-signed certificate for
 you.
 
-To do so Reposure relies on [cert-manager](https://github.com/jetstack/cert-manager),
+To do so Reposure relies on [cert-manager](https://github.com/cert-manager/cert-manager),
 which does a lot of the heavy lifting required for provisioning and updating
 certificates. (The additional challenge of working with TLS certificates in cloud
 environments is that IP addresses change, so that certificates either have to be
@@ -138,7 +138,7 @@ updated or tied to a DNS domain name, and then DNS management may be local and c
 So, assuming your container runtime is "insecure", you can start by installing
 cert-manager:
 
-    kubectl apply --filename=https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.yaml
+    kubectl apply --filename=https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yaml
 
 And then install the "simple" registry with self-signed authentication like so:
 

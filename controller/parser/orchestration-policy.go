@@ -16,26 +16,26 @@ type OrchestrationProvisioningPolicy struct {
 	Substitutable      bool
 	Instantiable       bool
 	Virtualizable      bool
-	SubstitutionInputs map[string]interface{}
+	SubstitutionInputs map[string]any
 }
 
 func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvisioningPolicy, bool) {
 	properties := ard.NewNode(value)
 	self := OrchestrationProvisioningPolicy{
-		SubstitutionInputs: make(map[string]interface{}),
+		SubstitutionInputs: make(map[string]any),
 	}
 	var ok bool
-	if self.Substitutable, ok = properties.Get("substitutable").Boolean(true); !ok {
+	if self.Substitutable, ok = properties.Get("substitutable").AllowNil().Boolean(); !ok {
 		return nil, false
 	}
-	if self.Instantiable, ok = properties.Get("instantiable").Boolean(true); !ok {
+	if self.Instantiable, ok = properties.Get("instantiable").AllowNil().Boolean(); !ok {
 		return nil, false
 	}
-	if self.Virtualizable, ok = properties.Get("virtualizable").Boolean(true); !ok {
+	if self.Virtualizable, ok = properties.Get("virtualizable").AllowNil().Boolean(); !ok {
 		return nil, false
 	}
 	if sites := properties.Get("sites"); sites != ard.NoNode {
-		if sites_, ok := sites.List(true); ok {
+		if sites_, ok := sites.AllowNil().List(); ok {
 			for _, site := range sites_ {
 				if site_, ok := site.(string); ok {
 					self.Sites = append(self.Sites, site_)
@@ -48,7 +48,7 @@ func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvis
 		}
 	}
 	if substitutionInputs := properties.Get("substitutionInputs"); substitutionInputs != ard.NoNode {
-		if substitutionInputs_, ok := substitutionInputs.Map(true); ok {
+		if substitutionInputs_, ok := substitutionInputs.AllowNil().Map(); ok {
 			for name, input := range substitutionInputs_ {
 				if name_, ok := name.(string); ok {
 					self.SubstitutionInputs[name_] = input
@@ -67,7 +67,7 @@ func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvis
 // OrchestrationPolicies
 //
 
-type OrchestrationPolicies map[string][]interface{}
+type OrchestrationPolicies map[string][]any
 
 func DecodeOrchestrationPolicies(code string) (OrchestrationPolicies, bool) {
 	var policies ard.StringMap
@@ -75,11 +75,11 @@ func DecodeOrchestrationPolicies(code string) (OrchestrationPolicies, bool) {
 		self := make(OrchestrationPolicies)
 		for nodeTemplateName, nodePolicies := range policies {
 			if nodePolicies_, ok := nodePolicies.(ard.List); ok {
-				var policies []interface{}
+				var policies []any
 				for _, policy := range nodePolicies_ {
 					policy_ := ard.NewNode(policy)
-					if type_, ok := policy_.Get("type").String(false); ok {
-						if properties, ok := policy_.Get("properties").Map(true); ok {
+					if type_, ok := policy_.Get("type").String(); ok {
+						if properties, ok := policy_.Get("properties").AllowNil().Map(); ok {
 							switch type_ {
 							case "provisioning":
 								if policy__, ok := ParseOrchestrationProvisioningPolicy(properties); ok {

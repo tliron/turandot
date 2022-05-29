@@ -14,6 +14,7 @@ function build () {
 	local IMAGE=$EXECUTABLE
 	local LOCAL=localhost/$IMAGE
 	local BASE_IMAGE=registry.access.redhat.com/ubi8/ubi
+	# registry.redhat.io/ubi8/ubi
 	# note: ubi-minimal does not have "tar" which is needed for kubectl cp
 
 	local CONTAINER_ID=$(buildah from "$BASE_IMAGE")

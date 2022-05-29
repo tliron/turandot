@@ -1,8 +1,8 @@
 name: Kubernetes
-version: 1.22.1
+version: 1.24.1
 
-open-api: https://raw.githubusercontent.com/kubernetes/kubernetes/v1.22.1/api/openapi-spec/swagger.json
-reference-url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22
+open-api: https://raw.githubusercontent.com/kubernetes/kubernetes/v1.24.1/api/openapi-spec/swagger.json
+reference-url: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24
 output-dir: ../tosca/profiles/kubernetes/1.0
 
 exclude:
@@ -13,7 +13,7 @@ exclude:
 - MicroTime
 
 # These don't have ListMeta but are still lists
-- APIGroupList 
+- APIGroupList
 - APIResourceList
 
 rename:
@@ -52,6 +52,7 @@ rename:
   io.k8s.api.admissionregistration.v1.ServiceReference: AdmissionRegistrationServiceReference
   io.k8s.apiextensions-apiserver.pkg.apis.apiextensions.v1.ServiceReference: APIExtensionsServiceReference
   io.k8s.kube-aggregator.pkg.apis.apiregistration.v1.ServiceReference: KubeAggregatorServiceReference
+  io.k8s.api.flowcontrol.v1beta2.Subject: FlowControlSubject
 
 add:
 
@@ -386,8 +387,7 @@ override:
         constraints:
         - "valid_values: [ Local, Cluster ]"
       ipFamilies:
-        constraints:
-        - "valid_values: [ IPv4, IPv6 ]"
+        entry_schema: IPFamily
       ipFamilyPolicy:
         constraints:
         - "valid_values: [ SingleStack, PreferDualStack, RequireDualStack ]"

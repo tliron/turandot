@@ -112,10 +112,10 @@ func NewController(context contextpkg.Context, toolName string, site string, clu
 		"services",
 		serviceInformer.Informer(),
 		processorPeriod,
-		func(name string, namespace string) (interface{}, error) {
+		func(name string, namespace string) (any, error) {
 			return self.Client.GetService(namespace, name)
 		},
-		func(object interface{}) (bool, error) {
+		func(object any) (bool, error) {
 			return self.processService(object.(*turandotresources.Service))
 		},
 	))

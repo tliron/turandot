@@ -94,7 +94,7 @@ func (self *Controller) executeCloutGetAll(service *resources.Service, urlContex
 					if value_, ok := value.(ard.StringMap); ok {
 						list[index] = value_
 					} else {
-						return nil, fmt.Errorf("not a map[string]interface{}: %T", value)
+						return nil, fmt.Errorf("not a map[string]any: %T", value)
 					}
 				}
 				return list, nil

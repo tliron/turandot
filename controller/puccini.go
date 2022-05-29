@@ -23,7 +23,8 @@ var parserContext = parser.NewContext()
 
 func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, urlContext *urlpkg.Context) error {
 	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
-		if _, serviceTemplate, problems, err := parserContext.Parse(url_, terminal.NewStylist(false), nil, inputs); err == nil {
+		// TODO: origins
+		if _, serviceTemplate, problems, err := parserContext.Parse(url_, nil, terminal.NewStylist(false), nil, inputs); err == nil {
 			if problems.Empty() {
 				if clout, err := serviceTemplate.Compile(true); err == nil {
 					return WriteClout(clout, writer)

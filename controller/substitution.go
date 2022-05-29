@@ -5,7 +5,7 @@ import (
 	reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]interface{}, mode string, site string, urlContext *urlpkg.Context) error {
+func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]any, mode string, site string, urlContext *urlpkg.Context) error {
 	// hacky ;)
 	registryName := "default"
 	var serviceTemplateName string

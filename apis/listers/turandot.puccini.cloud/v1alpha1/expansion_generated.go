@@ -4,8 +4,8 @@ package v1alpha1
 
 // ServiceListerExpansion allows custom methods to be added to
 // ServiceLister.
-type ServiceListerExpansion interface{}
+type ServiceListerExpansion any
 
 // ServiceNamespaceListerExpansion allows custom methods to be added to
 // ServiceNamespaceLister.
-type ServiceNamespaceListerExpansion interface{}
+type ServiceNamespaceListerExpansion any
