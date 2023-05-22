@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"github.com/gofrs/flock"
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/exturl"
 	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
@@ -179,7 +179,7 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 		cloutPath = filepath.Join(self.CachePath, "clout", cloutPath)
 	}
 
-	urlContext := urlpkg.NewContext()
+	urlContext := exturl.NewContext()
 	defer urlContext.Release()
 
 	if err := self.Client.UpdateServiceURLContext(service, urlContext); err != nil {
@@ -230,7 +230,7 @@ func (self *Controller) updateService(service *resources.Service) error {
 
 	self.Log.Infof("updating service: %s/%s", service.Namespace, service.Name)
 
-	urlContext := urlpkg.NewContext()
+	urlContext := exturl.NewContext()
 	defer urlContext.Release()
 
 	if err := self.Client.UpdateServiceURLContext(service, urlContext); err != nil {

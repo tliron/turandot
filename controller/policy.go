@@ -1,12 +1,12 @@
 package controller
 
 import (
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/exturl"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) processPolicies(policies parser.OrchestrationPolicies, service *resources.Service, urlContext *urlpkg.Context) error {
+func (self *Controller) processPolicies(policies parser.OrchestrationPolicies, service *resources.Service, urlContext *exturl.Context) error {
 	for nodeTemplateName, nodePolicies := range policies {
 		self.Log.Infof("processing policies for node template %s", nodeTemplateName)
 		for _, policy := range nodePolicies {

@@ -1,12 +1,13 @@
 package commands
 
 import (
+	"os"
 	"sort"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/kutil/ard"
-	formatpkg "github.com/tliron/kutil/format"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 )
 
@@ -53,6 +54,6 @@ func ListDelegates() {
 			map_["Namespace"] = ""
 			list[index] = map_
 		}
-		formatpkg.Print(list, format, terminal.Stdout, strict, pretty)
+		transcribe.Print(list, format, os.Stdout, strict, pretty)
 	}
 }

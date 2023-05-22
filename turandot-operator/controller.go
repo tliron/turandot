@@ -47,13 +47,13 @@ func Controller() {
 
 	// Clients
 
+	dynamicClient, err := dynamic.NewForConfig(config)
+	util.FailOnError(err)
+
 	kubernetesClient, err := kubernetespkg.NewForConfig(config)
 	util.FailOnError(err)
 
 	apiExtensionsClient, err := apiextensionspkg.NewForConfig(config)
-	util.FailOnError(err)
-
-	dynamicClient, err := dynamic.NewForConfig(config)
 	util.FailOnError(err)
 
 	turandotClient, err := turandotpkg.NewForConfig(config)

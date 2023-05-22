@@ -14,4 +14,4 @@ if [ -z "$USER_DIR" ]; then
 fi
 
 mkdir --parents "$USER_DIR/completions"
-puccinictl bash > "$USER_DIR/completions/puccinictl"
+turandot completion bash > "$USER_DIR/completions/turandot"

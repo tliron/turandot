@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/tliron/kutil/format"
+	"github.com/tliron/exturl"
 	"github.com/tliron/kutil/kubernetes"
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/transcribe"
 	reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -37,7 +37,7 @@ func (self *Client) ListServices() (*resources.ServiceList, error) {
 	return self.Turandot.TurandotV1alpha1().Services(self.Namespace).List(self.Context, meta.ListOptions{})
 }
 
-func (self *Client) ListServicesForImageName(registryName string, imageName string, urlContext *urlpkg.Context) ([]string, error) {
+func (self *Client) ListServicesForImageName(registryName string, imageName string, urlContext *exturl.Context) ([]string, error) {
 	if services, err := self.ListServices(); err == nil {
 		var serviceNames []string
 		for _, service := range services.Items {
@@ -52,7 +52,7 @@ func (self *Client) ListServicesForImageName(registryName string, imageName stri
 	}
 }
 
-func (self *Client) CreateServiceDirect(namespace string, serviceName string, url urlpkg.URL, tlsSecretName string, authSecretName string, inputs map[string]any, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceDirect(namespace string, serviceName string, url exturl.URL, tlsSecretName string, authSecretName string, inputs map[string]any, mode string) (*resources.Service, error) {
 	// Default to same namespace as operator
 	if namespace == "" {
 		namespace = self.Namespace
@@ -124,8 +124,8 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 	return self.createService(namespace, serviceName, service)
 }
 
-func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]any, mode string, urlContext *urlpkg.Context) (*resources.Service, error) {
-	if url_, err := urlpkg.NewURL(url, urlContext); err == nil {
+func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]any, mode string, urlContext *exturl.Context) (*resources.Service, error) {
+	if url_, err := exturl.NewURL(url, urlContext); err == nil {
 		return self.CreateServiceDirect(namespace, serviceName, url_, "", "", inputs, mode)
 	} else {
 		return nil, err
@@ -137,7 +137,7 @@ func (self *Client) CreateServiceFromTemplate(namespace string, serviceName stri
 	return self.CreateServiceIndirect(namespace, serviceName, registry.Name, imageName, inputs, mode)
 }
 
-func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url urlpkg.URL, inputs map[string]any, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url exturl.URL, inputs map[string]any, mode string) (*resources.Service, error) {
 	spooler := self.Reposure.SurrogateSpoolerClient(registry)
 	serviceTemplateName := fmt.Sprintf("%s-%s", serviceName, uuid.New().String())
 	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
@@ -184,7 +184,7 @@ func (self *Client) GetServiceTemplateURL(service *resources.Service) (string, e
 	}
 }
 
-func (self *Client) UpdateServiceURLContext(service *resources.Service, urlContext *urlpkg.Context) error {
+func (self *Client) UpdateServiceURLContext(service *resources.Service, urlContext *exturl.Context) error {
 	if registry, err := self.GetServiceRegistry(service); err == nil {
 		if registry != nil {
 			return self.Reposure.RegistryClient().UpdateURLContext(registry, urlContext)
@@ -268,7 +268,7 @@ func encodeServiceInputs(inputs map[string]any) (map[string]string, error) {
 		inputs_ = make(map[string]string)
 		for key, input := range inputs {
 			var err error
-			if inputs_[key], err = format.EncodeYAML(input, " ", false); err == nil {
+			if inputs_[key], err = transcribe.EncodeYAML(input, " ", false); err == nil {
 				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
 			} else {
 				return nil, err

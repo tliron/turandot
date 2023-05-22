@@ -3,7 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 
-	"github.com/tliron/kutil/ard"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/kubernetes"
 	group "github.com/tliron/turandot/resources/turandot.puccini.cloud"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -107,7 +107,7 @@ type ServiceList struct {
 // ServiceCustomResourceDefinition
 //
 
-// See: assets/custom-resource-definitions.yaml
+// See: assets/kubernetes/custom-resource-definitions.yaml
 
 var ServiceResourcesName = fmt.Sprintf("%s.%s", ServicePlural, group.GroupName)
 
@@ -305,14 +305,16 @@ var ServiceCustomResourceDefinition = apiextensions.CustomResourceDefinition{
 				},
 				AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
 					{
-						Name:     "ServiceTemplateUrl",
-						Type:     "string",
-						JSONPath: ".status.serviceTemplateUrl",
+						Name:        "ServiceTemplateUrl",
+						Description: "Full URL of service template (CSAR or YAML file)",
+						Type:        "string",
+						JSONPath:    ".status.serviceTemplateUrl",
 					},
 					{
-						Name:     "Mode",
-						Type:     "string",
-						JSONPath: ".status.mode",
+						Name:        "Mode",
+						Description: "Current service mode",
+						Type:        "string",
+						JSONPath:    ".status.mode",
 					},
 				},
 			},

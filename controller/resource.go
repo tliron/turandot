@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/tliron/kutil/ard"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/controller/parser"
 	errorspkg "k8s.io/apimachinery/pkg/api/errors"
@@ -33,7 +33,7 @@ func (self *Controller) GetAttributesFromResources(resourceMappings parser.Kuber
 							fromNode = fromNode.Get(element)
 						}
 
-						attributeValues.Set(vertexId, resourceMapping.Capability, attributeName, fromNode.Data)
+						attributeValues.Set(vertexId, resourceMapping.Capability, attributeName, fromNode.Value)
 					}
 				} else {
 					return nil, err

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/exturl"
 	"github.com/tliron/kutil/util"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-func (self *Controller) processExecutions(executions parser.OrchestrationExecutions, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+func (self *Controller) processExecutions(executions parser.OrchestrationExecutions, service *resources.Service, urlContext *exturl.Context) (*resources.Service, error) {
 	var err error
 
 	for nodeTemplateName, nodeTemplateExecutions := range executions {
@@ -66,13 +66,13 @@ func (self *Controller) processExecutions(executions parser.OrchestrationExecuti
 	return service, nil
 }
 
-func (self *Controller) processCloutExecution(nodeTemplateName string, execution *parser.OrchestrationCloutExecution, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+func (self *Controller) processCloutExecution(nodeTemplateName string, execution *parser.OrchestrationCloutExecution, service *resources.Service, urlContext *exturl.Context) (*resources.Service, error) {
 	self.Log.Infof("executing scriptlet %q with arguments %q", execution.ScriptletName, execution.Arguments)
 
 	return self.executeCloutUpdate(service, urlContext, execution.ScriptletName, execution.Arguments)
 }
 
-func (self *Controller) processContainerExecution(nodeTemplateName string, execution *parser.OrchestrationContainerExecution, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+func (self *Controller) processContainerExecution(nodeTemplateName string, execution *parser.OrchestrationContainerExecution, service *resources.Service, urlContext *exturl.Context) (*resources.Service, error) {
 	var selector string
 	if execution.MatchLabels != nil {
 		labels_ := labels.Set(execution.MatchLabels)
@@ -107,7 +107,7 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 			if execution.Artifacts != nil {
 				for _, artifact := range execution.Artifacts {
 					self.Log.Infof("copying artifact %q to pod %q container %q path %q", artifact.SourceURL, pod.Name, containerName, artifact.TargetPath)
-					if url, err := urlpkg.NewURL(artifact.SourceURL, urlContext); err == nil {
+					if url, err := exturl.NewURL(artifact.SourceURL, urlContext); err == nil {
 						if reader, err := url.Open(); err == nil {
 							defer reader.Close()
 							if err := self.Client.WriteToContainer(namespace, pod.Name, containerName, reader, artifact.TargetPath, artifact.Permissions); err != nil {
@@ -123,7 +123,7 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 			}
 
 			self.Log.Infof("executing %q on pod %q container %q", execution.Command, pod.Name, containerName)
-			if url, err := urlpkg.NewURL(service.Status.CloutPath, urlContext); err == nil {
+			if url, err := exturl.NewURL(service.Status.CloutPath, urlContext); err == nil {
 				if reader, err := url.Open(); err == nil {
 					defer reader.Close()
 
@@ -152,7 +152,7 @@ func (self *Controller) processContainerExecution(nodeTemplateName string, execu
 	}
 }
 
-func (self *Controller) processSshExecution(nodeTemplateName string, execution *parser.OrchestrationSSHExecution, service *resources.Service, urlContext *urlpkg.Context) (*resources.Service, error) {
+func (self *Controller) processSshExecution(nodeTemplateName string, execution *parser.OrchestrationSSHExecution, service *resources.Service, urlContext *exturl.Context) (*resources.Service, error) {
 	if execution.Host == "" {
 		return service, errors.New("SSH execution did not specify host")
 	}
@@ -160,7 +160,7 @@ func (self *Controller) processSshExecution(nodeTemplateName string, execution *
 	if execution.Artifacts != nil {
 		for _, artifact := range execution.Artifacts {
 			self.Log.Infof("copying artifact %q via SSH to %q path %q", artifact.SourceURL, execution.Host, artifact.TargetPath)
-			if url, err := urlpkg.NewURL(artifact.SourceURL, urlContext); err == nil {
+			if url, err := exturl.NewURL(artifact.SourceURL, urlContext); err == nil {
 				if reader, err := url.Open(); err == nil {
 					defer reader.Close()
 					if err := util.CopySSH(execution.Host, execution.Username, execution.Key, reader, artifact.TargetPath, artifact.Permissions); err != nil {
@@ -175,7 +175,7 @@ func (self *Controller) processSshExecution(nodeTemplateName string, execution *
 		}
 	}
 
-	if url, err := urlpkg.NewURL(service.Status.CloutPath, urlContext); err == nil {
+	if url, err := exturl.NewURL(service.Status.CloutPath, urlContext); err == nil {
 		if reader, err := url.Open(); err == nil {
 			defer reader.Close()
 			self.Log.Infof("executing %q via SSH to %q", execution.Command, execution.Host)

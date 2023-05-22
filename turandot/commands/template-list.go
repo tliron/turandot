@@ -1,14 +1,15 @@
 package commands
 
 import (
+	"os"
 	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/kutil/ard"
-	formatpkg "github.com/tliron/kutil/format"
+	"github.com/tliron/exturl"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/terminal"
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 )
 
@@ -41,7 +42,7 @@ func ListServiceTemplates() {
 
 	switch format {
 	case "":
-		urlContext := urlpkg.NewContext()
+		urlContext := exturl.NewContext()
 		defer urlContext.Release()
 
 		table := terminal.NewTable(maxWidth, "Name", "Services")
@@ -63,7 +64,7 @@ func ListServiceTemplates() {
 		}
 
 	default:
-		urlContext := urlpkg.NewContext()
+		urlContext := exturl.NewContext()
 		defer urlContext.Release()
 
 		list := make(ard.List, 0, len(imageNames))
@@ -76,6 +77,6 @@ func ListServiceTemplates() {
 				list = append(list, map_)
 			}
 		}
-		formatpkg.Print(list, format, terminal.Stdout, strict, pretty)
+		transcribe.Print(list, format, os.Stdout, strict, pretty)
 	}
 }

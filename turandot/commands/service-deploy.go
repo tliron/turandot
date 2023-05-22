@@ -4,8 +4,8 @@ import (
 	"io"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/kutil/ard"
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/exturl"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/util"
 	"github.com/tliron/yamlkeys"
 )
@@ -45,6 +45,9 @@ func DeployService(serviceName string) {
 
 	ParseInputs()
 
+	urlContext := exturl.NewContext()
+	defer urlContext.Release()
+
 	if template != "" {
 		if (filePath != "") || (directoryPath != "") || (url != "") {
 			deployFailOnlyOneOf()
@@ -60,7 +63,7 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		url_, err := urlpkg.NewValidFileURL(filePath, nil)
+		url_, err := exturl.NewValidFileURL(filePath, urlContext)
 		util.FailOnError(err)
 		createServiceFromContent(serviceName, url_)
 	} else if directoryPath != "" {
@@ -74,19 +77,16 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		urlContext := urlpkg.NewContext()
-		defer urlContext.Release()
-
 		_, err := NewClient().Turandot().CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
 		util.FailOnError(err)
 	} else {
-		url_, err := urlpkg.ReadToInternalURLFromStdin("yaml")
+		url_, err := exturl.ReadToInternalURLFromStdin("yaml", urlContext)
 		util.FailOnError(err)
 		createServiceFromContent(serviceName, url_)
 	}
 }
 
-func createServiceFromContent(serviceName string, url urlpkg.URL) {
+func createServiceFromContent(serviceName string, url exturl.URL) {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
@@ -98,10 +98,10 @@ func ParseInputs() {
 	if inputsUrl != "" {
 		log.Infof("load inputs from %q", inputsUrl)
 
-		urlContext := urlpkg.NewContext()
+		urlContext := exturl.NewContext()
 		defer urlContext.Release()
 
-		url, err := urlpkg.NewValidURL(inputsUrl, nil, urlContext)
+		url, err := exturl.NewValidURL(inputsUrl, nil, urlContext)
 		util.FailOnError(err)
 		reader, err := url.Open()
 		util.FailOnError(err)

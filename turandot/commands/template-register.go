@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/exturl"
 	"github.com/tliron/kutil/util"
 )
 
@@ -24,12 +24,15 @@ var templateRegisterCommand = &cobra.Command{
 }
 
 func RegisterServiceTemplate(serviceTemplateName string) {
+	urlContext := exturl.NewContext()
+	defer urlContext.Release()
+
 	if filePath != "" {
 		if directoryPath != "" {
 			registerFailOnlyOneOf()
 		}
 
-		url, err := urlpkg.NewValidFileURL(filePath, nil)
+		url, err := exturl.NewValidFileURL(filePath, urlContext)
 		util.FailOnError(err)
 		registerServiceTemplate(serviceTemplateName, url)
 	} else if directoryPath != "" {
@@ -39,13 +42,13 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 
 		// TODO pack directory into CSAR
 	} else {
-		url, err := urlpkg.ReadToInternalURLFromStdin("yaml")
+		url, err := exturl.ReadToInternalURLFromStdin("yaml", urlContext)
 		util.FailOnError(err)
 		registerServiceTemplate(serviceTemplateName, url)
 	}
 }
 
-func registerServiceTemplate(serviceTemplateName string, url urlpkg.URL) {
+func registerServiceTemplate(serviceTemplateName string, url exturl.URL) {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)

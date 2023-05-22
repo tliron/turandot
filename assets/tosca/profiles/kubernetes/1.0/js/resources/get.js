@@ -20,7 +20,7 @@ for (let vertexId in clout.vertexes) {
 // Run plugins
 clout.callAll('kubernetes.plugins.resources.pre-get', 'plugin');
 
-let valueInformation = traversal.getValueInformation();
+let getValueType = traversal.getValueType();
 
 traversal.coerce();
 
@@ -194,7 +194,7 @@ function deleteValue(object, path) {
 }
 
 function getInformation(pathPrefix, type, fieldName, name) {
-	let information = valueInformation[puccini.sprintf('%s.%s.%s', pathPrefix, type, fieldName)];
+	let information = getValueType[puccini.sprintf('%s.%s.%s', pathPrefix, type, fieldName)];
 	if (information && information.definition && information.definition.metadata)
 		return information.definition.metadata[name];
 	return undefined;

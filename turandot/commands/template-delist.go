@@ -13,7 +13,7 @@ func init() {
 
 var templateDelistCommand = &cobra.Command{
 	Use:   "delist [[SERVICE TEMPLATE NAME]]",
-	Short: "Delist a service template from a registry",
+	Short: "Delist a service template from a registry (or all service templates)",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {

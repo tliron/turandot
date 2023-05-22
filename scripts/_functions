@@ -23,9 +23,11 @@ function copy_function () {
 # git
 
 function git_version () {
-	VERSION=$(git -C "$ROOT" describe --tags --always)
-	REVISION=$(git -C "$ROOT" rev-parse HEAD)
+	VERSION=$(git -C "$ROOT" describe --tags --always 2> /dev/null || echo '')
+	SHORT_VERSION=$(git -C "$ROOT" describe --tags --always --abbrev=0 2> /dev/null || echo '')
+	REVISION=$(git -C "$ROOT" rev-parse HEAD 2> /dev/null || echo '')
 	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S %Z")
+	GO_VERSION=$(go version | { read _ _ v _; echo ${v#go}; })
 }
 
 function github_version () {

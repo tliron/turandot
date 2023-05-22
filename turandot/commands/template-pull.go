@@ -14,7 +14,7 @@ func init() {
 
 var templatePullCommand = &cobra.Command{
 	Use:   "pull [SERVICE TEMPLATE NAME]",
-	Short: "Pull a service template from as a CSAR a registry to stdout",
+	Short: "Pull a service template as a CSAR from a registry to stdout",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceTemplateName := args[0]

@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/tliron/kutil/ard"
-	"github.com/tliron/kutil/format"
-	urlpkg "github.com/tliron/kutil/url"
+	"github.com/tliron/exturl"
+	"github.com/tliron/go-ard"
+	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 )
 
-func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs map[string]string, cloutPath string, urlContext *urlpkg.Context) (string, error) {
+func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs map[string]string, cloutPath string, urlContext *exturl.Context) (string, error) {
 	self.Log.Infof("compiling TOSCA service template: %s", serviceTemplateURL)
 	self.Log.Infof("inputs: %s", inputs)
 
@@ -20,7 +20,7 @@ func (self *Controller) CompileServiceTemplate(serviceTemplateURL string, inputs
 		}
 	}
 
-	if file, err := format.OpenFileForWrite(cloutPath); err == nil {
+	if file, err := transcribe.OpenFileForWrite(cloutPath); err == nil {
 		defer file.Close()
 		if err := CompileTOSCA(serviceTemplateURL, inputs_, file, urlContext); err == nil {
 			return util.GetFileHash(cloutPath)

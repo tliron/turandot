@@ -6,12 +6,13 @@ import (
 )
 
 var clusterRole string
+var sourceRegistry string
 
 func init() {
 	operatorCommand.AddCommand(operatorInstallCommand)
 	operatorInstallCommand.Flags().StringVarP(&site, "site", "s", "default", "site name")
 	operatorInstallCommand.Flags().BoolVarP(&clusterMode, "cluster", "c", false, "cluster mode")
-	operatorInstallCommand.Flags().StringVarP(&clusterRole, "role", "e", "", "cluster role")
+	operatorInstallCommand.Flags().StringVarP(&clusterRole, "role", "e", "cluster-admin", "cluster role")
 	operatorInstallCommand.Flags().StringVarP(&sourceRegistry, "registry", "g", "docker.io", "source registry host (use special value \"internal\" to discover internally deployed registry)")
 	operatorInstallCommand.Flags().BoolVarP(&wait, "wait", "w", false, "wait for installation to succeed")
 }

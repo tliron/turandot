@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/tliron/kutil/ard"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/util"
 	"gopkg.in/yaml.v3"
 )
@@ -25,17 +25,17 @@ func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvis
 		SubstitutionInputs: make(map[string]any),
 	}
 	var ok bool
-	if self.Substitutable, ok = properties.Get("substitutable").AllowNil().Boolean(); !ok {
+	if self.Substitutable, ok = properties.Get("substitutable").NilMeansZero().Boolean(); !ok {
 		return nil, false
 	}
-	if self.Instantiable, ok = properties.Get("instantiable").AllowNil().Boolean(); !ok {
+	if self.Instantiable, ok = properties.Get("instantiable").NilMeansZero().Boolean(); !ok {
 		return nil, false
 	}
-	if self.Virtualizable, ok = properties.Get("virtualizable").AllowNil().Boolean(); !ok {
+	if self.Virtualizable, ok = properties.Get("virtualizable").NilMeansZero().Boolean(); !ok {
 		return nil, false
 	}
 	if sites := properties.Get("sites"); sites != ard.NoNode {
-		if sites_, ok := sites.AllowNil().List(); ok {
+		if sites_, ok := sites.NilMeansZero().List(); ok {
 			for _, site := range sites_ {
 				if site_, ok := site.(string); ok {
 					self.Sites = append(self.Sites, site_)
@@ -48,7 +48,7 @@ func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvis
 		}
 	}
 	if substitutionInputs := properties.Get("substitutionInputs"); substitutionInputs != ard.NoNode {
-		if substitutionInputs_, ok := substitutionInputs.AllowNil().Map(); ok {
+		if substitutionInputs_, ok := substitutionInputs.NilMeansZero().Map(); ok {
 			for name, input := range substitutionInputs_ {
 				if name_, ok := name.(string); ok {
 					self.SubstitutionInputs[name_] = input
@@ -79,7 +79,7 @@ func DecodeOrchestrationPolicies(code string) (OrchestrationPolicies, bool) {
 				for _, policy := range nodePolicies_ {
 					policy_ := ard.NewNode(policy)
 					if type_, ok := policy_.Get("type").String(); ok {
-						if properties, ok := policy_.Get("properties").AllowNil().Map(); ok {
+						if properties, ok := policy_.Get("properties").NilMeansZero().Map(); ok {
 							switch type_ {
 							case "provisioning":
 								if policy__, ok := ParseOrchestrationProvisioningPolicy(properties); ok {

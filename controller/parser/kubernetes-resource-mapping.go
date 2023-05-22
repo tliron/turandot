@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/tliron/kutil/format"
 	"github.com/tliron/kutil/kubernetes"
+	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -69,7 +69,7 @@ func (self KubernetesResourceMappings) Add(vertexId string, capability string, a
 func (self KubernetesResourceMappings) JSON() map[string]string {
 	map_ := make(map[string]string)
 	for vertexId, list := range self {
-		if value, err := format.EncodeJSON(list, ""); err == nil {
+		if value, err := transcribe.EncodeJSON(list, ""); err == nil {
 			map_[vertexId] = value
 		}
 	}

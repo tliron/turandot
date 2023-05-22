@@ -2,11 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/tliron/kutil/ard"
-	formatpkg "github.com/tliron/kutil/format"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/terminal"
+	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
@@ -74,6 +75,6 @@ func ListServices() {
 		for index, service := range services.Items {
 			list[index] = resources.ServiceToARD(&service)
 		}
-		formatpkg.Print(list, format, terminal.Stdout, strict, pretty)
+		transcribe.Print(list, format, os.Stdout, strict, pretty)
 	}
 }

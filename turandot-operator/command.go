@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/tliron/commonlog"
 	cobrautil "github.com/tliron/kutil/cobra"
-	"github.com/tliron/kutil/logging"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
 	"k8s.io/klog/v2"
@@ -43,7 +43,7 @@ func init() {
 	command.Flags().BoolVar(&version, "version", false, "print version")
 	command.Flags().StringVar(&site, "site", "default", "site name")
 	command.Flags().BoolVar(&clusterMode, "cluster", false, "cluster mode")
-	command.Flags().StringVar(&clusterRole, "role", "", "cluster role")
+	command.Flags().StringVar(&clusterRole, "role", "cluster-admin", "cluster role")
 	command.Flags().StringVar(&namespace, "namespace", "", "namespace (overrides context namespace in Kubernetes configuration)")
 	command.Flags().UintVar(&concurrency, "concurrency", 1, "number of concurrent workers per processor")
 	command.Flags().DurationVar(&resyncPeriod, "resync", time.Second*30, "informer resync period")
@@ -57,14 +57,17 @@ var command = &cobra.Command{
 	Use:   toolName,
 	Short: "Start the Turandot operator",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		err := terminal.ProcessColorizeFlag(colorize)
+		cleanup, err := terminal.ProcessColorizeFlag(colorize)
 		util.FailOnError(err)
-		if logTo == "" {
-			logging.Configure(verbose, nil)
-		} else {
-			logging.Configure(verbose, &logTo)
+		if cleanup != nil {
+			util.OnExitError(cleanup)
 		}
-		if writer := logging.GetWriter(); writer != nil {
+		if logTo == "" {
+			commonlog.Configure(verbose, nil)
+		} else {
+			commonlog.Configure(verbose, &logTo)
+		}
+		if writer := commonlog.GetWriter(); writer != nil {
 			klog.SetOutput(writer)
 		}
 	},

@@ -243,7 +243,7 @@ data_types:
   BridgeCNIConfig:
     metadata:
       specification.url: https://www.cni.dev/plugins/current/main/bridge/
-      puccini.information:turandot.format: json
+      puccini.data-type:turandot.format: json
     derived_from: CNIPluginConfig
     properties:
       type:

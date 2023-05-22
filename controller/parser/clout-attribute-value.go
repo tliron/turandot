@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/tliron/kutil/format"
+	"github.com/tliron/kutil/transcribe"
 )
 
 //
@@ -41,7 +41,7 @@ func (self CloutAttributeValues) Set(vertexId string, capabilityName string, att
 func (self CloutAttributeValues) JSON() map[string]string {
 	map_ := make(map[string]string)
 	for vertexId, list := range self {
-		if value, err := format.EncodeJSON(list, ""); err == nil {
+		if value, err := transcribe.EncodeJSON(list, ""); err == nil {
 			map_[vertexId] = value
 		}
 	}

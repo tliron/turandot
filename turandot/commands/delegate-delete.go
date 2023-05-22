@@ -12,7 +12,7 @@ func init() {
 
 var delegateDeleteCommand = &cobra.Command{
 	Use:   "delete [[DELEGATE NAME]]",
-	Short: "Delete a delegate",
+	Short: "Delete a delegate (or all delegates)",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {

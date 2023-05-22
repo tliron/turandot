@@ -3,11 +3,11 @@ package main
 import (
 	contextpkg "context"
 
-	"github.com/tliron/kutil/logging"
+	"github.com/tliron/commonlog"
 )
 
 const toolName = "turandot-operator"
 
 var context = contextpkg.TODO()
 
-var log = logging.GetLogger(toolName)
+var log = commonlog.GetLogger(toolName)

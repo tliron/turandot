@@ -32,11 +32,11 @@ appropriate).
 Property Metadata
 -----------------
 
-`puccini.information:turandot.ignore`: When "true" (a string) will *not* export the property to the
+`puccini.data-type:turandot.ignore`: When "true" (a string) will *not* export the property to the
 Kubernetes resource. 
 
 Attribute Metadata
 ------------------
 
-`puccini.information:turandot.mapping`: The value is the path within the Kubernetes resource from which to
+`puccini.data-type:turandot.mapping`: The value is the path within the Kubernetes resource from which to
 map the attribute value. Note that both "status." and "spec." can be used.
