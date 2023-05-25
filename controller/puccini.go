@@ -1,6 +1,7 @@
 package controller
 
 import (
+	contextpkg "context"
 	"errors"
 	"fmt"
 	"io"
@@ -21,10 +22,10 @@ var pucciniLog = commonlog.GetLogger("turandot.puccini")
 
 var parserContext = parser.NewContext()
 
-func CompileTOSCA(url string, inputs map[string]ard.Value, writer io.Writer, urlContext *exturl.Context) error {
-	if url_, err := exturl.NewURL(url, urlContext); err == nil {
+func CompileTOSCA(context contextpkg.Context, url string, inputs map[string]ard.Value, writer io.Writer, urlContext *exturl.Context) error {
+	if url_, err := urlContext.NewURL(url); err == nil {
 		// TODO: origins
-		if _, serviceTemplate, problems, err := parserContext.Parse(url_, nil, terminal.NewStylist(false), nil, inputs); err == nil {
+		if _, serviceTemplate, problems, err := parserContext.Parse(context, url_, nil, terminal.NewStylist(false), nil, inputs); err == nil {
 			if problems.Empty() {
 				if clout, err := serviceTemplate.Compile(); err == nil {
 					return WriteClout(clout, writer)

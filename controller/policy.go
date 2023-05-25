@@ -1,12 +1,14 @@
 package controller
 
 import (
+	contextpkg "context"
+
 	"github.com/tliron/exturl"
 	"github.com/tliron/turandot/controller/parser"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) processPolicies(policies parser.OrchestrationPolicies, service *resources.Service, urlContext *exturl.Context) error {
+func (self *Controller) processPolicies(context contextpkg.Context, policies parser.OrchestrationPolicies, service *resources.Service, urlContext *exturl.Context) error {
 	for nodeTemplateName, nodePolicies := range policies {
 		self.Log.Infof("processing policies for node template %s", nodeTemplateName)
 		for _, policy := range nodePolicies {
@@ -22,7 +24,7 @@ func (self *Controller) processPolicies(policies parser.OrchestrationPolicies, s
 				// Substitutions
 				if policy_.Substitutable {
 					for _, site := range policy_.Sites {
-						if err := self.Substitute(service.Namespace, nodeTemplateName, policy_.SubstitutionInputs, mode, site, urlContext); err != nil {
+						if err := self.Substitute(context, service.Namespace, nodeTemplateName, policy_.SubstitutionInputs, mode, site, urlContext); err != nil {
 							return err
 						}
 					}

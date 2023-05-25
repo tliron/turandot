@@ -1,11 +1,13 @@
 package controller
 
 import (
+	contextpkg "context"
+
 	"github.com/tliron/exturl"
 	reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) Substitute(namespace string, nodeTemplateName string, inputs map[string]any, mode string, site string, urlContext *exturl.Context) error {
+func (self *Controller) Substitute(context contextpkg.Context, namespace string, nodeTemplateName string, inputs map[string]any, mode string, site string, urlContext *exturl.Context) error {
 	// hacky ;)
 	registryName := "default"
 	var serviceTemplateName string
@@ -46,8 +48,8 @@ func (self *Controller) Substitute(namespace string, nodeTemplateName string, in
 			}
 
 			if url, err := remoteClient.GetRegistryServiceTemplateURL(remoteRegistry, serviceTemplateName); err == nil {
-				if url_, err := exturl.NewURL(url, urlContext); err == nil {
-					if _, err := remoteClient.CreateServiceFromContent(namespace, serviceName, remoteRegistry, url_, inputs, mode); err != nil {
+				if url_, err := urlContext.NewURL(url); err == nil {
+					if _, err := remoteClient.CreateServiceFromContent(context, namespace, serviceName, remoteRegistry, url_, inputs, mode); err != nil {
 						return err
 					}
 				} else {

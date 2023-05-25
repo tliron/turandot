@@ -1,6 +1,7 @@
 package controller
 
 import (
+	contextpkg "context"
 	"fmt"
 
 	"github.com/tliron/exturl"
@@ -8,7 +9,7 @@ import (
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
 
-func (self *Controller) publishArtifactsToRegistry(artifacts parser.KubernetesArtifacts, service *resources.Service, urlContext *exturl.Context) (map[string]string, error) {
+func (self *Controller) publishArtifactsToRegistry(context contextpkg.Context, artifacts parser.KubernetesArtifacts, service *resources.Service, urlContext *exturl.Context) (map[string]string, error) {
 	if len(artifacts) > 0 {
 		artifactMappings := make(map[string]string)
 
@@ -19,9 +20,9 @@ func (self *Controller) publishArtifactsToRegistry(artifacts parser.KubernetesAr
 					imageName := fmt.Sprintf("%s/%s", service.Namespace, artifact.Name)
 
 					if directClient, err := self.Client.Reposure.DirectClient(registry); err == nil {
-						if url, err := exturl.NewURL(artifact.SourcePath, urlContext); err == nil {
+						if url, err := urlContext.NewURL(artifact.SourcePath); err == nil {
 							self.Log.Infof("publishing image %q at %q on %q", imageName, url.String(), directClient.Host)
-							if name, err := directClient.PushGzippedTarballFromURL(url, imageName); err == nil {
+							if name, err := directClient.PushGzippedTarballFromURL(context, url, imageName); err == nil {
 								self.Log.Infof("published image %q at %q on %q", imageName, url.String(), directClient.Host)
 								artifactMappings[artifact.SourcePath] = name
 							} else {

@@ -1,6 +1,8 @@
 package commands
 
 import (
+	contextpkg "context"
+
 	"github.com/spf13/cobra"
 	"github.com/tliron/exturl"
 	"github.com/tliron/kutil/util"
@@ -19,11 +21,11 @@ var templateRegisterCommand = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceTemplateName := args[0]
-		RegisterServiceTemplate(serviceTemplateName)
+		RegisterServiceTemplate(contextpkg.TODO(), serviceTemplateName)
 	},
 }
 
-func RegisterServiceTemplate(serviceTemplateName string) {
+func RegisterServiceTemplate(context contextpkg.Context, serviceTemplateName string) {
 	urlContext := exturl.NewContext()
 	defer urlContext.Release()
 
@@ -32,9 +34,9 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 			registerFailOnlyOneOf()
 		}
 
-		url, err := exturl.NewValidFileURL(filePath, urlContext)
+		url, err := urlContext.NewValidFileURL(filePath)
 		util.FailOnError(err)
-		registerServiceTemplate(serviceTemplateName, url)
+		registerServiceTemplate(context, serviceTemplateName, url)
 	} else if directoryPath != "" {
 		if filePath != "" {
 			registerFailOnlyOneOf()
@@ -42,20 +44,20 @@ func RegisterServiceTemplate(serviceTemplateName string) {
 
 		// TODO pack directory into CSAR
 	} else {
-		url, err := exturl.ReadToInternalURLFromStdin("yaml", urlContext)
+		url, err := urlContext.ReadToInternalURLFromStdin(context, "yaml")
 		util.FailOnError(err)
-		registerServiceTemplate(serviceTemplateName, url)
+		registerServiceTemplate(context, serviceTemplateName, url)
 	}
 }
 
-func registerServiceTemplate(serviceTemplateName string, url exturl.URL) {
+func registerServiceTemplate(context contextpkg.Context, serviceTemplateName string, url exturl.URL) {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
 	spooler := turandot.Reposure.SurrogateSpoolerClient(registry_)
 
 	imageName := turandot.RegistryImageNameForServiceTemplateName(serviceTemplateName)
-	err = spooler.PushTarballFromURL(imageName, url)
+	err = spooler.PushTarballFromURL(context, imageName, url)
 	util.FailOnError(err)
 }
 

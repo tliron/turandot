@@ -116,7 +116,7 @@ func NewController(context contextpkg.Context, toolName string, site string, clu
 			return self.Client.GetService(namespace, name)
 		},
 		func(object any) (bool, error) {
-			return self.processService(object.(*turandotresources.Service))
+			return self.processService(context, object.(*turandotresources.Service))
 		},
 	))
 

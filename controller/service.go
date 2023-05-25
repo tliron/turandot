@@ -1,6 +1,7 @@
 package controller
 
 import (
+	contextpkg "context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -137,7 +138,7 @@ func (self *Controller) updateServiceStatus(service *resources.Service) (*resour
 	}
 }
 
-func (self *Controller) processService(service *resources.Service) (bool, error) {
+func (self *Controller) processService(context contextpkg.Context, service *resources.Service) (bool, error) {
 	// The "Instantiating" status is used as a processing lock
 	if service.Status.InstantiationState == resources.ServiceInstantiating {
 		return true, nil
@@ -145,20 +146,20 @@ func (self *Controller) processService(service *resources.Service) (bool, error)
 
 	if instantiated, err := self.isServiceInstanceOfCurrentClout(service); err == nil {
 		if instantiated {
-			if err := self.updateService(service); err == nil {
+			if err := self.updateService(context, service); err == nil {
 				return true, nil
 			} else {
 				return false, err
 			}
 		} else {
-			return self.instantiateService(service)
+			return self.instantiateService(context, service)
 		}
 	} else {
 		return false, err
 	}
 }
 
-func (self *Controller) instantiateService(service *resources.Service) (bool, error) {
+func (self *Controller) instantiateService(context contextpkg.Context, service *resources.Service) (bool, error) {
 	self.Log.Infof("instantiating service: %s/%s", service.Namespace, service.Name)
 
 	// The "Instantiating" status is used as a processing lock
@@ -188,7 +189,7 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 
 	// Compile
 	var cloutHash string
-	if cloutHash, err = self.CompileServiceTemplate(serviceTemplateUrl, service.Spec.Inputs, cloutPath, urlContext); err == nil {
+	if cloutHash, err = self.CompileServiceTemplate(context, serviceTemplateUrl, service.Spec.Inputs, cloutPath, urlContext); err == nil {
 		lock := flock.New(cloutPath)
 		if err := lock.Lock(); err == nil {
 			defer lock.Unlock()
@@ -209,7 +210,7 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 	}
 
 	// Instantiate
-	if service, err = self.instantiateClout(service, urlContext); err == nil {
+	if service, err = self.instantiateClout(context, service, urlContext); err == nil {
 		self.EventInstantiated(service)
 		_, err := self.UpdateServiceInstantiationState(service, resources.ServiceInstantiated)
 		return true, err
@@ -220,7 +221,7 @@ func (self *Controller) instantiateService(service *resources.Service) (bool, er
 	}
 }
 
-func (self *Controller) updateService(service *resources.Service) error {
+func (self *Controller) updateService(context contextpkg.Context, service *resources.Service) error {
 	lock := flock.New(service.Status.CloutPath)
 	if err := lock.Lock(); err == nil {
 		defer lock.Unlock()
@@ -237,7 +238,7 @@ func (self *Controller) updateService(service *resources.Service) error {
 		return err
 	}
 
-	if _, err := self.updateClout(service, urlContext); err == nil {
+	if _, err := self.updateClout(context, service, urlContext); err == nil {
 		return nil
 	} else {
 		self.EventCloutUpdateError(service, err)

@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"io"
+	contextpkg "context"
 
 	"github.com/spf13/cobra"
 	"github.com/tliron/exturl"
@@ -35,15 +35,15 @@ var serviceDeployCommand = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceName := args[0]
-		DeployService(serviceName)
+		DeployService(contextpkg.TODO(), serviceName)
 	},
 }
 
-func DeployService(serviceName string) {
+func DeployService(context contextpkg.Context, serviceName string) {
 	// TODO: in cluster mode we must specify the namespace
 	namespace := ""
 
-	ParseInputs()
+	ParseInputs(context)
 
 	urlContext := exturl.NewContext()
 	defer urlContext.Release()
@@ -63,9 +63,9 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		url_, err := exturl.NewValidFileURL(filePath, urlContext)
+		url_, err := urlContext.NewValidFileURL(filePath)
 		util.FailOnError(err)
-		createServiceFromContent(serviceName, url_)
+		createServiceFromContent(context, serviceName, url_)
 	} else if directoryPath != "" {
 		if (template != "") || (filePath != "") || (url != "") {
 			deployFailOnlyOneOf()
@@ -77,37 +77,36 @@ func DeployService(serviceName string) {
 			deployFailOnlyOneOf()
 		}
 
-		_, err := NewClient().Turandot().CreateServiceFromURL(namespace, serviceName, url, inputValues, mode, urlContext)
+		_, err := NewClient().Turandot().CreateServiceFromURL(context, namespace, serviceName, url, inputValues, mode, urlContext)
 		util.FailOnError(err)
 	} else {
-		url_, err := exturl.ReadToInternalURLFromStdin("yaml", urlContext)
+		url_, err := urlContext.ReadToInternalURLFromStdin(context, "yaml")
 		util.FailOnError(err)
-		createServiceFromContent(serviceName, url_)
+		createServiceFromContent(context, serviceName, url_)
 	}
 }
 
-func createServiceFromContent(serviceName string, url exturl.URL) {
+func createServiceFromContent(context contextpkg.Context, serviceName string, url exturl.URL) {
 	turandot := NewClient().Turandot()
 	registry_, err := turandot.Reposure.RegistryClient().Get(namespace, registry)
 	util.FailOnError(err)
-	_, err = turandot.CreateServiceFromContent(namespace, serviceName, registry_, url, inputValues, mode)
+	_, err = turandot.CreateServiceFromContent(context, namespace, serviceName, registry_, url, inputValues, mode)
 	util.FailOnError(err)
 }
 
-func ParseInputs() {
+func ParseInputs(context contextpkg.Context) {
 	if inputsUrl != "" {
 		log.Infof("load inputs from %q", inputsUrl)
 
 		urlContext := exturl.NewContext()
 		defer urlContext.Release()
 
-		url, err := exturl.NewValidURL(inputsUrl, nil, urlContext)
+		url, err := urlContext.NewValidURL(context, inputsUrl, nil)
 		util.FailOnError(err)
-		reader, err := url.Open()
+		reader, err := url.Open(context)
 		util.FailOnError(err)
-		if closer, ok := reader.(io.Closer); ok {
-			defer closer.Close()
-		}
+		reader = util.NewContextualReadCloser(context, reader)
+		defer reader.Close()
 		data, err := yamlkeys.DecodeAll(reader)
 		util.FailOnError(err)
 		for _, data_ := range data {

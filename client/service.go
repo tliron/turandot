@@ -1,6 +1,7 @@
 package client
 
 import (
+	contextpkg "context"
 	"fmt"
 	"strings"
 
@@ -124,8 +125,8 @@ func (self *Client) CreateServiceIndirect(namespace string, serviceName string, 
 	return self.createService(namespace, serviceName, service)
 }
 
-func (self *Client) CreateServiceFromURL(namespace string, serviceName string, url string, inputs map[string]any, mode string, urlContext *exturl.Context) (*resources.Service, error) {
-	if url_, err := exturl.NewURL(url, urlContext); err == nil {
+func (self *Client) CreateServiceFromURL(context contextpkg.Context, namespace string, serviceName string, url string, inputs map[string]any, mode string, urlContext *exturl.Context) (*resources.Service, error) {
+	if url_, err := urlContext.NewURL(url); err == nil {
 		return self.CreateServiceDirect(namespace, serviceName, url_, "", "", inputs, mode)
 	} else {
 		return nil, err
@@ -137,11 +138,11 @@ func (self *Client) CreateServiceFromTemplate(namespace string, serviceName stri
 	return self.CreateServiceIndirect(namespace, serviceName, registry.Name, imageName, inputs, mode)
 }
 
-func (self *Client) CreateServiceFromContent(namespace string, serviceName string, registry *reposure.Registry, url exturl.URL, inputs map[string]any, mode string) (*resources.Service, error) {
+func (self *Client) CreateServiceFromContent(context contextpkg.Context, namespace string, serviceName string, registry *reposure.Registry, url exturl.URL, inputs map[string]any, mode string) (*resources.Service, error) {
 	spooler := self.Reposure.SurrogateSpoolerClient(registry)
 	serviceTemplateName := fmt.Sprintf("%s-%s", serviceName, uuid.New().String())
 	imageName := self.RegistryImageNameForServiceTemplateName(serviceTemplateName)
-	if err := spooler.PushTarballFromURL(imageName, url); err == nil {
+	if err := spooler.PushTarballFromURL(context, imageName, url); err == nil {
 		return self.CreateServiceIndirect(namespace, serviceName, registry.Name, imageName, inputs, mode)
 	} else {
 		return nil, err
