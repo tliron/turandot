@@ -4,11 +4,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
+	turandotpuccinicloudv1alpha1 "github.com/tliron/turandot/apis/applyconfiguration/turandot.puccini.cloud/v1alpha1"
 	v1alpha1 "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -20,9 +22,9 @@ type FakeServices struct {
 	ns   string
 }
 
-var servicesResource = schema.GroupVersionResource{Group: "turandot.puccini.cloud", Version: "v1alpha1", Resource: "services"}
+var servicesResource = v1alpha1.SchemeGroupVersion.WithResource("services")
 
-var servicesKind = schema.GroupVersionKind{Group: "turandot.puccini.cloud", Version: "v1alpha1", Kind: "Service"}
+var servicesKind = v1alpha1.SchemeGroupVersion.WithKind("Service")
 
 // Get takes name of the service, and returns the corresponding service object, and an error if there is any.
 func (c *FakeServices) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.Service, err error) {
@@ -118,6 +120,51 @@ func (c *FakeServices) DeleteCollection(ctx context.Context, opts v1.DeleteOptio
 func (c *FakeServices) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.Service, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(servicesResource, c.ns, name, pt, data, subresources...), &v1alpha1.Service{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.Service), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied service.
+func (c *FakeServices) Apply(ctx context.Context, service *turandotpuccinicloudv1alpha1.ServiceApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.Service, err error) {
+	if service == nil {
+		return nil, fmt.Errorf("service provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(service)
+	if err != nil {
+		return nil, err
+	}
+	name := service.Name
+	if name == nil {
+		return nil, fmt.Errorf("service.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(servicesResource, c.ns, *name, types.ApplyPatchType, data), &v1alpha1.Service{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.Service), err
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *FakeServices) ApplyStatus(ctx context.Context, service *turandotpuccinicloudv1alpha1.ServiceApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.Service, err error) {
+	if service == nil {
+		return nil, fmt.Errorf("service provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(service)
+	if err != nil {
+		return nil, err
+	}
+	name := service.Name
+	if name == nil {
+		return nil, fmt.Errorf("service.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(servicesResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1alpha1.Service{})
 
 	if obj == nil {
 		return nil, err

@@ -4,8 +4,11 @@ package v1alpha1
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 	"time"
 
+	turandotpuccinicloudv1alpha1 "github.com/tliron/turandot/apis/applyconfiguration/turandot.puccini.cloud/v1alpha1"
 	scheme "github.com/tliron/turandot/apis/clientset/versioned/scheme"
 	v1alpha1 "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,6 +34,8 @@ type ServiceInterface interface {
 	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.ServiceList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.Service, err error)
+	Apply(ctx context.Context, service *turandotpuccinicloudv1alpha1.ServiceApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.Service, err error)
+	ApplyStatus(ctx context.Context, service *turandotpuccinicloudv1alpha1.ServiceApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.Service, err error)
 	ServiceExpansion
 }
 
@@ -172,6 +177,62 @@ func (c *services) Patch(ctx context.Context, name string, pt types.PatchType, d
 		Name(name).
 		SubResource(subresources...).
 		VersionedParams(&opts, scheme.ParameterCodec).
+		Body(data).
+		Do(ctx).
+		Into(result)
+	return
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied service.
+func (c *services) Apply(ctx context.Context, service *turandotpuccinicloudv1alpha1.ServiceApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.Service, err error) {
+	if service == nil {
+		return nil, fmt.Errorf("service provided to Apply must not be nil")
+	}
+	patchOpts := opts.ToPatchOptions()
+	data, err := json.Marshal(service)
+	if err != nil {
+		return nil, err
+	}
+	name := service.Name
+	if name == nil {
+		return nil, fmt.Errorf("service.Name must be provided to Apply")
+	}
+	result = &v1alpha1.Service{}
+	err = c.client.Patch(types.ApplyPatchType).
+		Namespace(c.ns).
+		Resource("services").
+		Name(*name).
+		VersionedParams(&patchOpts, scheme.ParameterCodec).
+		Body(data).
+		Do(ctx).
+		Into(result)
+	return
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *services) ApplyStatus(ctx context.Context, service *turandotpuccinicloudv1alpha1.ServiceApplyConfiguration, opts v1.ApplyOptions) (result *v1alpha1.Service, err error) {
+	if service == nil {
+		return nil, fmt.Errorf("service provided to Apply must not be nil")
+	}
+	patchOpts := opts.ToPatchOptions()
+	data, err := json.Marshal(service)
+	if err != nil {
+		return nil, err
+	}
+
+	name := service.Name
+	if name == nil {
+		return nil, fmt.Errorf("service.Name must be provided to Apply")
+	}
+
+	result = &v1alpha1.Service{}
+	err = c.client.Patch(types.ApplyPatchType).
+		Namespace(c.ns).
+		Resource("services").
+		Name(*name).
+		SubResource("status").
+		VersionedParams(&patchOpts, scheme.ParameterCodec).
 		Body(data).
 		Do(ctx).
 		Into(result)

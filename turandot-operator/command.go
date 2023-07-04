@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tliron/commonlog"
 	cobrautil "github.com/tliron/kutil/cobra"
-	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
 	"k8s.io/klog/v2"
 )
@@ -57,16 +56,8 @@ var command = &cobra.Command{
 	Use:   toolName,
 	Short: "Start the Turandot operator",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		cleanup, err := terminal.ProcessColorizeFlag(colorize)
-		util.FailOnError(err)
-		if cleanup != nil {
-			util.OnExitError(cleanup)
-		}
-		if logTo == "" {
-			commonlog.Configure(verbose, nil)
-		} else {
-			commonlog.Configure(verbose, &logTo)
-		}
+		util.InitializeColorization(colorize)
+		commonlog.Initialize(verbose, logTo)
 		if writer := commonlog.GetWriter(); writer != nil {
 			klog.SetOutput(writer)
 		}
