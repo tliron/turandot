@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/tliron/exturl"
+	"github.com/tliron/go-transcribe"
 	"github.com/tliron/kutil/kubernetes"
-	"github.com/tliron/kutil/transcribe"
 	reposure "github.com/tliron/reposure/resources/reposure.puccini.cloud/v1alpha1"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -269,7 +269,7 @@ func encodeServiceInputs(inputs map[string]any) (map[string]string, error) {
 		inputs_ = make(map[string]string)
 		for key, input := range inputs {
 			var err error
-			if inputs_[key], err = transcribe.EncodeYAML(input, " ", false); err == nil {
+			if inputs_[key], err = (&transcribe.Transcriber{Indent: "  "}).StringifyYAML(input); err == nil {
 				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
 			} else {
 				return nil, err

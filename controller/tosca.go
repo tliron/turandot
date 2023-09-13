@@ -5,7 +5,7 @@ import (
 
 	"github.com/tliron/exturl"
 	"github.com/tliron/go-ard"
-	"github.com/tliron/kutil/transcribe"
+	"github.com/tliron/go-transcribe"
 	"github.com/tliron/kutil/util"
 )
 
@@ -17,7 +17,7 @@ func (self *Controller) CompileServiceTemplate(context contextpkg.Context, servi
 	inputs_ := make(map[string]ard.Value)
 	for key, input := range inputs {
 		var err error
-		if inputs_[key], _, err = ard.DecodeYAML(input, false); err != nil {
+		if inputs_[key], _, err = ard.DecodeYAML(util.StringToBytes(input), false); err != nil {
 			return "", err
 		}
 	}

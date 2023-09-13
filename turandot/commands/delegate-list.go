@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/terminal"
-	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 )
 
@@ -54,6 +53,6 @@ func ListDelegates() {
 			map_["Namespace"] = ""
 			list[index] = map_
 		}
-		transcribe.Print(list, format, os.Stdout, strict, pretty)
+		Transcriber().Print(list, os.Stdout, format)
 	}
 }

@@ -122,7 +122,7 @@ func ParseInputs(context contextpkg.Context) {
 
 	if inputs != nil {
 		for name, input := range inputs {
-			input_, _, err := ard.DecodeYAML(input, false)
+			input_, _, err := ard.DecodeYAML(util.StringToBytes(input), false)
 			util.FailOnError(err)
 			inputValues[name] = input_
 		}

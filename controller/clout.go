@@ -9,8 +9,8 @@ import (
 
 	"github.com/tliron/exturl"
 	"github.com/tliron/go-ard"
+	"github.com/tliron/go-transcribe"
 	problemspkg "github.com/tliron/kutil/problems"
-	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 	cloutpkg "github.com/tliron/puccini/clout"
 	"github.com/tliron/puccini/clout/js"
@@ -26,14 +26,22 @@ func (self *Controller) ReadClout(context contextpkg.Context, cloutPath string, 
 			if clout, err := ReadClout(reader, urlContext); err == nil {
 				problems := &problemspkg.Problems{}
 
+				execContext := js.ExecContext{
+					Clout:      clout,
+					Problems:   problems,
+					URLContext: urlContext,
+					Format:     "yaml",
+					History:    true,
+				}
+
 				if resolve {
-					if js.Resolve(clout, problems, urlContext, false, "yaml", false, true); !problems.Empty() {
+					if execContext.Resolve(); !problems.Empty() {
 						return nil, fmt.Errorf("could not resolve Clout\n%s", problems.ToString(true))
 					}
 				}
 
 				if coerce {
-					if js.Coerce(clout, problems, urlContext, false, "yaml", false, true); !problems.Empty() {
+					if execContext.Coerce(); !problems.Empty() {
 						return nil, fmt.Errorf("could not coerce Clout\n%s", problems.ToString(true))
 					}
 				}
@@ -91,7 +99,7 @@ func (self *Controller) executeCloutGetAll(context contextpkg.Context, service *
 			if values, err := yamlkeys.DecodeAll(strings.NewReader(yaml)); err == nil {
 				list := make([]ard.StringMap, len(values))
 				for index, value := range values {
-					value, _ = ard.NormalizeStringMaps(value)
+					value, _ = ard.ConvertMapsToStringMaps(value)
 					if value_, ok := value.(ard.StringMap); ok {
 						list[index] = value_
 					} else {

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/tliron/go-ard"
+	"github.com/tliron/kutil/util"
 )
 
 //
@@ -259,7 +260,7 @@ func (self *OrchestrationSSHExecution) GetMode() string {
 type OrchestrationExecutions map[string][]OrchestrationExecution
 
 func DecodeOrchestrationExecutions(code string) (OrchestrationExecutions, bool) {
-	if value, _, err := ard.DecodeYAML(code, false); err == nil {
+	if value, _, err := ard.DecodeYAML(util.StringToBytes(code), false); err == nil {
 		if executions, ok := ard.NewNode(value).Get("executions").List(); ok {
 			self := make(OrchestrationExecutions)
 

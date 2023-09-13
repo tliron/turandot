@@ -5,7 +5,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/terminal"
-	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
@@ -33,7 +32,7 @@ func DescribeService(serviceName string) {
 	util.FailOnError(err)
 
 	if format != "" {
-		transcribe.Print(resources.ServiceToARD(service), format, os.Stdout, strict, pretty)
+		Transcriber().Print(resources.ServiceToARD(service), os.Stdout, format)
 	} else {
 		terminal.Printf("%s: %s\n", terminal.DefaultStylist.TypeName("Name"), terminal.DefaultStylist.Value(service.Name))
 		terminal.Printf("%s:\n", terminal.DefaultStylist.TypeName("ServiceTemplate"))

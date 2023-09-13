@@ -3,16 +3,15 @@ package controller
 import (
 	contextpkg "context"
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 
 	"github.com/tliron/commonlog"
 	"github.com/tliron/exturl"
 	"github.com/tliron/go-ard"
-	problemspkg "github.com/tliron/kutil/problems"
+	"github.com/tliron/go-transcribe"
+	"github.com/tliron/kutil/problems"
 	"github.com/tliron/kutil/terminal"
-	"github.com/tliron/kutil/transcribe"
 	cloutpkg "github.com/tliron/puccini/clout"
 	"github.com/tliron/puccini/clout/js"
 	"github.com/tliron/puccini/tosca/parser"
@@ -20,12 +19,19 @@ import (
 
 var pucciniLog = commonlog.GetLogger("turandot.puccini")
 
-var parserContext = parser.NewContext()
+var pucciniParser = parser.NewParser()
 
 func CompileTOSCA(context contextpkg.Context, url string, inputs map[string]ard.Value, writer io.Writer, urlContext *exturl.Context) error {
 	if url_, err := urlContext.NewURL(url); err == nil {
-		// TODO: origins
-		if _, serviceTemplate, problems, err := parserContext.Parse(context, url_, nil, terminal.NewStylist(false), nil, inputs); err == nil {
+		// TODO: bases
+
+		parserContext := pucciniParser.NewContext()
+		parserContext.URL = url_
+		parserContext.Stylist = terminal.NewStylist(false)
+		parserContext.Inputs = inputs
+
+		if serviceTemplate, err := parserContext.Parse(context); err == nil {
+			problems := parserContext.GetProblems()
 			if problems.Empty() {
 				if clout, err := serviceTemplate.Compile(); err == nil {
 					return WriteClout(clout, writer)
@@ -35,8 +41,6 @@ func CompileTOSCA(context contextpkg.Context, url string, inputs map[string]ard.
 			} else {
 				return errors.New(problems.ToString(true))
 			}
-		} else if (problems != nil) && !problems.Empty() {
-			return fmt.Errorf("%s\n%s", err.Error(), problems.ToString(true))
 		} else {
 			return err
 		}
@@ -47,11 +51,17 @@ func CompileTOSCA(context contextpkg.Context, url string, inputs map[string]ard.
 
 func ReadClout(reader io.Reader, urlContext *exturl.Context) (*cloutpkg.Clout, error) {
 	if clout, err := cloutpkg.Read(reader, "yaml"); err == nil {
-		var problems problemspkg.Problems
-		if js.Resolve(clout, &problems, urlContext, false, "yaml", false, false); problems.Empty() {
+		execContext := js.ExecContext{
+			Clout:      clout,
+			Problems:   problems.NewProblems(nil),
+			URLContext: urlContext,
+			Format:     "yaml",
+		}
+
+		if execContext.Resolve(); execContext.Problems.Empty() {
 			return clout, nil
 		} else {
-			return nil, errors.New(problems.ToString(true))
+			return nil, errors.New(execContext.Problems.ToString(true))
 		}
 	} else {
 		return nil, err
@@ -59,11 +69,11 @@ func ReadClout(reader io.Reader, urlContext *exturl.Context) (*cloutpkg.Clout, e
 }
 
 func WriteClout(clout *cloutpkg.Clout, writer io.Writer) error {
-	return transcribe.Write(clout, "yaml", terminal.Indent, false, writer)
+	return (&transcribe.Transcriber{Indent: "  "}).Write(clout, writer, "yaml")
 }
 
 func RequireCloutScriptlet(clout *cloutpkg.Clout, scriptletName string, arguments map[string]string, urlContext *exturl.Context) (string, error) {
-	jsContext := js.NewContext(scriptletName, pucciniLog, arguments, false, "yaml", false, false, "", urlContext)
+	jsContext := js.NewContext(scriptletName, pucciniLog, arguments, false, "yaml", false, false, false, "", urlContext)
 	var builder strings.Builder
 	jsContext.Stdout = &builder
 	if _, err := jsContext.Require(clout, scriptletName, nil); err == nil {

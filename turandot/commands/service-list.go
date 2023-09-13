@@ -3,11 +3,11 @@ package commands
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/spf13/cobra"
 	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/terminal"
-	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 	resources "github.com/tliron/turandot/resources/turandot.puccini.cloud/v1alpha1"
 )
@@ -47,7 +47,7 @@ func ListServices() {
 
 			var inputs string
 			if service.Spec.Inputs != nil {
-				for _, name := range util.SortedMapStringStringKeys(service.Spec.Inputs) {
+				for _, name := range sortedMapStringStringKeys(service.Spec.Inputs) {
 					input := service.Spec.Inputs[name]
 					inputs += fmt.Sprintf("%s: %s\n", name, input)
 				}
@@ -55,7 +55,7 @@ func ListServices() {
 
 			var outputs string
 			if service.Status.Outputs != nil {
-				for _, name := range util.SortedMapStringStringKeys(service.Status.Outputs) {
+				for _, name := range sortedMapStringStringKeys(service.Status.Outputs) {
 					output := service.Status.Outputs[name]
 					outputs += fmt.Sprintf("%s: %s\n", name, output)
 				}
@@ -75,6 +75,15 @@ func ListServices() {
 		for index, service := range services.Items {
 			list[index] = resources.ServiceToARD(&service)
 		}
-		transcribe.Print(list, format, os.Stdout, strict, pretty)
+		Transcriber().Print(list, os.Stdout, format)
 	}
+}
+
+func sortedMapStringStringKeys(map_ map[string]string) []string {
+	keys := make([]string, 0, len(map_))
+	for key := range map_ {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }

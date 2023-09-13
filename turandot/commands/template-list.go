@@ -9,7 +9,6 @@ import (
 	"github.com/tliron/exturl"
 	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/terminal"
-	"github.com/tliron/kutil/transcribe"
 	"github.com/tliron/kutil/util"
 )
 
@@ -77,6 +76,6 @@ func ListServiceTemplates() {
 				list = append(list, map_)
 			}
 		}
-		transcribe.Print(list, format, os.Stdout, strict, pretty)
+		Transcriber().Print(list, os.Stdout, format)
 	}
 }

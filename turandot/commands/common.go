@@ -4,6 +4,7 @@ import (
 	contextpkg "context"
 
 	"github.com/tliron/commonlog"
+	"github.com/tliron/go-transcribe"
 )
 
 const toolName = "turandot"
@@ -22,3 +23,11 @@ var all bool
 var site string
 var wait bool
 var registry string
+
+func Transcriber() *transcribe.Transcriber {
+	return &transcribe.Transcriber{
+		Strict: strict,
+		Pretty: pretty,
+		Base64: base64,
+	}
+}
