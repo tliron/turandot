@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"os"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -53,6 +52,6 @@ func ListDelegates() {
 			map_["Namespace"] = ""
 			list[index] = map_
 		}
-		Transcriber().Print(list, os.Stdout, format)
+		Transcriber().Write(list)
 	}
 }

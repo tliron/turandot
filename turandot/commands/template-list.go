@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"os"
 	"sort"
 	"strings"
 
@@ -76,6 +75,6 @@ func ListServiceTemplates() {
 				list = append(list, map_)
 			}
 		}
-		Transcriber().Print(list, os.Stdout, format)
+		Transcriber().Write(list)
 	}
 }

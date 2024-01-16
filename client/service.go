@@ -269,7 +269,7 @@ func encodeServiceInputs(inputs map[string]any) (map[string]string, error) {
 		inputs_ = make(map[string]string)
 		for key, input := range inputs {
 			var err error
-			if inputs_[key], err = (&transcribe.Transcriber{Indent: "  "}).StringifyYAML(input); err == nil {
+			if inputs_[key], err = transcribe.NewTranscriber().SetIndentSpaces(2).StringifyYAML(input); err == nil {
 				inputs_[key] = strings.TrimRight(inputs_[key], "\n")
 			} else {
 				return nil, err

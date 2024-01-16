@@ -20,7 +20,7 @@ type OrchestrationProvisioningPolicy struct {
 }
 
 func ParseOrchestrationProvisioningPolicy(value ard.Value) (*OrchestrationProvisioningPolicy, bool) {
-	properties := ard.NewNode(value)
+	properties := ard.With(value)
 	self := OrchestrationProvisioningPolicy{
 		SubstitutionInputs: make(map[string]any),
 	}
@@ -77,7 +77,7 @@ func DecodeOrchestrationPolicies(code string) (OrchestrationPolicies, bool) {
 			if nodePolicies_, ok := nodePolicies.(ard.List); ok {
 				var policies []any
 				for _, policy := range nodePolicies_ {
-					policy_ := ard.NewNode(policy)
+					policy_ := ard.With(policy)
 					if type_, ok := policy_.Get("type").String(); ok {
 						if properties, ok := policy_.Get("properties").NilMeansZero().Map(); ok {
 							switch type_ {

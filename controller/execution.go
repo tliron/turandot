@@ -164,7 +164,7 @@ func (self *Controller) processSshExecution(context contextpkg.Context, nodeTemp
 			if url, err := urlContext.NewURL(artifact.SourceURL); err == nil {
 				if reader, err := url.Open(context); err == nil {
 					defer reader.Close()
-					if err := util.CopySSH(execution.Host, execution.Username, execution.Key, reader, artifact.TargetPath, artifact.Permissions); err != nil {
+					if err := util.CopySSH(execution.Host, 22, execution.Username, execution.Key, reader, artifact.TargetPath, artifact.Permissions); err != nil {
 						return service, err
 					}
 				} else {
@@ -180,7 +180,7 @@ func (self *Controller) processSshExecution(context contextpkg.Context, nodeTemp
 		if reader, err := url.Open(context); err == nil {
 			defer reader.Close()
 			self.Log.Infof("executing %q via SSH to %q", execution.Command, execution.Host)
-			if yaml, err := util.ExecSSH(execution.Host, execution.Username, execution.Key, reader, execution.Command...); err == nil {
+			if yaml, err := util.ExecSSH(execution.Host, 22, execution.Username, execution.Key, reader, execution.Command...); err == nil {
 				if yaml != "" {
 					return self.WriteServiceClout(yaml, service)
 				} else {

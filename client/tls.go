@@ -27,7 +27,7 @@ func (self *Client) GetSecretTLSCertPool(namespace string, secretName string, se
 		switch secret.Type {
 		case core.SecretTypeTLS, core.SecretTypeServiceAccountToken:
 			if bytes, ok := secret.Data[secretDataKey]; ok {
-				return util.ParseX509CertPool(bytes)
+				return util.ParseX509CertificatePool(bytes)
 			} else {
 				return nil, fmt.Errorf("no data key %q in %q secret: %s", secretDataKey, secret.Type, secret.Data)
 			}

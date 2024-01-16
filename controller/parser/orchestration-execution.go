@@ -24,7 +24,7 @@ type OrchestrationCloutExecution struct {
 }
 
 func ParseOrchestrationCloutExecution(value ard.Value) (*OrchestrationCloutExecution, bool) {
-	execution := ard.NewNode(value)
+	execution := ard.With(value)
 
 	if mode, ok := execution.Get("mode").String(); ok {
 		if scriptletName, ok := execution.Get("scriptlet").String(); ok {
@@ -71,7 +71,7 @@ type OrchestrationArtifact struct {
 }
 
 func ParseOrchestrationArtifact(value ard.Value) (*OrchestrationArtifact, bool) {
-	artifact := ard.NewNode(value)
+	artifact := ard.With(value)
 	if sourceUrl, ok := artifact.Get("sourceUrl").String(); ok {
 		if targetPath, ok := artifact.Get("targetPath").String(); ok {
 			self := OrchestrationArtifact{
@@ -123,7 +123,7 @@ type OrchestrationContainerExecution struct {
 }
 
 func ParseOrchestrationContainerExecution(value ard.Value) (*OrchestrationContainerExecution, bool) {
-	execution := ard.NewNode(value)
+	execution := ard.With(value)
 
 	if mode, ok := execution.Get("mode").String(); ok {
 		if command, ok := execution.Get("command").List(); ok {
@@ -198,7 +198,7 @@ type OrchestrationSSHExecution struct {
 }
 
 func ParseOrchestrationSSHExecution(value ard.Value) (*OrchestrationSSHExecution, bool) {
-	execution := ard.NewNode(value)
+	execution := ard.With(value)
 
 	if mode, ok := execution.Get("mode").String(); ok {
 		if command, ok := execution.Get("command").List(); ok {
@@ -261,14 +261,14 @@ type OrchestrationExecutions map[string][]OrchestrationExecution
 
 func DecodeOrchestrationExecutions(code string) (OrchestrationExecutions, bool) {
 	if value, _, err := ard.DecodeYAML(util.StringToBytes(code), false); err == nil {
-		if executions, ok := ard.NewNode(value).Get("executions").List(); ok {
+		if executions, ok := ard.With(value).Get("executions").List(); ok {
 			self := make(OrchestrationExecutions)
 
 			for _, execution := range executions {
-				if nodeTemplateName, ok := ard.NewNode(execution).Get("nodeTemplate").String(); ok {
+				if nodeTemplateName, ok := ard.With(execution).Get("nodeTemplate").String(); ok {
 					nodeTemplateExecutions, _ := self[nodeTemplateName]
 
-					if type_, ok := ard.NewNode(execution).Get("type").String(); ok {
+					if type_, ok := ard.With(execution).Get("type").String(); ok {
 						switch type_ {
 						case "clout":
 							if execution_, ok := ParseOrchestrationCloutExecution(execution); ok {

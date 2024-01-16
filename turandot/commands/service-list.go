@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -75,7 +74,7 @@ func ListServices() {
 		for index, service := range services.Items {
 			list[index] = resources.ServiceToARD(&service)
 		}
-		Transcriber().Print(list, os.Stdout, format)
+		Transcriber().Write(list)
 	}
 }
 

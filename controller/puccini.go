@@ -69,14 +69,14 @@ func ReadClout(reader io.Reader, urlContext *exturl.Context) (*cloutpkg.Clout, e
 }
 
 func WriteClout(clout *cloutpkg.Clout, writer io.Writer) error {
-	return (&transcribe.Transcriber{Indent: "  "}).Write(clout, writer, "yaml")
+	return transcribe.NewTranscriber().SetWriter(writer).SetIndentSpaces(2).WriteYAML(clout)
 }
 
 func RequireCloutScriptlet(clout *cloutpkg.Clout, scriptletName string, arguments map[string]string, urlContext *exturl.Context) (string, error) {
-	jsContext := js.NewContext(scriptletName, pucciniLog, arguments, false, "yaml", false, false, false, "", urlContext)
+	environment := js.NewEnvironment(scriptletName, pucciniLog, arguments, false, "yaml", false, false, false, "", urlContext)
 	var builder strings.Builder
-	jsContext.Stdout = &builder
-	if _, err := jsContext.Require(clout, scriptletName, nil); err == nil {
+	environment.Stdout = &builder
+	if _, err := environment.Require(clout, scriptletName, nil); err == nil {
 		return builder.String(), nil
 	} else {
 		return "", err

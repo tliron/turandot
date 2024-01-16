@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/tliron/commonlog"
 	"github.com/tliron/exturl"
 	"github.com/tliron/go-ard"
 	"github.com/tliron/go-transcribe"
@@ -22,7 +23,7 @@ import (
 func (self *Controller) ReadClout(context contextpkg.Context, cloutPath string, resolve bool, coerce bool, urlContext *exturl.Context) (*cloutpkg.Clout, error) {
 	if url, err := urlContext.NewURL(cloutPath); err == nil {
 		if reader, err := url.Open(context); err == nil {
-			defer reader.Close()
+			defer commonlog.CallAndLogWarning(reader.Close, "exturl.ReadToInternalURLsFromFS", self.Log)
 			if clout, err := ReadClout(reader, urlContext); err == nil {
 				problems := &problemspkg.Problems{}
 

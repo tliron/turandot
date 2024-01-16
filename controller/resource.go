@@ -28,7 +28,7 @@ func (self *Controller) GetAttributesFromResources(resourceMappings parser.Kuber
 			if resourceMapping.AttributeMappings != nil {
 				if unstructured, err := self.GetResource(resourceMapping); err == nil {
 					for from, attributeName := range resourceMapping.AttributeMappings {
-						fromNode := ard.NewNode(unstructured.Object)
+						fromNode := ard.With(unstructured.Object)
 						for _, element := range strings.Split(from, ".") {
 							fromNode = fromNode.Get(element)
 						}
